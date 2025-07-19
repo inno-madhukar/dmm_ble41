@@ -9,8 +9,10 @@ import BleManager, {
   BleManagerDidUpdateValueForCharacteristicEvent,
 } from 'react-native-ble-manager';
 import classifyArray from '../Components/arrClasiffy'; // adjust path
+import RNPrint from 'react-native-print';
+import { NativeModules } from 'react-native';
 
-type PeripheralDeviceScreenRouteProp = RouteProp<MyTabParamList, 'PeripheralDeviceScreen'>;
+const { ManageExternalStorage } = NativeModules;
 
 interface PeripheralDetailsProps {
   route: {
@@ -20,6 +22,7 @@ interface PeripheralDetailsProps {
   };
 }
 
+
 const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
   const peripheralData = route.params.peripheralData;
   const [receivedValues, setReceivedValues] = useState<{ ascii: string }[]>([]);
@@ -28,14 +31,51 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
 
+async function checkPermission() {
+  const hasPermission = await ManageExternalStorage.hasPermission();
+  if (!hasPermission) {
+    console.log(hasPermission)
+    requestPermission();
+  }
+}
+
+  function requestPermission() {
+  ManageExternalStorage.requestPermission();
+}
   const handleInputChange = (text: string, index: number) => {
     const updated = [...inputs];
     updated[index] = text;
     setInputs(updated);
   };
 
+const printData = async (data: string[], note: string) => {
+  const [timestamp, deviceId, temp, moisture, weight, commodity] = data;
+    // console.log(t)
+  const html = `
+    <html>
+      <body style="font-family: sans-serif; padding: 20px;">
+        <h2 style="color: #2f3ceeff;">Digital Moisture Meter BLE</h2>
+        <p><strong>Serial ID:</strong> ${deviceId}</p>
+        <p><strong>Item:</strong> ${commodity}</p>
+        <p><strong>Moisture:</strong> ${moisture} %</p>
+        <p><strong>Weight:</strong> ${weight} ${weight.toUpperCase() !== 'FULL' ? 'grams' : ''}</p>
+        <p><strong>Temperature:</strong> ${temp} °C</p>
+        <p><strong>Timestamp:</strong> ${timestamp}</p>
+        ${note ? `<p><strong>Note:</strong> ${note}</p>` : ''}
+      </body>
+    </html>
+  `;
 
-  const saveToCSV = async (data: string[], note: string, inputs: string[]) => {
+  try {
+    await RNPrint.print({ html });
+  } catch (error) {
+    console.error('Print error:', error);
+    setSnackbarMessage('Error while printing');
+    setSnackbarVisible(true);
+  }
+};
+
+  const saveToCSV = async (data: string[], note: string) => {
   const hasPermission = await requestStoragePermission();
 
    if (hasPermission) { 
@@ -43,14 +83,18 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
       peripheralData?.name || peripheralData?.advertising?.localName || 'NO_NAME';
       try {
         const folder='DMM123'
-      const csvRow = [...data, note, ...inputs].map(val => `"${val}"`).join(',') + '\n';
+            // const csvLine = .join(',') + '\n';
+      const csvRow = [...data, note].map(val => `"${val}"`).join(',') + '\n';
+      console.log(csvRow)
+      console.log(note)
       const safeName = deviceName.replace(/[^a-zA-Z0-9-_]/g, '_');
       const path = `${RNFS.DownloadDirectoryPath}/${safeName}_data.csv`;
       console.log(path)
       // const path = `${RNFS.DocumentDirectoryPath}/ble_readings.csv`;
       const fileExists = await RNFS.exists(path);
+      console.log(fileExists)
       if (!fileExists) {
-        const header = `"Date","Device ID","Temp °C","Moisture %","Weight (gm)","Commodity Name","Note","Input1","Input2","Input3","Input4","Input5"\n`;
+        const header = `"Date","Device ID","Temp °C","Moisture %","Weight (gm)","Commodity Name","Note"\n`;
         await RNFS.writeFile(path, header + csvRow, 'utf8');
       } else {
         await RNFS.appendFile(path, csvRow, 'utf8');
@@ -91,6 +135,7 @@ const requestStoragePermission = async (): Promise<boolean> => {
       return readGranted && writeGranted;
     } catch (err) {
       console.warn('Permission error:', err);
+      console.log(err)
       return false;
     }
   };
@@ -156,9 +201,14 @@ const requestStoragePermission = async (): Promise<boolean> => {
                 <IconButton
                   icon="content-save"
                   size={24}
-                  onPress={() => saveToCSV(finalArray, userNote, inputs)}
+                  onPress={() => saveToCSV(finalArray, userNote) }  //
                 />
-                <IconButton icon="printer" size={24} onPress={() => {}} />
+                <IconButton
+                  icon="permission"
+                  size={24}
+                  onPress={() => checkPermission() }  //saveToCSV(finalArray, userNote)
+                />
+                <IconButton icon="printer" size={24}   onPress={() => printData(finalArray, userNote)} />
               </View>
 
               <Text style={styles.label}>
@@ -181,21 +231,11 @@ const requestStoragePermission = async (): Promise<boolean> => {
                 <Text style={styles.bold}>Timestamp:</Text> {finalArray[0]}
               </Text>
 
-              {inputs.map((value, index) => (
-                <TextInput
-                  key={index}
-                  label={`Input field ${index + 1}`}
-                  mode="outlined"
-                  value={value}
-                  onChangeText={text => handleInputChange(text, index)}
-                  style={styles.input}
-                />
-              ))}
-
               <TextInput
                 label="Note"
                 mode="outlined"
                 value={userNote}
+                multiline
                 onChangeText={setUserNote}
                 style={styles.input}
               />

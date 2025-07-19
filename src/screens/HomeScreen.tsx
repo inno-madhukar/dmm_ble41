@@ -10,6 +10,7 @@ import BleManager, {
   BleScanMode,
   Peripheral,
 } from 'react-native-ble-manager';
+
 import { lightTheme } from '../../theme';
 const SECONDS_TO_SCAN_FOR = 3;
 const SERVICE_UUIDS: string[] = [];
