@@ -133,7 +133,7 @@ const RecordsScreen: React.FC = () => {
       <Text style={styles.title}>Records Screen</Text>
 
       <View style={styles.button}>
-        <Button title="Select CSV File" onPress={selectCSVFile} />
+        <Button title="Select File" onPress={selectCSVFile} />
       </View>
 
       <View style={styles.button}>

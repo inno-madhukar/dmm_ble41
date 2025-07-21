@@ -1,0 +1,195 @@
+// utils/detailedPdfGenerator.ts
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import RNFS from 'react-native-fs';
+import RNPrint from 'react-native-print';
+import { Buffer } from 'buffer';
+import { Platform,Image as RNImage } from 'react-native';
+
+global.Buffer = Buffer;
+
+export async function generateStyledPDF({
+ 
+  serialNo,
+  commodityName,
+  moisture,
+  temperature,
+  time,
+  sampleQty,
+  note,
+}: {
+ 
+  serialNo: string;
+  commodityName: string;
+  moisture: string;
+  temperature: string;
+  time: string;
+  sampleQty: string;
+  note:string
+}) {
+
+  const pdfDoc = await PDFDocument.create();
+  const page = pdfDoc.addPage([595, 842]); // A4 size
+
+  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+
+  const { width, height } = page.getSize();
+
+  let y = height - 40;
+
+
+  page.drawRectangle({
+    x: 50,
+    y: y - 40,
+    width: 80,
+    height: 40,
+    color: rgb(0.9, 0.4, 0.2),
+  });
+  page.drawText('LOGO', {
+    x: 60,
+    y: y - 20,
+    size: 12,
+    font: boldFont,
+    color: rgb(1, 1, 1),
+  });
+
+  // 🏢 Company Info
+  page.drawText('Innovative Instruments', {
+    x: 150,
+    y: y - 10,
+    size: 16,
+    font: boldFont,
+    color: rgb(0, 0, 0),
+  });
+  page.drawText(
+    'No. 123, Mahigan Society, Behind Convent,\nSubhanpura, Vadodara, Gujarat - 390002, India.',
+    {
+      x: 150,
+      y: y - 30,
+      size: 10,
+      font,
+      color: rgb(0.1, 0.1, 0.1),
+      lineHeight: 12,
+    }
+  );
+
+  // 📧 Contact Info
+  page.drawText('Email: info@innovative-instruments.in', {
+    x: width - 230,
+    y: y - 10,
+    size: 8,
+    font,
+  });
+  page.drawText('Ph No: 9328615024', {
+    x: width - 230,
+    y: y - 25,
+    size: 8,
+    font,
+  });
+
+  y -= 60;
+  page.drawLine({ start: { x: 40, y }, end: { x: width - 40, y }, thickness: 1 });
+
+  y -= 50;
+
+  // 🧾 Info Block
+  const info = [
+   
+    ['Serial No', serialNo],
+    ['Commodity Name', commodityName],
+    ['Moisture', `${moisture} %`],
+    ['Sample Temperature', `${temperature} °C`],
+    ['Time', time],
+    ['Sample Quantity Required ', sampleQty],
+  ];
+
+  info.forEach(([label, value]) => {
+    page.drawText(`${label} :`, {
+      x: 60,
+      y,
+      font: boldFont,
+      size: 11,
+      color: rgb(0, 0, 0),
+    });
+    page.drawText(value, {
+      x: 220,
+      y,
+      font,
+      size: 11,
+      color: rgb(0, 0, 0),
+    });
+    y -= 25;
+  });
+
+   y -= 30;
+  page.drawText('Other Information:', {
+    x: 60,
+    y,
+    font: boldFont,
+    size: 12,
+    color: rgb(0, 0, 0),
+  });
+  const noteLines=note.split("\n")
+  noteLines.forEach(line => {
+  page.drawText(line, {
+    x: 220,
+    y,
+    font,
+    size: 11,
+    color: rgb(0, 0, 0),
+  });
+   y-=15 //we can also utilize this way
+});
+  y -= 50;
+  page.drawLine({ start: { x: 40, y }, end: { x: width - 40, y }, thickness: 0.5 });
+  // 🦶 Footer
+  page.drawLine({
+    start: { x: 40, y: 50 },
+    end: { x: width - 40, y: 50 },
+    thickness: 0.5,
+  });
+
+  page.drawText(
+    'Measured in Digital Moisture Meter by Innovative Instruments, Vadodara, Gujarat, India.',
+    {
+      x: 50,
+      y: 35,
+      font,
+      size: 8,
+      color: rgb(0.3, 0.3, 0.3),
+    }
+  );
+  page.drawText('Visit Us: www.innovative-instruments.in', {
+    x: 50,
+    y: 22,
+    font,
+    size: 8,
+    color: rgb(0.3, 0.3, 0.3),
+  });
+
+  // 📝 Save to Temporary Path
+  const pdfBytes = await pdfDoc.save();
+  const base64String = Buffer.from(pdfBytes).toString('base64');
+
+  const fileName = 'Temp_record_report.pdf';
+  const path =
+    Platform.OS === 'android'
+      ? `${RNFS.CachesDirectoryPath}/${fileName}`
+      : `${RNFS.TemporaryDirectoryPath}${fileName}`;
+
+  await RNFS.writeFile(path, base64String, 'base64');
+
+  try {
+    await RNPrint.print({ filePath: path });
+  } catch (err) {
+    console.warn('Printing was cancelled or failed:', err);
+  } finally {
+    // ✅ Delete temp file
+    RNFS.unlink(path)
+      .then(() => console.log('Temporary PDF deleted.'))
+      .catch(err => console.warn('Failed to delete temp PDF:', err));
+  }
+
+  return path;
+}

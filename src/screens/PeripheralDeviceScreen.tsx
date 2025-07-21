@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView,PermissionsAndroid, Platform } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, StyleSheet, ScrollView,PermissionsAndroid, Platform, Alert } from 'react-native';
 import { Text, TextInput, IconButton, Snackbar } from 'react-native-paper';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import RNFS from 'react-native-fs';
@@ -11,7 +11,7 @@ import BleManager, {
 import classifyArray from '../Components/arrClasiffy'; // adjust path
 import RNPrint from 'react-native-print';
 import { NativeModules } from 'react-native';
-
+import {generateStyledPDF} from '../Components/singlePdfGenerator';
 const { ManageExternalStorage } = NativeModules;
 
 interface PeripheralDetailsProps {
@@ -22,52 +22,56 @@ interface PeripheralDetailsProps {
   };
 }
 
+function getFormattedDate(): string {
+  const date = new Date();
+  const day = String(date.getDate()).padStart(2, '0');
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const month = monthNames[date.getMonth()];
+  const year = date.getFullYear();
+
+  return `${day}_${month}_${year}`;
+}
 
 const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
+
   const peripheralData = route.params.peripheralData;
   const [receivedValues, setReceivedValues] = useState<{ ascii: string }[]>([]);
   const [inputs, setInputs] = useState<string[]>(Array(5).fill(''));
   const [userNote, setUserNote] = useState('');
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-
-async function checkPermission() {
-  const hasPermission = await ManageExternalStorage.hasPermission();
-  if (!hasPermission) {
-    console.log(hasPermission)
-    requestPermission();
-  }
-}
+  // const checker=useRef()
+// async function checkPermission() {
+//   const hasPermission = await ManageExternalStorage.hasPermission();
+//   if (!hasPermission) {
+//     console.log(hasPermission)
+//     requestPermission();
+    
+//   }
+//   // else{return true}
+// }
 
   function requestPermission() {
+
   ManageExternalStorage.requestPermission();
+ 
 }
-  const handleInputChange = (text: string, index: number) => {
-    const updated = [...inputs];
-    updated[index] = text;
-    setInputs(updated);
-  };
+
 
 const printData = async (data: string[], note: string) => {
   const [timestamp, deviceId, temp, moisture, weight, commodity] = data;
-    // console.log(t)
-  const html = `
-    <html>
-      <body style="font-family: sans-serif; padding: 20px;">
-        <h2 style="color: #2f3ceeff;">Digital Moisture Meter BLE</h2>
-        <p><strong>Serial ID:</strong> ${deviceId}</p>
-        <p><strong>Item:</strong> ${commodity}</p>
-        <p><strong>Moisture:</strong> ${moisture} %</p>
-        <p><strong>Weight:</strong> ${weight} ${weight.toUpperCase() !== 'FULL' ? 'grams' : ''}</p>
-        <p><strong>Temperature:</strong> ${temp} °C</p>
-        <p><strong>Timestamp:</strong> ${timestamp}</p>
-        ${note ? `<p><strong>Note:</strong> ${note}</p>` : ''}
-      </body>
-    </html>
-  `;
-
+  console.log(note)
   try {
-    await RNPrint.print({ html });
+    const path=generateStyledPDF({
+  serialNo: deviceId,
+  commodityName: commodity,
+  moisture: moisture,
+  temperature: temp,
+  time: timestamp,
+  sampleQty: weight,
+  note:note,
+})
   } catch (error) {
     console.error('Print error:', error);
     setSnackbarMessage('Error while printing');
@@ -77,8 +81,9 @@ const printData = async (data: string[], note: string) => {
 
   const saveToCSV = async (data: string[], note: string) => {
   const hasPermission = await requestStoragePermission();
+  const hasPermission1 = await ManageExternalStorage.hasPermission();
 
-   if (hasPermission) { 
+   if (hasPermission && hasPermission1) { 
     let deviceName =
       peripheralData?.name || peripheralData?.advertising?.localName || 'NO_NAME';
       try {
@@ -88,7 +93,7 @@ const printData = async (data: string[], note: string) => {
       console.log(csvRow)
       console.log(note)
       const safeName = deviceName.replace(/[^a-zA-Z0-9-_]/g, '_');
-      const path = `${RNFS.DownloadDirectoryPath}/${safeName}_data.csv`;
+      const path = `${RNFS.DownloadDirectoryPath}/${safeName}_${getFormattedDate()}.csv`;
       console.log(path)
       // const path = `${RNFS.DocumentDirectoryPath}/ble_readings.csv`;
       const fileExists = await RNFS.exists(path);
@@ -100,7 +105,8 @@ const printData = async (data: string[], note: string) => {
         await RNFS.appendFile(path, csvRow, 'utf8');
       }
 
-      setSnackbarMessage('Data saved to CSV!');
+      setSnackbarMessage('Data saved to CSV! ');
+      Alert.alert('csv file path',path)
       setSnackbarVisible(true);
     } catch (error) {
       console.error('Failed to save CSV:', error);
@@ -108,8 +114,9 @@ const printData = async (data: string[], note: string) => {
       setSnackbarVisible(true);
     }
   } else {
-    setSnackbarMessage('Storage permission denied');
-    setSnackbarVisible(true);
+    requestPermission()
+    // setSnackbarMessage('Storage permission denied');
+    // setSnackbarVisible(true);
   }
   
   };
@@ -203,11 +210,7 @@ const requestStoragePermission = async (): Promise<boolean> => {
                   size={24}
                   onPress={() => saveToCSV(finalArray, userNote) }  //
                 />
-                <IconButton
-                  icon="permission"
-                  size={24}
-                  onPress={() => checkPermission() }  //saveToCSV(finalArray, userNote)
-                />
+               
                 <IconButton icon="printer" size={24}   onPress={() => printData(finalArray, userNote)} />
               </View>
 

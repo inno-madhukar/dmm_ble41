@@ -53,8 +53,8 @@ const navigation = useNavigation<BottomTabNavigationProp<MyTabParamList>>();
           />
         }
       >
-        <Menu.Item title="Help" onPress={() => navigation.navigate('HelpScreen',{userID:123})} />
-        <Menu.Item title="Cancel" onPress={() => {}} />
+        {/* <Menu.Item title="option0" onPress={() => navigation.navigate('HelpScreen',{userID:123})} /> */}
+        <Menu.Item title="option1" onPress={() => {}} />
       </Menu>
     </Appbar.Header>
   );
@@ -69,7 +69,6 @@ const BottomTabs = () => {
     <Tab.Navigator
       screenOptions={{
         headerShown: true,
-      
          header: () => <CustomHeader />,
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.onSurface,
@@ -80,7 +79,7 @@ const BottomTabs = () => {
       }}
     >
       <Tab.Screen
-        name="HomeScreen"
+        name="HomeScreen1"
         component={HomeStack}
         options={{
           tabBarLabel: 'Home',

@@ -30,7 +30,7 @@ const HomeStack = () => {
         <Stack.Screen
           name="PeripheralDeviceScreen"
           component={PeripheralDeviceScreen}
-          options={{ headerShown: true, title: '' }}
+          options={{ headerShown: true, title: 'Back' }}
         />
       </Stack.Navigator>
   );

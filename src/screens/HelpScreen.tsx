@@ -13,6 +13,7 @@ const HelpScreen = () => {
   return (
     <View style={{ flex: 1, padding: 16, justifyContent: 'center' }}>
       <Text variant="headlineMedium">{`User ID: ${userID}`} Help</Text>
+      {/* <Text></Text> */}
     </View>
   );
 };
