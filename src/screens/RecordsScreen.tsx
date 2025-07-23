@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
-import { View, Alert, StyleSheet, Button, ScrollView } from 'react-native';
-import { Text, DataTable } from 'react-native-paper';
+import {
+  View,
+  Alert,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
+import { Text, DataTable, IconButton } from 'react-native-paper';
 import RNFS from 'react-native-fs';
 import Share from 'react-native-share';
 
@@ -32,7 +38,8 @@ interface DocumentPickerResponse {
   type?: string;
   size?: number;
 }
-
+const hederobj = ["Date", "DeviceID","Temp", "Moisture", "Weight","CommodityName","Note"
+]
 const RecordsScreen: React.FC = () => {
   const [csvData, setCsvData] = useState<CSVRow[]>([]);
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
@@ -51,7 +58,7 @@ const RecordsScreen: React.FC = () => {
       if (lines[i].trim() !== '') {
         const values: string[] = lines[i].split(',').map((value: string) => value.trim().replace(/"/g, ''));
         const row: CSVRow = {};
-        headers.forEach((header: string, index: number) => {
+        hederobj.forEach((header: string, index: number) => {
           row[header] = values[index] || '';
         });
         data.push(row);
@@ -82,9 +89,11 @@ const RecordsScreen: React.FC = () => {
         await RNFS.copyFile(file.uri, cachePath);
         const fileContent: string = await RNFS.readFile(file.uri, 'utf8');
         parsedData = parseCSV(fileContent);
+        console.log(parsedData)
         setCsvData(parsedData.data);
         setCsvHeaders(parsedData.headers);
         await RNFS.unlink(cachePath);
+        console.log(cachePath)
       } else {
         const fileContent: string = await RNFS.readFile(file.uri, 'utf8');
         parsedData = parseCSV(fileContent);
@@ -108,11 +117,20 @@ const RecordsScreen: React.FC = () => {
 
   const handleGeneratePDF = async (): Promise<void> => {
     try {
-      const records: string[] = csvData.length > 0
-        ? csvData.map((row: CSVRow) => Object.values(row).join(' - '))
-        : ['Device 001 - Temp: 25°C', 'Device 002 - Temp: 26°C', 'Device 003 - Temp: 28°C'];
-
-      const path: string = await generateSimplePDF(records);
+      console.log(csvData)
+      // const records: string[] = csvData.length > 0
+      //   ? csvData.map((row: CSVRow) => Object.values(row).join(' - '))
+      //   : ['Device 001 - Temp: 25°C', 'Device 002 - Temp: 26°C', 'Device 003 - Temp: 28°C'];
+              type BLERecord = {
+          "Date": string;
+          "DeviceID": string;
+          "Temp": string;
+          "Moisture": string;
+          "Weight": string;
+          "CommodityName": string;
+          "Note": string;
+        };
+      const path: string = await generateSimplePDF(csvData as BLERecord[]);
       Alert.alert('PDF Created', `Saved at: ${path}`);
     } catch (error) {
       Alert.alert('Error', 'Failed to generate PDF');
@@ -120,8 +138,9 @@ const RecordsScreen: React.FC = () => {
   };
 
   const sharePDF = async (): Promise<void> => {
+
     try {
-      const path = `${RNFS.DownloadDirectoryPath}/example1.pdf`;
+      const path = `${RNFS.DownloadDirectoryPath}/demo.pdf`;
       await Share.open({ url: `file://${path}`, type: 'application/pdf' });
     } catch (error) {
       Alert.alert('Error', 'Failed to share PDF');
@@ -129,34 +148,25 @@ const RecordsScreen: React.FC = () => {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Records Screen</Text>
+    <ScrollView contentContainerStyle={styles.container}>
+      <TouchableOpacity style={styles.selectButton} onPress={selectCSVFile}>
+        <Text style={styles.selectButtonText}>SELECT A FILE</Text>
+      </TouchableOpacity>
 
-      <View style={styles.button}>
-        <Button title="Select File" onPress={selectCSVFile} />
-      </View>
-
-      <View style={styles.button}>
-        <Button title="Generate PDF" onPress={handleGeneratePDF} />
-      </View>
-
-      <View style={styles.button}>
-        <Button title="Share PDF" onPress={sharePDF} />
-      </View>
-
-      {selectedFileName && (
-        <View style={styles.fileInfo}>
-          <Text style={styles.fileInfoTitle}>Selected CSV File</Text>
-          <Text><Text style={styles.label}>File Name:</Text> {selectedFileName}</Text>
-          <Text><Text style={styles.label}>Records Count:</Text> {csvData.length}</Text>
+      {selectedFileName ? (
+        <View style={styles.fileRow}>
+          <Text style={styles.selectedFile}>
+            <Text style={{ fontWeight: 'bold' }}>Selected file:</Text> {selectedFileName}
+          </Text>
+          <View style={styles.iconRow}>
+            <IconButton icon="share-variant" size={24} onPress={sharePDF} />
+            <IconButton icon="printer" size={24} onPress={handleGeneratePDF} />
+          </View>
         </View>
-      )}
+      ) : null}
 
       {csvData.length > 0 && csvHeaders.length > 0 && (
         <View style={styles.tableContainer}>
-          <Text style={styles.tableTitle}>CSV Data ({csvData.length} rows)</Text>
-
-          {/* Horizontal Scroll */}
           <ScrollView horizontal showsHorizontalScrollIndicator>
             <View>
               <DataTable>
@@ -168,11 +178,10 @@ const RecordsScreen: React.FC = () => {
                   ))}
                 </DataTable.Header>
 
-                {/* Vertical Scroll for rows */}
                 <ScrollView style={{ maxHeight: 400 }}>
                   {csvData.map((row, rowIndex) => (
                     <DataTable.Row key={rowIndex}>
-                      {csvHeaders.map((header, cellIndex) => (
+                      {hederobj.map((header, cellIndex) => (
                         <DataTable.Cell key={cellIndex} style={styles.cell}>
                           {row[header]}
                         </DataTable.Cell>
@@ -183,13 +192,6 @@ const RecordsScreen: React.FC = () => {
               </DataTable>
             </View>
           </ScrollView>
-
-          {csvData.length > 10 && (
-            <Text style={styles.tableFooter}>
-              Showing all {csvData.length} rows. Scroll to view more.
-            </Text>
-          )}
-          
         </View>
       )}
     </ScrollView>
@@ -198,69 +200,44 @@ const RecordsScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
+    padding: 16,
+  },
+  selectButton: {
+    backgroundColor: '#FFA86B',
+    alignSelf: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 22,
+    borderRadius: 20,
+    marginBottom: 16,
+  },
+  selectButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    letterSpacing: 1,
+  },
+  fileRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  selectedFile: {
+    fontSize: 14,
     flex: 1,
-    padding: 16,
+    marginRight: 8,
   },
-  title: {
-    textAlign: 'center',
-    marginBottom: 30,
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  button: {
-    marginBottom: 20,
-  },
-  fileInfo: {
-    backgroundColor: '#f5f5f5',
-    padding: 16,
-    borderRadius: 8,
-    marginTop: 10,
-    marginBottom: 20,
-  },
-  fileInfoTitle: {
-    marginBottom: 10,
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  label: {
-    fontWeight: 'bold',
+  iconRow: {
+    flexDirection: 'row',
   },
   tableContainer: {
-    flex: 1,
-    marginTop: 20,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    paddingBottom: 10,
-  },
-  tableTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    padding: 16,
-    backgroundColor: '#f8f9fa',
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#dee2e6',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 6,
+    overflow: 'hidden',
   },
   cell: {
-    minWidth: 120, // Adjust this value based on expected data size
-    paddingHorizontal: 4,
+    minWidth: 120,
     justifyContent: 'center',
-  },
-  tableFooter: {
-    padding: 12,
-    textAlign: 'center',
-    fontSize: 12,
-    color: '#6c757d',
-    fontStyle: 'italic',
-    backgroundColor: '#f8f9fa',
-    borderBottomLeftRadius: 8,
-    borderBottomRightRadius: 8,
   },
 });
 

@@ -9,7 +9,7 @@ global.Buffer = Buffer;
 
 export async function generateStyledPDF({
  
-  serialNo,
+  DeviceID,
   commodityName,
   moisture,
   temperature,
@@ -18,7 +18,7 @@ export async function generateStyledPDF({
   note,
 }: {
  
-  serialNo: string;
+  DeviceID: string;
   commodityName: string;
   moisture: string;
   temperature: string;
@@ -96,7 +96,7 @@ export async function generateStyledPDF({
   // 🧾 Info Block
   const info = [
    
-    ['Serial No', serialNo],
+    ['Device ID', DeviceID],
     ['Commodity Name', commodityName],
     ['Moisture', `${moisture} %`],
     ['Sample Temperature', `${temperature} °C`],

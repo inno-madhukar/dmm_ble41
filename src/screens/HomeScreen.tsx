@@ -60,9 +60,15 @@ const HomeScreen = ({ navigation }:{navigation: NavigationProp<MyTabParamList>})
   const handleConnectPeripheral = (_event: any) => {};
 
   const handleDiscoverPeripheral = (peripheral: Peripheral) => {
-    if (!peripheral.name) peripheral.name = 'NO NAME';
+  const deviceName = peripheral.name || peripheral.advertising?.localName;
+
+  // Filter only devices that start with 'DMM'
+  if (deviceName?.startsWith('DMM')) {
+    peripheral.name = deviceName; // ensure name is set
     setPeripherals((map) => new Map(map.set(peripheral.id, peripheral)));
-  };
+  }
+};
+
 
   const togglePeripheralConnection = async (peripheral: Peripheral) => {
     if (peripheral?.connected) {

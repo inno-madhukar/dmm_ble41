@@ -1,10 +1,49 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { Provider as PaperProvider, Text } from 'react-native-paper';
+import { Provider as PaperProvider } from 'react-native-paper';
 import BottomTabs from './src/navigation/BottomTabs';
 import { lightTheme } from './theme';
+import RNFS from 'react-native-fs';
+import { PermissionsAndroid, Platform } from 'react-native';
 
 const App = () => {
+  useEffect(() => {
+    const createDownloadFolder = async () => {
+      if (Platform.OS === 'android') {
+        
+        try {
+          const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+            {
+              title: 'Storage Permission Required',
+              message: 'App needs access to storage to create files',
+              buttonNeutral: 'Ask Me Later',
+              buttonNegative: 'Cancel',
+              buttonPositive: 'OK',
+            },
+          );
+          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+            const folderPath = `${RNFS.DownloadDirectoryPath}/YourAppFolder`;
+
+            const exists = await RNFS.exists(folderPath);
+            if (!exists) {
+              await RNFS.mkdir(folderPath);
+              console.log('Download folder created:', folderPath);
+            } else {
+              console.log('Download folder already exists:', folderPath);
+            }
+          } else {
+            console.warn('Storage permission denied');
+          }
+        } catch (err) {
+          console.error('Error requesting permission or creating folder:', err);
+        }
+      }
+    };
+
+    createDownloadFolder();
+  }, []);
+
   return (
     <PaperProvider theme={lightTheme}>
       <NavigationContainer>

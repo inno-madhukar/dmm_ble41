@@ -32,6 +32,22 @@ function getFormattedDate(): string {
 
   return `${day}_${month}_${year}`;
 }
+function getFormattedDateTime(): string {
+  const date = new Date();
+
+  const day = String(date.getDate()).padStart(2, '0');
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const month = monthNames[date.getMonth()];
+  const year = date.getFullYear();
+
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+
+  return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+}
+
 
 const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
 
@@ -64,7 +80,7 @@ const printData = async (data: string[], note: string) => {
   console.log(note)
   try {
     const path=generateStyledPDF({
-  serialNo: deviceId,
+DeviceID: deviceId,
   commodityName: commodity,
   moisture: moisture,
   temperature: temp,
@@ -80,9 +96,11 @@ const printData = async (data: string[], note: string) => {
 };
 
   const saveToCSV = async (data: string[], note: string) => {
+   
   const hasPermission = await requestStoragePermission();
+  console.log(hasPermission)
   const hasPermission1 = await ManageExternalStorage.hasPermission();
-
+// console.log(hasPermission1)
    if (hasPermission && hasPermission1) { 
     let deviceName =
       peripheralData?.name || peripheralData?.advertising?.localName || 'NO_NAME';
@@ -199,7 +217,7 @@ const requestStoragePermission = async (): Promise<boolean> => {
           );
 
           const { deviceIdArray, readingsArray, commodityArray } = classifyArray(asciiArrays);
-          const formattedTime = new Date().toISOString();
+          const formattedTime = getFormattedDateTime();
           const finalArray = [formattedTime, ...deviceIdArray, ...readingsArray, ...commodityArray];
  
           return (
@@ -215,7 +233,7 @@ const requestStoragePermission = async (): Promise<boolean> => {
               </View>
 
               <Text style={styles.label}>
-                <Text style={styles.bold}>Serial ID:</Text> {finalArray[1]}
+                <Text style={styles.bold}>Device ID:</Text> {finalArray[1]}
               </Text>
               <Text style={styles.label}>
                 <Text style={styles.bold}>Item:</Text> {finalArray[5]}
