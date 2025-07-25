@@ -12,18 +12,18 @@ const App = () => {
       if (Platform.OS === 'android') {
         
         try {
-          const granted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-            {
-              title: 'Storage Permission Required',
-              message: 'App needs access to storage to create files',
-              buttonNeutral: 'Ask Me Later',
-              buttonNegative: 'Cancel',
-              buttonPositive: 'OK',
-            },
-          );
-          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-            const folderPath = `${RNFS.DownloadDirectoryPath}/YourAppFolder`;
+          // const granted = await PermissionsAndroid.request(
+          //   PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+          //   {
+          //     title: 'Storage Permission Required',
+          //     message: 'hi',
+          //     buttonNeutral: 'Ask Me Later',
+          //     buttonNegative: 'Cancel',
+          //     buttonPositive: 'OK',
+          //   },
+          // );
+          if (true) {
+            const folderPath = `${RNFS.DownloadDirectoryPath}/DMMData`;
 
             const exists = await RNFS.exists(folderPath);
             if (!exists) {

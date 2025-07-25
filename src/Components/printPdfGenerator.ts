@@ -3,6 +3,7 @@ import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import RNFS from 'react-native-fs';
 import { Buffer } from 'buffer';
 import RNPrint from 'react-native-print';
+import  {  useState } from 'react';
 
 global.Buffer = Buffer;
 
@@ -26,36 +27,51 @@ type BLERecordArray = BLERecord[];
   Commodity_Name:"Commodity Name",
   Note:"Note"
 };
-export default async function generateSimplePDF(records:BLERecordArray) {
-  console.log(records[1])
+export default async function generateSimplePrintAndPDF(records:BLERecordArray,Dtype:string) {
+  
+let profile1 = {
+  image: '',
+  company: '',
+  email: '',
+  phone: '',
+  address: '',
+};
 
+const profileFilePath1 = `${RNFS.DownloadDirectoryPath}/DMMData/profile.json`;
+
+if (await RNFS.exists(profileFilePath1)) {
+  const data = await RNFS.readFile(profileFilePath1, 'utf8');
+  profile1 = JSON.parse(data);
+}
+console.log(profile1);
+
+ const getImageBase64 = async (uri: string): Promise<string> => {
+  const path = uri.replace('file://', '');
+  return await RNFS.readFile(path, 'base64');
+};
+
+  const base64 = await getImageBase64(profile1.image);
+  
   const pdfDoc = await PDFDocument.create();
   let page = pdfDoc.addPage([595, 842]); // A4 size
 
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
   const { width, height } = page.getSize();
+  const jpgImage = await pdfDoc.embedJpg(base64);
 
-  
   function createHeader(y:number){
     
-  page.drawRectangle({
-    x: 50,
-    y: y - 40,
-    width: 80,
-    height: 40,
-    color: rgb(0.9, 0.4, 0.2),
-  });
-  page.drawText('LOGO', {
-    x: 60,
-    y: y - 20,
-    size: 12,
-    font: boldFont,
-    color: rgb(1, 1, 1),
+  page.drawImage(jpgImage, {
+    x: 40,
+    y: height-75,
+    width:80,
+    height:60,
   });
 
+
   // 🏢 Company Info
-  page.drawText('Innovative Instruments', {
+  page.drawText(profile1.company, {
     x: 150,
     y: y - 10,
     size: 16,
@@ -63,7 +79,7 @@ export default async function generateSimplePDF(records:BLERecordArray) {
     color: rgb(0, 0, 0),
   });
   page.drawText(
-    'No. 123, Mahigan Society, Behind Convent,\nSubhanpura, Vadodara, Gujarat - 390002, India.',
+    profile1.address,
     {
       x: 150,
       y: y - 30,
@@ -75,13 +91,13 @@ export default async function generateSimplePDF(records:BLERecordArray) {
   );
 
   // 📧 Contact Info
-  page.drawText('Email: info@innovative-instruments.in', {
+  page.drawText(`Email: ${profile1.email}`, {
     x: width - 230,
     y: y - 10,
     size: 8,
     font,
   });
-  page.drawText('Ph No: 9328615024', {
+  page.drawText(`Ph No: ${profile1.phone}`, {
     x: width - 230,
     y: y - 25,
     size: 8,
@@ -91,6 +107,24 @@ export default async function generateSimplePDF(records:BLERecordArray) {
   y -= 60;
   page.drawLine({ start: { x: 40, y }, end: { x: width - 40, y }, thickness: 1 });
 
+
+  page.drawText(
+    'Measured in Digital Moisture Meter by Innovative Instruments, Vadodara, Gujarat, India.',
+    {
+      x: 50,
+      y: 30,
+      font,
+      size: 8,
+      color: rgb(0.3, 0.3, 0.3),
+    }
+  );
+  page.drawText('Visit Us: www.innovative-instruments.in', {
+    x: 50,
+    y: 17,
+    font,
+    size: 8,
+    color: rgb(0.3, 0.3, 0.3),
+  });
   }
 
   const fontSize = 9;
@@ -101,7 +135,7 @@ export default async function generateSimplePDF(records:BLERecordArray) {
   const bttomY=40
   console.log(Ly)
 
-  
+
   async function createLay(x:number,y:number) {
      page.drawLine({ start: { x: x, y }, end: { x: width - 40, y }, thickness: 0.5 }); //first
      page.drawLine({ start: { x: x, y:y}, end: { x: x, y:40  }, thickness: 0.5 });   // left
@@ -141,12 +175,20 @@ export default async function generateSimplePDF(records:BLERecordArray) {
     }
     let f=0
       Object.entries(record).forEach(([key, value]) => {
+
         if(f==3){
+          console.log("conditionddd",f)
           f=0
           x=90
-          y-=20
+          y-=15
         }
-        
+         if (key=="Date"){
+          value=value.replace("\n"," ")
+        }
+        else if(key=="Note"){
+          value=value.replaceAll("\n"," ")
+          
+        }
       page.drawText(`${key}:`, {
     x: x,
     y,
@@ -156,14 +198,41 @@ export default async function generateSimplePDF(records:BLERecordArray) {
   });
 
   const keyWidth = boldFont.widthOfTextAtSize(`${key}:`, fontSize);
+  if(key=="Note"){
+    const varr = value.split(" ");
+    console.log(varr)
 
-  page.drawText(`${value}`, {
+      if(varr.length>1){
+varr.forEach((val)=>{
+ page.drawText(`${val}`, {
     x: x + keyWidth + 5, // slight gap after key
     y,
     size: fontSize,
     font: font,
     color: rgb(0, 0, 0),
   });
+  y-=10
+    })
+      }
+      else{
+         page.drawText(`${value}`, {
+    x: x + keyWidth + 5, // slight gap after key
+    y,
+    size: fontSize,
+    font: font,
+    color: rgb(0, 0, 0),
+  });
+      }   
+  }
+  else{
+ page.drawText(`${value}`, {
+    x: x + keyWidth + 5, // slight gap after key
+    y,
+    size: fontSize,
+    font: font,
+    color: rgb(0, 0, 0),
+  });
+  }
 
     x+=150
     f+=1
@@ -174,7 +243,7 @@ export default async function generateSimplePDF(records:BLERecordArray) {
 
       page.drawText(`${index+1}`, {
     x:  50, // slight gap after key
-    y:y+10,
+    y:y+25,
     size: fontSize,
     font: font,
     color: rgb(0, 0, 0),
@@ -182,9 +251,6 @@ export default async function generateSimplePDF(records:BLERecordArray) {
     x=90
     y -= 20;
   });
-
-
-
 
   }
 
@@ -197,11 +263,17 @@ export default async function generateSimplePDF(records:BLERecordArray) {
   // ✅ Convert to base64
   const base64String = Buffer.from(pdfBytes).toString('base64');
 
+ let path = `${RNFS.DocumentDirectoryPath}/Temp_Print_Table.pdf`;  // ✅ Save to file
 
-  // ✅ Save to file
-  const path = `${RNFS.DownloadDirectoryPath}/demo.pdf`;
+  if(Dtype !="print"){
+       const fName = Dtype.replace(/\.csv$/i, "");
+   path= `${RNFS.DocumentDirectoryPath}/${fName}.pdf`;
+   await RNFS.writeFile(path, base64String, 'base64');  
+   console.log(fName)
+   console.log(path)
+   return path
+  }
 await RNFS.writeFile(path, base64String, 'base64');
-await RNPrint.print({ filePath: path });
 console.log("hi")
   return path;
 }

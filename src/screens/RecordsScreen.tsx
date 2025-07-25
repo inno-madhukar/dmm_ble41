@@ -6,9 +6,10 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import { Text, DataTable, IconButton } from 'react-native-paper';
+import { Text, DataTable, IconButton,Portal,Button,Dialog } from 'react-native-paper';
 import RNFS from 'react-native-fs';
 import Share from 'react-native-share';
+import RNPrint from 'react-native-print';
 
 let DocumentPicker: any = null;
 let types: any = null;
@@ -21,7 +22,7 @@ try {
   console.warn('Failed to import DocumentPicker:', error);
 }
 
-import generateSimplePDF from '../Components/pdfGenerator';
+import generateSimplePrintAndPDF from '../Components/printPdfGenerator';
 
 interface CSVRow {
   [key: string]: string;
@@ -44,6 +45,9 @@ const RecordsScreen: React.FC = () => {
   const [csvData, setCsvData] = useState<CSVRow[]>([]);
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
   const [selectedFileName, setSelectedFileName] = useState<string>('');
+  const [showShareDialog, setShowShareDialog] = useState(false);
+const [selectedFilePath, setSelectedFilePath] = useState<string>('');
+
   let parsedData: ParsedCSVData;
 
   const parseCSV = (csvText: string): ParsedCSVData => {
@@ -59,7 +63,16 @@ const RecordsScreen: React.FC = () => {
         const values: string[] = lines[i].split(',').map((value: string) => value.trim().replace(/"/g, ''));
         const row: CSVRow = {};
         hederobj.forEach((header: string, index: number) => {
-          row[header] = values[index] || '';
+          if(header=='Note'){
+           row[header] = values[index].replaceAll(" ","\n") || '';
+          }
+          else if(header=='Date'){
+           row[header] = values[index].replaceAll(" ","\n") || '';
+          }
+          else{
+            row[header] = values[index] || '';
+          }
+         
         });
         data.push(row);
       }
@@ -80,16 +93,17 @@ const RecordsScreen: React.FC = () => {
 
       const file: DocumentPickerResponse = result[0];
       setSelectedFileName(file.name || 'Unknown file');
-
+      console.log(file.uri)
       const fileExists = await RNFS.exists(file.uri);
-
+      setSelectedFilePath(file.uri); // Save path for sharing
       if (!fileExists) {
+        console.log(".........................................")
         const fileName = file.name || 'temp.csv';
         const cachePath = `${RNFS.CachesDirectoryPath}/${fileName}`;
         await RNFS.copyFile(file.uri, cachePath);
         const fileContent: string = await RNFS.readFile(file.uri, 'utf8');
         parsedData = parseCSV(fileContent);
-        console.log(parsedData)
+        console.log(parsedData.data)
         setCsvData(parsedData.data);
         setCsvHeaders(parsedData.headers);
         await RNFS.unlink(cachePath);
@@ -115,7 +129,7 @@ const RecordsScreen: React.FC = () => {
     }
   };
 
-  const handleGeneratePDF = async (): Promise<void> => {
+  const handleGeneratePrint = async (): Promise<void> => {
     try {
       console.log(csvData)
       // const records: string[] = csvData.length > 0
@@ -130,25 +144,77 @@ const RecordsScreen: React.FC = () => {
           "CommodityName": string;
           "Note": string;
         };
-      const path: string = await generateSimplePDF(csvData as BLERecord[]);
-      Alert.alert('PDF Created', `Saved at: ${path}`);
+      const path: string = await generateSimplePrintAndPDF(csvData as BLERecord[],"print");
+      await RNPrint.print({ filePath: path });
     } catch (error) {
-      Alert.alert('Error', 'Failed to generate PDF');
+      console.log(error)
+      Alert.alert("error", 'Failed to generate PDF');
     }
   };
 
   const sharePDF = async (): Promise<void> => {
 
     try {
-      const path = `${RNFS.DownloadDirectoryPath}/demo.pdf`;
+        type BLERecord = {
+          "Date": string;
+          "DeviceID": string;
+          "Temp": string;
+          "Moisture": string;
+          "Weight": string;
+          "CommodityName": string;
+          "Note": string;
+        };
+        const path: string = await generateSimplePrintAndPDF(csvData as BLERecord[],selectedFileName);
+        console.log(path)
+      // const path = `${RNFS.DownloadDirectoryPath}/demo.pdf`;
       await Share.open({ url: `file://${path}`, type: 'application/pdf' });
     } catch (error) {
       Alert.alert('Error', 'Failed to share PDF');
     }
   };
 
+
+const shareCSV = async (): Promise<void> => {
+ if (!selectedFilePath) {
+    Alert.alert('No file', 'Please select a CSV file first.');
+    return;
+  }
+  try {
+    let pathToShare = selectedFilePath;
+
+    // If the path is a content URI, copy it to cache first
+    if (selectedFilePath.startsWith('content://')) {
+      const fileName = selectedFileName || 'temp.csv';
+      const destPath = `${RNFS.CachesDirectoryPath}/${fileName}`;
+
+      // Copy file to accessible location
+      await RNFS.copyFile(selectedFilePath, destPath);
+      pathToShare = destPath;
+    }
+
+    const fileExists = await RNFS.exists(pathToShare);
+    if (!fileExists) {
+      Alert.alert('Error', 'File does not exist at:\n' + pathToShare);
+      return;
+    }
+
+    await Share.open({
+      url: `file://${pathToShare}`,
+      type: 'text/csv',
+      failOnCancel: false,
+    });
+  } catch (error: any) {
+    console.error('CSV Share Error:', error);
+    Alert.alert('Share Error', error?.message || 'Failed to share CSV file.');
+  }
+};
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
+       <View style={{ alignItems: 'center' , marginBottom:20}}>
+              <Text variant="headlineMedium" style={{color: '#2f3ceeff'}}>Digital Moisture Meter BLE</Text>
+            </View>
+
       <TouchableOpacity style={styles.selectButton} onPress={selectCSVFile}>
         <Text style={styles.selectButtonText}>SELECT A FILE</Text>
       </TouchableOpacity>
@@ -159,8 +225,8 @@ const RecordsScreen: React.FC = () => {
             <Text style={{ fontWeight: 'bold' }}>Selected file:</Text> {selectedFileName}
           </Text>
           <View style={styles.iconRow}>
-            <IconButton icon="share-variant" size={24} onPress={sharePDF} />
-            <IconButton icon="printer" size={24} onPress={handleGeneratePDF} />
+            <IconButton icon="share-variant" size={24} onPress={() => setShowShareDialog(true)} />
+            <IconButton icon="printer" size={24} onPress={handleGeneratePrint} />
           </View>
         </View>
       ) : null}
@@ -183,7 +249,7 @@ const RecordsScreen: React.FC = () => {
                     <DataTable.Row key={rowIndex}>
                       {hederobj.map((header, cellIndex) => (
                         <DataTable.Cell key={cellIndex} style={styles.cell}>
-                          {row[header]}
+                          <Text numberOfLines={2} >{row[header]}</Text>
                         </DataTable.Cell>
                       ))}
                     </DataTable.Row>
@@ -194,6 +260,43 @@ const RecordsScreen: React.FC = () => {
           </ScrollView>
         </View>
       )}
+
+     <Portal>
+  <Dialog visible={showShareDialog} onDismiss={() => setShowShareDialog(false)}>
+    <Dialog.Title>Share as</Dialog.Title>
+    <Dialog.Content>
+      <Button
+        mode="contained"
+        style={{ marginBottom: 10 }}
+        onPress={() => {
+          setShowShareDialog(false);
+          sharePDF();
+        }}
+      >
+        📄 Share as PDF
+      </Button>
+      <Button
+        mode="contained"
+        style={{ marginBottom: 10 }}
+        onPress={() => {
+          setShowShareDialog(false);
+          shareCSV();
+        }}
+      >
+        🧾 Share as CSV
+      </Button>
+      <Button
+        mode="text"
+        textColor="black"
+        onPress={() => setShowShareDialog(false)}
+      >
+        Cancel
+      </Button>
+    </Dialog.Content>
+  </Dialog>
+</Portal>
+
+
     </ScrollView>
   );
 };
@@ -229,6 +332,12 @@ const styles = StyleSheet.create({
   iconRow: {
     flexDirection: 'row',
   },
+  shareOption: {
+  fontSize: 16,
+  paddingVertical: 10,
+  color: '#f1a431ff',
+}
+,
   tableContainer: {
     borderWidth: 1,
     borderColor: '#ccc',
@@ -236,8 +345,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   cell: {
-    minWidth: 120,
-    justifyContent: 'center',
+     minWidth: 90,
+  justifyContent: 'center',
+  // alignItems: 'flex-start',
+  // paddingVertical: 8,
+    flexWrap: 'wrap'
   },
 });
 

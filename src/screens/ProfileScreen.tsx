@@ -1,50 +1,226 @@
-import React from 'react';
-import { View,StyleSheet } from 'react-native';
-import { Text ,Divider} from 'react-native-paper';
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  StyleSheet,
+  PermissionsAndroid,
+  Platform,
+  Image,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
+import { Text, TextInput, Button } from 'react-native-paper';
+import * as ImagePicker from 'react-native-image-picker';
+import RNFS from 'react-native-fs';
+
+const profileFilePath = `${RNFS.DownloadDirectoryPath}/DMMData/profile.json`;
 
 const ProfileScreen = () => {
+  const [editing, setEditing] = useState(false);
+  const [profile, setProfile] = useState({
+    image: '',
+    company: '',
+    email: '',
+    phone: '',
+    address: '',
+  });
+
+ 
+
+  async function requestStoragePermission() {
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.requestMultiple([
+          PermissionsAndroid.PERMISSIONS.CAMERA,
+        ]);
+        return granted['android.permission.CAMERA'] === PermissionsAndroid.RESULTS.GRANTED;
+      } catch (err) {
+        console.warn(err);
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // Load profile data on mount
+  useEffect(() => {
+    RNFS.exists(profileFilePath).then((exists) => {
+      if (exists) {
+        RNFS.readFile(profileFilePath, 'utf8').then((data) => {
+          setProfile(JSON.parse(data));
+        });
+      }
+    });
+  }, []);
+
+  // Handle image pick
+  const handlePickImage = async () => {
+    const permission = await requestStoragePermission();
+    if (!permission) {
+      Alert.alert('Permission denied', 'Storage permission is required.');
+      return;
+    }
+
+    ImagePicker.launchImageLibrary(
+      {
+        mediaType: 'photo',
+        selectionLimit: 1,
+      },
+      (response) => {
+        if (response.assets && response.assets[0]?.uri) {
+          setProfile((prev) => ({ ...prev, image: response.assets?.[0]?.uri || '' }));
+        }
+      }
+    );
+  };
+
+  // Validate fields before saving
+  const validateProfile = () => {
+    const { image, company, email, phone, address } = profile;
+
+    if (!image) {
+      Alert.alert('Validation Error', 'Please select an image.');
+      return false;
+    }
+
+    if (!company.trim()) {
+      Alert.alert('Validation Error', 'Company name is required.');
+      return false;
+    }
+
+    if (!email.trim()) {
+      Alert.alert('Validation Error', 'Email ID is required.');
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert('Validation Error', 'Please enter a valid email address.');
+      return false;
+    }
+
+    if (!phone.trim()) {
+      Alert.alert('Validation Error', 'Phone number is required.');
+      return false;
+    }
+
+    if (phone.length < 10 || !/^\d+$/.test(phone)) {
+      Alert.alert('Validation Error', 'Phone number must be at least 10 digits.');
+      return false;
+    }
+
+    if (!address.trim()) {
+      Alert.alert('Validation Error', 'Address is required.');
+      return false;
+    }
+
+    return true;
+  };
+
+  // Save to JSON file
+  const handleSave = async () => {
+    if (!validateProfile()) return;
+
+    try {
+      await RNFS.writeFile(profileFilePath, JSON.stringify(profile), 'utf8');
+      Alert.alert('Success', 'Profile saved successfully.');
+      setEditing(false);
+    } catch (e) {
+      Alert.alert('Error', 'Failed to save profile.');
+    }
+  };
+
   return (
-  <View style={styles.container}>
-     <View style={{ alignItems: 'center'}}>
-            <Text variant="headlineMedium" style={{color: '#2f3ceeff'}}>Digital Moisture Meter BLE</Text>
+    <View style={styles.container}>
+      <Text variant="headlineMedium" style={{ color: '#2f3ceeff' }}>
+        Digital Moisture Meter BLE
+      </Text>
+
+      <TouchableOpacity onPress={editing ? handlePickImage : undefined}>
+        {profile.image ? (
+          <Image source={{ uri: profile.image }} style={styles.image} />
+        ) : (
+          <View style={styles.placeholder}>
+            <Text style={{ color: '#888' }}>Pick Image</Text>
           </View>
+        )}
+      </TouchableOpacity>
 
-      <Text variant="titleMedium" style={styles.heading}>Contact Us</Text>
+      <TextInput
+        label="Company"
+        value={profile.company}
+        onChangeText={(text) => setProfile({ ...profile, company: text })}
+        style={styles.input}
+        mode="outlined"
+        editable={editing}
+      />
+      <TextInput
+        label="Email ID"
+        value={profile.email}
+        onChangeText={(text) => setProfile({ ...profile, email: text })}
+        style={styles.input}
+        mode="outlined"
+        editable={editing}
+        keyboardType="email-address"
+      />
+      <TextInput
+        label="Phone Number"
+        value={profile.phone}
+        onChangeText={(text) => setProfile({ ...profile, phone: text })}
+        style={styles.input}
+        mode="outlined"
+        editable={editing}
+        keyboardType="phone-pad"
+      />
+      <TextInput
+        label="Address"
+        value={profile.address}
+        onChangeText={(text) => setProfile({ ...profile, address: text })}
+        style={styles.input}
+        mode="outlined"
+        editable={editing}
+        multiline
+      />
 
-      <Text style={styles.label}>Address</Text>
-      <Text style={styles.text}>125 Mahajan Society</Text>
-      <Text style={styles.text}>Behind convent school</Text>
-      <Text style={styles.text}>Fatehgunj, Vadodara 39000d</Text>
-
-      <Text style={styles.label}>Phone</Text>
-      <Text style={styles.text}>+91 265 2791184</Text>
-
-      <Text style={styles.label}>SMS/WhatsApp</Text>
-      <Text style={styles.text}>+91 63566 15024</Text>
-
-      <Text style={styles.label}>Website</Text>
-      <Text style={styles.text}>www.innovative-instruments.in</Text>
+      <Button
+        mode="contained"
+        style={styles.button}
+        onPress={editing ? handleSave : () => setEditing(true)}
+      >
+        {editing ? 'Save' : 'Edit'}
+      </Button>
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     padding: 24,
-    alignItems: 'center',
     backgroundColor: '#fff',
+    flex: 1,
   },
-  heading: {
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  label: {
-    fontWeight: 'bold',
+  input: {
     marginTop: 12,
   },
-  text: {
-    textAlign: 'center',
-    marginBottom: 2,
+  image: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    marginVertical: 16,
+    alignSelf: 'center',
+  },
+  placeholder: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: '#eee',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 16,
+    alignSelf: 'center',
+  },
+  button: {
+    marginTop: 24,
   },
 });
+
 export default ProfileScreen;

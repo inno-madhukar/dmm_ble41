@@ -98,10 +98,9 @@ DeviceID: deviceId,
   const saveToCSV = async (data: string[], note: string) => {
    
   const hasPermission = await requestStoragePermission();
-  console.log(hasPermission)
   const hasPermission1 = await ManageExternalStorage.hasPermission();
 // console.log(hasPermission1)
-   if (hasPermission && hasPermission1) { 
+   if (hasPermission1 ) { 
     let deviceName =
       peripheralData?.name || peripheralData?.advertising?.localName || 'NO_NAME';
       try {
@@ -111,7 +110,7 @@ DeviceID: deviceId,
       console.log(csvRow)
       console.log(note)
       const safeName = deviceName.replace(/[^a-zA-Z0-9-_]/g, '_');
-      const path = `${RNFS.DownloadDirectoryPath}/${safeName}_${getFormattedDate()}.csv`;
+      const path = `${RNFS.DownloadDirectoryPath}/DMMData/${safeName}_${getFormattedDate()}.csv`;
       console.log(path)
       // const path = `${RNFS.DocumentDirectoryPath}/ble_readings.csv`;
       const fileExists = await RNFS.exists(path);
@@ -140,12 +139,11 @@ DeviceID: deviceId,
   };
 
 const requestStoragePermission = async (): Promise<boolean> => {
-    if (Platform.OS !== 'android') return true;
 
-    if (Platform.Version >= 30) {
-      return true;
-    }
-
+if (Platform.OS === 'android' && Number(Platform.Version) >= 30) {
+  console.log('dfgh')
+  return true;
+}
     try {
       const granted = await PermissionsAndroid.requestMultiple([
         PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
@@ -202,6 +200,15 @@ const requestStoragePermission = async (): Promise<boolean> => {
     };
   }, []);
 
+  const handleChange = (text: string) => {
+    // Remove existing line breaks first
+    const plain = text.replace(/\n/g, '');
+
+    // Insert a line break every 10 characters
+    const withNewlines = plain.match(/.{1,10}/g)?.join('\n') || '';
+
+    setUserNote(withNewlines);
+  };
   return (
     <View style={{ flex: 1, padding: 16, justifyContent: 'center' }}>
       <View style={{ alignItems: 'center' }}>
@@ -257,9 +264,11 @@ const requestStoragePermission = async (): Promise<boolean> => {
                 mode="outlined"
                 value={userNote}
                 multiline
-                onChangeText={setUserNote}
+                onChangeText={handleChange}
                 style={styles.input}
+                 maxLength={50}
               />
+              
             </>
           );
         })() : (

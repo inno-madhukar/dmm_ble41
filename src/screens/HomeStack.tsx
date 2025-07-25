@@ -16,7 +16,6 @@ export type RootStackParamList = {
 
 const Stack = createNativeStackNavigator<MyTabParamList>();
 
-
 const HomeStack = () => {
   console.log('App.tsx: App component rendered');
   return (

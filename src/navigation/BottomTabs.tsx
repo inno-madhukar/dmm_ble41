@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useRef } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View } from 'react-native';
 import {  IconButton, Menu, useTheme,Appbar } from 'react-native-paper';
@@ -10,6 +10,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import HomeStack from '../screens/HomeStack';
 const Tab = createBottomTabNavigator();
+import ContactModal, { ContactUsModalRef } from '../screens/ContectUsModal';
 
 export type MyTabParamList = {
   HomeScreen: undefined;
@@ -19,7 +20,7 @@ export type MyTabParamList = {
   PeripheralDeviceScreen:  { peripheralData: any };
 };
 
-const CustomHeader = () => {
+const CustomHeader = ({ onContactPress }: { onContactPress: () => void }) => {
 
   const [menuVisible, setMenuVisible] = useState(false);
 const navigation = useNavigation<BottomTabNavigationProp<MyTabParamList>>();
@@ -53,8 +54,10 @@ const navigation = useNavigation<BottomTabNavigationProp<MyTabParamList>>();
           />
         }
       >
-        {/* <Menu.Item title="option0" onPress={() => navigation.navigate('HelpScreen',{userID:123})} /> */}
-        <Menu.Item title="option1" onPress={() => {}} />
+        <Menu.Item title="Contect Us" onPress={() => {
+           setMenuVisible(false);
+            onContactPress(); // trigger modal
+        }} />
       </Menu>
     </Appbar.Header>
   );
@@ -64,12 +67,14 @@ const navigation = useNavigation<BottomTabNavigationProp<MyTabParamList>>();
 
 const BottomTabs = () => {
   const theme = useTheme();
+  const contactModalRef = useRef<ContactUsModalRef>(null);
 
   return (
+    <>
     <Tab.Navigator
       screenOptions={{
         headerShown: true,
-         header: () => <CustomHeader />,
+         header: () => <CustomHeader onContactPress={() => contactModalRef.current?.open()}/>,
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.onSurface,
         tabBarStyle: {
@@ -122,6 +127,8 @@ const BottomTabs = () => {
       />
    
     </Tab.Navigator>
+    <ContactModal ref={contactModalRef} />
+    </>
   );
 };
 
