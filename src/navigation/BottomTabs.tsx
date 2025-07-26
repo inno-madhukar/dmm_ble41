@@ -54,7 +54,7 @@ const navigation = useNavigation<BottomTabNavigationProp<MyTabParamList>>();
           />
         }
       >
-        <Menu.Item title="Contect Us" onPress={() => {
+        <Menu.Item title="Contact Us" onPress={() => {
            setMenuVisible(false);
             onContactPress(); // trigger modal
         }} />

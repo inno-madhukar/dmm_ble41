@@ -3,12 +3,12 @@ import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import RNFS from 'react-native-fs';
 import RNPrint from 'react-native-print';
 import { Buffer } from 'buffer';
-import { Platform,Image as RNImage } from 'react-native';
+import { Platform, Image as RNImage } from 'react-native';
 
 global.Buffer = Buffer;
 
 export async function generateStyledPDF({
- 
+
   DeviceID,
   commodityName,
   moisture,
@@ -17,15 +17,39 @@ export async function generateStyledPDF({
   sampleQty,
   note,
 }: {
- 
+
   DeviceID: string;
   commodityName: string;
   moisture: string;
   temperature: string;
   time: string;
   sampleQty: string;
-  note:string
+  note: string
 }) {
+
+
+
+  let profile1 = {
+    image: '',
+    company: '',
+    email: '',
+    phone: '',
+    address: '',
+  };
+  const profileFilePath1 = `${RNFS.DownloadDirectoryPath}/Innovative_instrument/userdata/profile.json`;
+
+  if (await RNFS.exists(profileFilePath1)) {
+    const data = await RNFS.readFile(profileFilePath1, 'utf8');
+    profile1 = JSON.parse(data);
+  }
+  console.log(profile1);
+
+  const getImageBase64 = async (uri: string): Promise<string> => {
+    const path = uri.replace('file://', '');
+    return await RNFS.readFile(path, 'base64');
+  };
+
+  const base64 = await getImageBase64(profile1.image);
 
   const pdfDoc = await PDFDocument.create();
   const page = pdfDoc.addPage([595, 842]); // A4 size
@@ -35,27 +59,19 @@ export async function generateStyledPDF({
 
 
   const { width, height } = page.getSize();
-
+  const jpgImage = await pdfDoc.embedJpg(base64);
   let y = height - 40;
 
 
-  page.drawRectangle({
-    x: 50,
-    y: y - 40,
+  page.drawImage(jpgImage, {
+    x: 40,
+    y: height - 75,
     width: 80,
-    height: 40,
-    color: rgb(0.9, 0.4, 0.2),
-  });
-  page.drawText('LOGO', {
-    x: 60,
-    y: y - 20,
-    size: 12,
-    font: boldFont,
-    color: rgb(1, 1, 1),
+    height: 60,
   });
 
   // 🏢 Company Info
-  page.drawText('Innovative Instruments', {
+  page.drawText(profile1.company, {
     x: 150,
     y: y - 10,
     size: 16,
@@ -63,7 +79,7 @@ export async function generateStyledPDF({
     color: rgb(0, 0, 0),
   });
   page.drawText(
-    'No. 123, Mahigan Society, Behind Convent,\nSubhanpura, Vadodara, Gujarat - 390002, India.',
+    profile1.address,
     {
       x: 150,
       y: y - 30,
@@ -75,13 +91,13 @@ export async function generateStyledPDF({
   );
 
   // 📧 Contact Info
-  page.drawText('Email: info@innovative-instruments.in', {
+  page.drawText(`Email: ${profile1.email}`, {
     x: width - 230,
     y: y - 10,
     size: 8,
     font,
   });
-  page.drawText('Ph No: 9328615024', {
+  page.drawText(`Ph No: ${profile1.phone}`, {
     x: width - 230,
     y: y - 25,
     size: 8,
@@ -95,7 +111,7 @@ export async function generateStyledPDF({
 
   // 🧾 Info Block
   const info = [
-   
+
     ['Device ID', DeviceID],
     ['Commodity Name', commodityName],
     ['Moisture', `${moisture} %`],
@@ -122,7 +138,7 @@ export async function generateStyledPDF({
     y -= 25;
   });
 
-   y -= 30;
+  y -= 30;
   page.drawText('Other Information:', {
     x: 60,
     y,
@@ -130,17 +146,17 @@ export async function generateStyledPDF({
     size: 12,
     color: rgb(0, 0, 0),
   });
-  const noteLines=note.split("\n")
+  const noteLines = note.split("\n")
   noteLines.forEach(line => {
-  page.drawText(line, {
-    x: 220,
-    y,
-    font,
-    size: 11,
-    color: rgb(0, 0, 0),
+    page.drawText(line, {
+      x: 220,
+      y,
+      font,
+      size: 11,
+      color: rgb(0, 0, 0),
+    });
+    y -= 15 //we can also utilize this way
   });
-   y-=15 //we can also utilize this way
-});
   y -= 50;
   page.drawLine({ start: { x: 40, y }, end: { x: width - 40, y }, thickness: 0.5 });
   // 🦶 Footer

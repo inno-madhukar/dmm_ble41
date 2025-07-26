@@ -6,7 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import { Text, DataTable, IconButton,Portal,Button,Dialog } from 'react-native-paper';
+import { Text, DataTable, IconButton, Portal, Button, Dialog } from 'react-native-paper';
 import RNFS from 'react-native-fs';
 import Share from 'react-native-share';
 import RNPrint from 'react-native-print';
@@ -39,14 +39,14 @@ interface DocumentPickerResponse {
   type?: string;
   size?: number;
 }
-const hederobj = ["Date", "DeviceID","Temp", "Moisture", "Weight","CommodityName","Note"
+const hederobj = ["Date", "DeviceID", "Temp", "Moisture", "Weight", "CommodityName", "Note"
 ]
 const RecordsScreen: React.FC = () => {
   const [csvData, setCsvData] = useState<CSVRow[]>([]);
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
   const [selectedFileName, setSelectedFileName] = useState<string>('');
   const [showShareDialog, setShowShareDialog] = useState(false);
-const [selectedFilePath, setSelectedFilePath] = useState<string>('');
+  const [selectedFilePath, setSelectedFilePath] = useState<string>('');
 
   let parsedData: ParsedCSVData;
 
@@ -63,16 +63,16 @@ const [selectedFilePath, setSelectedFilePath] = useState<string>('');
         const values: string[] = lines[i].split(',').map((value: string) => value.trim().replace(/"/g, ''));
         const row: CSVRow = {};
         hederobj.forEach((header: string, index: number) => {
-          if(header=='Note'){
-           row[header] = values[index].replaceAll(" ","\n") || '';
+          if (header == 'Note') {
+            row[header] = values[index].replaceAll(" ", "\n") || '';
           }
-          else if(header=='Date'){
-           row[header] = values[index].replaceAll(" ","\n") || '';
+          else if (header == 'Date') {
+            row[header] = values[index].replaceAll(" ", "\n") || '';
           }
-          else{
+          else {
             row[header] = values[index] || '';
           }
-         
+
         });
         data.push(row);
       }
@@ -117,7 +117,7 @@ const [selectedFilePath, setSelectedFilePath] = useState<string>('');
 
       Alert.alert(
         'CSV File Selected',
-        `File: ${file.name}\nRows: ${parsedData.data.length}\nColumns: ${parsedData.headers.length}`
+        `File: ${file.name}`
       );
 
     } catch (error: any) {
@@ -135,16 +135,16 @@ const [selectedFilePath, setSelectedFilePath] = useState<string>('');
       // const records: string[] = csvData.length > 0
       //   ? csvData.map((row: CSVRow) => Object.values(row).join(' - '))
       //   : ['Device 001 - Temp: 25°C', 'Device 002 - Temp: 26°C', 'Device 003 - Temp: 28°C'];
-              type BLERecord = {
-          "Date": string;
-          "DeviceID": string;
-          "Temp": string;
-          "Moisture": string;
-          "Weight": string;
-          "CommodityName": string;
-          "Note": string;
-        };
-      const path: string = await generateSimplePrintAndPDF(csvData as BLERecord[],"print");
+      type BLERecord = {
+        "Date": string;
+        "DeviceID": string;
+        "Temp": string;
+        "Moisture": string;
+        "Weight": string;
+        "CommodityName": string;
+        "Note": string;
+      };
+      const path: string = await generateSimplePrintAndPDF(csvData as BLERecord[], "print");
       await RNPrint.print({ filePath: path });
     } catch (error) {
       console.log(error)
@@ -155,17 +155,17 @@ const [selectedFilePath, setSelectedFilePath] = useState<string>('');
   const sharePDF = async (): Promise<void> => {
 
     try {
-        type BLERecord = {
-          "Date": string;
-          "DeviceID": string;
-          "Temp": string;
-          "Moisture": string;
-          "Weight": string;
-          "CommodityName": string;
-          "Note": string;
-        };
-        const path: string = await generateSimplePrintAndPDF(csvData as BLERecord[],selectedFileName);
-        console.log(path)
+      type BLERecord = {
+        "Date": string;
+        "DeviceID": string;
+        "Temp": string;
+        "Moisture": string;
+        "Weight": string;
+        "CommodityName": string;
+        "Note": string;
+      };
+      const path: string = await generateSimplePrintAndPDF(csvData as BLERecord[], selectedFileName);
+      console.log(path)
       // const path = `${RNFS.DownloadDirectoryPath}/demo.pdf`;
       await Share.open({ url: `file://${path}`, type: 'application/pdf' });
     } catch (error) {
@@ -174,46 +174,46 @@ const [selectedFilePath, setSelectedFilePath] = useState<string>('');
   };
 
 
-const shareCSV = async (): Promise<void> => {
- if (!selectedFilePath) {
-    Alert.alert('No file', 'Please select a CSV file first.');
-    return;
-  }
-  try {
-    let pathToShare = selectedFilePath;
-
-    // If the path is a content URI, copy it to cache first
-    if (selectedFilePath.startsWith('content://')) {
-      const fileName = selectedFileName || 'temp.csv';
-      const destPath = `${RNFS.CachesDirectoryPath}/${fileName}`;
-
-      // Copy file to accessible location
-      await RNFS.copyFile(selectedFilePath, destPath);
-      pathToShare = destPath;
-    }
-
-    const fileExists = await RNFS.exists(pathToShare);
-    if (!fileExists) {
-      Alert.alert('Error', 'File does not exist at:\n' + pathToShare);
+  const shareCSV = async (): Promise<void> => {
+    if (!selectedFilePath) {
+      Alert.alert('No file', 'Please select a CSV file first.');
       return;
     }
+    try {
+      let pathToShare = selectedFilePath;
 
-    await Share.open({
-      url: `file://${pathToShare}`,
-      type: 'text/csv',
-      failOnCancel: false,
-    });
-  } catch (error: any) {
-    console.error('CSV Share Error:', error);
-    Alert.alert('Share Error', error?.message || 'Failed to share CSV file.');
-  }
-};
+      // If the path is a content URI, copy it to cache first
+      if (selectedFilePath.startsWith('content://')) {
+        const fileName = selectedFileName || 'temp.csv';
+        const destPath = `${RNFS.CachesDirectoryPath}/${fileName}`;
+
+        // Copy file to accessible location
+        await RNFS.copyFile(selectedFilePath, destPath);
+        pathToShare = destPath;
+      }
+
+      const fileExists = await RNFS.exists(pathToShare);
+      if (!fileExists) {
+        Alert.alert('Error', 'File does not exist at:\n' + pathToShare);
+        return;
+      }
+
+      await Share.open({
+        url: `file://${pathToShare}`,
+        type: 'text/csv',
+        failOnCancel: false,
+      });
+    } catch (error: any) {
+      console.error('CSV Share Error:', error);
+      Alert.alert('Share Error', error?.message || 'Failed to share CSV file.');
+    }
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-       <View style={{ alignItems: 'center' , marginBottom:20}}>
-              <Text variant="headlineMedium" style={{color: '#2f3ceeff'}}>Digital Moisture Meter BLE</Text>
-            </View>
+      <View style={{ alignItems: 'center', marginBottom: 20 }}>
+        <Text variant="headlineMedium" style={{ color: '#2f3ceeff' }}>Digital Moisture Meter BLE</Text>
+      </View>
 
       <TouchableOpacity style={styles.selectButton} onPress={selectCSVFile}>
         <Text style={styles.selectButtonText}>SELECT A FILE</Text>
@@ -231,70 +231,86 @@ const shareCSV = async (): Promise<void> => {
         </View>
       ) : null}
 
-      {csvData.length > 0 && csvHeaders.length > 0 && (
-        <View style={styles.tableContainer}>
-          <ScrollView horizontal showsHorizontalScrollIndicator>
-            <View>
-              <DataTable>
-                <DataTable.Header>
-                  {csvHeaders.map((header, index) => (
-                    <DataTable.Title key={index} style={styles.cell}>
-                      {header}
-                    </DataTable.Title>
-                  ))}
-                </DataTable.Header>
+    {csvData.length > 0 && csvHeaders.length > 0 && (
+  <View style={styles.tableContainer}>
+    <ScrollView horizontal showsHorizontalScrollIndicator>
+      <View>
+        <DataTable>
 
-                <ScrollView style={{ maxHeight: 400 }}>
-                  {csvData.map((row, rowIndex) => (
-                    <DataTable.Row key={rowIndex}>
-                      {hederobj.map((header, cellIndex) => (
-                        <DataTable.Cell key={cellIndex} style={styles.cell}>
-                          <Text numberOfLines={2} >{row[header]}</Text>
-                        </DataTable.Cell>
-                      ))}
-                    </DataTable.Row>
-                  ))}
-                </ScrollView>
-              </DataTable>
-            </View>
+          {/* Table Headers */}
+          <DataTable.Header>
+            {csvHeaders.map((header, index) => (
+              <DataTable.Title
+                key={index}
+                style={styles.cell}
+              >
+                <Text style={styles.headerText}>{header}</Text>
+              </DataTable.Title>
+            ))}
+          </DataTable.Header>
+
+          {/* Table Rows */}
+          <ScrollView style={{ maxHeight: 400 }}>
+            {csvData.map((row, rowIndex) => (
+              <DataTable.Row key={rowIndex}>
+                {hederobj.map((header, cellIndex) => (
+                  <DataTable.Cell
+                    key={cellIndex}
+                    style={styles.cell}
+                  >
+                    <Text
+                      numberOfLines={2}
+                      style={styles.cellText}
+                    >
+                      {row[header]}
+                    </Text>
+                  </DataTable.Cell>
+                ))}
+              </DataTable.Row>
+            ))}
           </ScrollView>
-        </View>
-      )}
 
-     <Portal>
-  <Dialog visible={showShareDialog} onDismiss={() => setShowShareDialog(false)}>
-    <Dialog.Title>Share as</Dialog.Title>
-    <Dialog.Content>
-      <Button
-        mode="contained"
-        style={{ marginBottom: 10 }}
-        onPress={() => {
-          setShowShareDialog(false);
-          sharePDF();
-        }}
-      >
-        📄 Share as PDF
-      </Button>
-      <Button
-        mode="contained"
-        style={{ marginBottom: 10 }}
-        onPress={() => {
-          setShowShareDialog(false);
-          shareCSV();
-        }}
-      >
-        🧾 Share as CSV
-      </Button>
-      <Button
-        mode="text"
-        textColor="black"
-        onPress={() => setShowShareDialog(false)}
-      >
-        Cancel
-      </Button>
-    </Dialog.Content>
-  </Dialog>
-</Portal>
+        </DataTable>
+      </View>
+    </ScrollView>
+  </View>
+)}
+
+
+      <Portal>
+        <Dialog visible={showShareDialog} onDismiss={() => setShowShareDialog(false)}>
+          <Dialog.Title>Share as</Dialog.Title>
+          <Dialog.Content>
+            <Button
+              mode="contained"
+              style={{ marginBottom: 10 }}
+              onPress={() => {
+                setShowShareDialog(false);
+                sharePDF();
+              }}
+            >
+              📄 Share as PDF
+            </Button>
+            <Button
+              mode="contained"
+              style={{ marginBottom: 10 }}
+              onPress={() => {
+                setShowShareDialog(false);
+                shareCSV();
+              }}
+            >
+              🧾 Share as CSV
+            </Button>
+            <Button
+              mode="text"
+              textColor="black"
+              onPress={() => setShowShareDialog(false)}
+            >
+              Cancel
+            </Button>
+          </Dialog.Content>
+        </Dialog>
+      </Portal>
 
 
     </ScrollView>
@@ -333,24 +349,40 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   shareOption: {
-  fontSize: 16,
-  paddingVertical: 10,
-  color: '#f1a431ff',
-}
-,
+    fontSize: 16,
+    paddingVertical: 10,
+    color: '#f1a431ff',
+  }
+  ,
   tableContainer: {
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 6,
     overflow: 'hidden',
   },
-  cell: {
-     minWidth: 90,
+
+ cell: {
+  width: 80,                 // 👈 fixed width for all columns
   justifyContent: 'center',
-  // alignItems: 'flex-start',
-  // paddingVertical: 8,
-    flexWrap: 'wrap'
-  },
+  alignItems: 'center',
+  paddingVertical: 8,
+  flexWrap: 'wrap',
+},
+
+cellText: {
+  textAlign: 'center',
+  textAlignVertical: 'center', // Only affects Android
+  fontSize: 11,
+},
+
+headerText: {
+  fontWeight: 'bold',
+  textAlign: 'center',
+  fontSize: 13,
+},
+
+
+
 });
 
 export default RecordsScreen;

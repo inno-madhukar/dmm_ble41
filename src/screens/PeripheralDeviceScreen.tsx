@@ -110,7 +110,7 @@ DeviceID: deviceId,
       console.log(csvRow)
       console.log(note)
       const safeName = deviceName.replace(/[^a-zA-Z0-9-_]/g, '_');
-      const path = `${RNFS.DownloadDirectoryPath}/DMMData/${safeName}_${getFormattedDate()}.csv`;
+      const path = `${RNFS.DownloadDirectoryPath}/Innovative_instrument/Data/${safeName}_${getFormattedDate()}.csv`;
       console.log(path)
       // const path = `${RNFS.DocumentDirectoryPath}/ble_readings.csv`;
       const fileExists = await RNFS.exists(path);

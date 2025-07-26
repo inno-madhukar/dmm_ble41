@@ -22,12 +22,7 @@ const ContactUsModal = forwardRef<ContactUsModalRef>((_, ref) => {
         onDismiss={() => setVisible(false)}
         contentContainerStyle={styles.container}
       >
-        <View style={{ alignItems: 'center' }}>
-          <Text variant="headlineMedium" style={{ color: '#2f3ceeff', textAlign: 'center' }}>
-            Digital Moisture Meter BLE
-          </Text>
-        </View>
-
+       
         <Divider style={{ marginVertical: 12 }} />
 
         <Text variant="titleMedium" style={styles.heading}>Contact Us</Text>

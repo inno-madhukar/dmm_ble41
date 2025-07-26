@@ -23,11 +23,15 @@ const App = () => {
           //   },
           // );
           if (true) {
-            const folderPath = `${RNFS.DownloadDirectoryPath}/DMMData`;
-
+            const folderPath = `${RNFS.DownloadDirectoryPath}/Innovative_instrument`;
+            const userFolderPath = `${RNFS.DownloadDirectoryPath}/Innovative_instrument/userdata`;
+            const dataFolderPath = `${RNFS.DownloadDirectoryPath}/Innovative_instrument/Data`;
             const exists = await RNFS.exists(folderPath);
+
             if (!exists) {
               await RNFS.mkdir(folderPath);
+              await RNFS.mkdir(userFolderPath);
+              await RNFS.mkdir(dataFolderPath);
               console.log('Download folder created:', folderPath);
             } else {
               console.log('Download folder already exists:', folderPath);

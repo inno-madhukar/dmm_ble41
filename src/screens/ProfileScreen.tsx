@@ -12,7 +12,7 @@ import { Text, TextInput, Button } from 'react-native-paper';
 import * as ImagePicker from 'react-native-image-picker';
 import RNFS from 'react-native-fs';
 
-const profileFilePath = `${RNFS.DownloadDirectoryPath}/DMMData/profile.json`;
+const profileFilePath = `${RNFS.DownloadDirectoryPath}/Innovative_instrument/userdata/profile.json`;
 
 const ProfileScreen = () => {
   const [editing, setEditing] = useState(false);

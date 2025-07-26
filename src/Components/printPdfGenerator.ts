@@ -36,8 +36,7 @@ let profile1 = {
   phone: '',
   address: '',
 };
-
-const profileFilePath1 = `${RNFS.DownloadDirectoryPath}/DMMData/profile.json`;
+const profileFilePath1 = `${RNFS.DownloadDirectoryPath}/Innovative_instrument/userdata/profile.json`;
 
 if (await RNFS.exists(profileFilePath1)) {
   const data = await RNFS.readFile(profileFilePath1, 'utf8');
