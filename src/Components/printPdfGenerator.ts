@@ -49,19 +49,31 @@ console.log(profile1);
   return await RNFS.readFile(path, 'base64');
 };
 
-  const base64 = await getImageBase64(profile1.image);
+  
   
   const pdfDoc = await PDFDocument.create();
   let page = pdfDoc.addPage([595, 842]); // A4 size
-
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
   const { width, height } = page.getSize();
-  const jpgImage = await pdfDoc.embedJpg(base64);
+  let embeddedImage:any;
+  
+  if(await RNFS.exists(profileFilePath1)){
+   
+    const base64 = await getImageBase64(profile1.image);
+    if (base64.startsWith('/9j/')) {
+      embeddedImage = await pdfDoc.embedJpg(base64);
+    } else if (base64.startsWith('iVBORw0KGgo')) {
+      embeddedImage = await pdfDoc.embedPng(base64);
+    } else {
+      throw new Error('Unsupported image format (not JPG or PNG)');
+    }
+  }
+ 
 
   function createHeader(y:number){
     
-  page.drawImage(jpgImage, {
+  page.drawImage(embeddedImage, {
     x: 40,
     y: height-75,
     width:80,
@@ -163,14 +175,17 @@ console.log(profile1);
 
 
   async function showData(x:number,y:number){
-  records.forEach((record, index) => {
+  records.forEach(async (record, index) => {
     
    
     if(y<=55){
       y=Dy
       page = pdfDoc.addPage([595, 842]); // A4 size
       createLay(Lx,Ly)
-      createHeader(height-20)
+      if(await RNFS.exists(profileFilePath1)){
+        createHeader(height-20)
+      }
+      
     }
     let f=0
       Object.entries(record).forEach(([key, value]) => {
@@ -254,7 +269,9 @@ varr.forEach((val)=>{
   }
 
   createLay(Lx,Ly)
-  createHeader(height-20)
+  if(await RNFS.exists(profileFilePath1)){
+    createHeader(height-20)
+  }
   showData(Dx,Dy)
   // Records (loop
    const pdfBytes = await pdfDoc.save();

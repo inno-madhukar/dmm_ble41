@@ -11,6 +11,9 @@ import {
 import { Text, TextInput, Button } from 'react-native-paper';
 import * as ImagePicker from 'react-native-image-picker';
 import RNFS from 'react-native-fs';
+import { Colors } from 'react-native/Libraries/NewAppScreen';
+import { useTheme } from 'react-native-paper';
+
 
 const profileFilePath = `${RNFS.DownloadDirectoryPath}/Innovative_instrument/userdata/profile.json`;
 
@@ -24,7 +27,7 @@ const ProfileScreen = () => {
     address: '',
   });
 
- 
+  const { colors } = useTheme();
 
   async function requestStoragePermission() {
     if (Platform.OS === 'android') {
@@ -64,12 +67,36 @@ const ProfileScreen = () => {
       {
         mediaType: 'photo',
         selectionLimit: 1,
+        includeExtra: true,
       },
+
+      // (response) => {
+      //   if (response.assets && response.assets[0]?.uri) {
+      //     setProfile((prev) => ({ ...prev, image: response.assets?.[0]?.uri || '' }));
+      //   }
+      // }
+
       (response) => {
-        if (response.assets && response.assets[0]?.uri) {
-          setProfile((prev) => ({ ...prev, image: response.assets?.[0]?.uri || '' }));
+        if (response.didCancel) return;
+        if (response.errorCode) {
+          Alert.alert('Error', 'Failed to pick image.');
+          return;
+        }
+  
+        const asset = response.assets?.[0];
+        const fileName = asset?.fileName || '';
+        const isJpg = fileName.toLowerCase().endsWith('.jpg') || fileName.toLowerCase().endsWith('.jpeg') || fileName.toLowerCase().endsWith('.png');
+  
+        if (!isJpg) {
+          Alert.alert('Invalid Image', 'Please select a JPG image only.');
+          return;
+        }
+  
+        if (asset?.uri) {
+          setProfile((prev) => ({ ...prev, image: asset.uri || '' }));
         }
       }
+      
     );
   };
 
@@ -181,13 +208,18 @@ const ProfileScreen = () => {
         multiline
       />
 
-      <Button
-        mode="contained"
-        style={styles.button}
-        onPress={editing ? handleSave : () => setEditing(true)}
-      >
-        {editing ? 'Save' : 'Edit'}
-      </Button>
+<Button
+  mode="contained"
+  onPress={editing ? handleSave : () => setEditing(true)}
+  textColor={editing ? colors.primary : 'white'}
+      buttonColor={editing ? 'white' : colors.primary}
+      style={[
+        styles.button,
+        editing && { borderWidth: 1.5, borderColor: colors.primary }
+      ]}
+>
+  {editing ? 'Save' : 'Edit'}
+</Button>
     </View>
   );
 };
@@ -220,6 +252,8 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 24,
+    width: '30%',
+    alignSelf: 'center',
   },
 });
 

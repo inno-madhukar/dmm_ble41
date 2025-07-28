@@ -123,7 +123,7 @@ DeviceID: deviceId,
       }
 
       setSnackbarMessage('Data saved to CSV! ');
-      Alert.alert('csv file path',path)
+      Alert.alert('Success',`CSV file saved successfully at:\n\n${path}`)
       setSnackbarVisible(true);
     } catch (error) {
       console.error('Failed to save CSV:', error);
