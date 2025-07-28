@@ -6,7 +6,7 @@ export const lightTheme = {
   colors: {
     ...DefaultTheme.colors,
     primary: '#EF7F1A',      // Your orange
-    accent: '#f3a847',       // Lighter orange
+    secondary: '#f3a847',       // Lighter orange
     background: '#ffffff',   // App background
     surface: '#f9f9f9',      // Card/panel background
     text: '#222222',         // Body text

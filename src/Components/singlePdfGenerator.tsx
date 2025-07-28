@@ -42,6 +42,7 @@ export async function generateStyledPDF({
     const data = await RNFS.readFile(profileFilePath1, 'utf8');
     profile1 = JSON.parse(data);
   }
+  
   console.log(profile1);
 
   const getImageBase64 = async (uri: string): Promise<string> => {
@@ -49,26 +50,35 @@ export async function generateStyledPDF({
     return await RNFS.readFile(path, 'base64');
   };
 
-  const base64 = await getImageBase64(profile1.image);
-
+ 
   const pdfDoc = await PDFDocument.create();
   const page = pdfDoc.addPage([595, 842]); // A4 size
 
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-
-
   const { width, height } = page.getSize();
-  const jpgImage = await pdfDoc.embedJpg(base64);
   let y = height - 40;
 
+  let embeddedImage:any;
 
-  page.drawImage(jpgImage, {
+ async function createHeader(){
+    
+  const base64 = await getImageBase64(profile1.image);
+  if (base64.startsWith('/9j/')) {
+    embeddedImage = await pdfDoc.embedJpg(base64);
+  } else if (base64.startsWith('iVBORw0KGgo')) {
+    embeddedImage = await pdfDoc.embedPng(base64);
+  } else {
+    throw new Error('Unsupported image format (not JPG or PNG)');
+  }
+
+  page.drawImage(embeddedImage, {
     x: 40,
     y: height - 75,
     width: 80,
     height: 60,
   });
+
 
   // 🏢 Company Info
   page.drawText(profile1.company, {
@@ -104,11 +114,17 @@ export async function generateStyledPDF({
     font,
   });
 
+  }
+
+  if(await RNFS.exists(profileFilePath1)){
+    await createHeader();
+  }
+
   y -= 60;
   page.drawLine({ start: { x: 40, y }, end: { x: width - 40, y }, thickness: 1 });
 
   y -= 50;
-
+console.log("ssdsdsdsd")
   // 🧾 Info Block
   const info = [
 
