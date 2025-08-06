@@ -1,15 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, ScrollView,PermissionsAndroid, Platform, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView, PermissionsAndroid, Platform, Alert } from 'react-native';
 import { Text, TextInput, IconButton, Snackbar } from 'react-native-paper';
 import { useRoute, RouteProp } from '@react-navigation/native';
-import RNFS from 'react-native-fs';
+
+let RNFS: typeof import('react-native-fs') | undefined;
+if (Platform.OS === 'ios' || Platform.OS === 'android') {
+  RNFS = require('react-native-fs');
+}
 import type { MyTabParamList } from '../navigation/BottomTabs'; // adjust path
-import BleManager, {
-  PeripheralInfo,
-  BleManagerDidUpdateValueForCharacteristicEvent,
-} from 'react-native-ble-manager';
+let BleManager: typeof import('react-native-ble-manager') | undefined;
+type PeripheralInfo = any;
+type BleManagerDidUpdateValueForCharacteristicEvent = any;
+if (Platform.OS === 'ios' || Platform.OS === 'android') {
+  BleManager = require('react-native-ble-manager');
+}
 import classifyArray from '../Components/arrClasiffy'; // adjust path
-import RNPrint from 'react-native-print';
+let RNPrint: typeof import('react-native-print') | undefined;
+if (Platform.OS === 'ios' || Platform.OS === 'android') {
+  RNPrint = require('react-native-print');
+}
 import { NativeModules } from 'react-native';
 import {generateStyledPDF} from '../Components/singlePdfGenerator';
 const { ManageExternalStorage } = NativeModules;
@@ -57,16 +66,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
   const [userNote, setUserNote] = useState('');
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  // const checker=useRef()
-// async function checkPermission() {
-//   const hasPermission = await ManageExternalStorage.hasPermission();
-//   if (!hasPermission) {
-//     console.log(hasPermission)
-//     requestPermission();
-    
-//   }
-//   // else{return true}
-// }
+
 
   function requestPermission() {
 
@@ -96,46 +96,36 @@ DeviceID: deviceId,
 };
 
   const saveToCSV = async (data: string[], note: string) => {
-   
-  const hasPermission = await requestStoragePermission();
-  const hasPermission1 = await ManageExternalStorage.hasPermission();
-// console.log(hasPermission1)
-   if (hasPermission1 ) { 
-    let deviceName =
-      peripheralData?.name || peripheralData?.advertising?.localName || 'NO_NAME';
-      try {
-        const folder='DMM123'
-            // const csvLine = .join(',') + '\n';
-      const csvRow = [...data, note].map(val => `"${val}"`).join(',') + '\n';
-      console.log(csvRow)
-      console.log(note)
-      const safeName = deviceName.replace(/[^a-zA-Z0-9-_]/g, '_');
-      const path = `${RNFS.DownloadDirectoryPath}/Innovative_instrument/Data/${safeName}_${getFormattedDate()}.csv`;
-      console.log(path)
-      // const path = `${RNFS.DocumentDirectoryPath}/ble_readings.csv`;
-      const fileExists = await RNFS.exists(path);
-      console.log(fileExists)
-      if (!fileExists) {
-        const header = `"Date","Device ID","Temp °C","Moisture %","Weight (gm)","Commodity Name","Note"\n`;
-        await RNFS.writeFile(path, header + csvRow, 'utf8');
+    if ((Platform.OS === 'ios' || Platform.OS === 'android') && RNFS) {
+      const hasPermission = await requestStoragePermission();
+      const hasPermission1 = await ManageExternalStorage.hasPermission();
+      if (hasPermission1) {
+        let deviceName =
+          peripheralData?.name || peripheralData?.advertising?.localName || 'NO_NAME';
+        try {
+          const folder = 'DMM123';
+          const csvRow = [...data, note].map(val => `"${val}"`).join(',') + '\n';
+          const safeName = deviceName.replace(/[^a-zA-Z0-9-_]/g, '_');
+          const path = `${RNFS.DownloadDirectoryPath}/Innovative_instrument/Data/${safeName}_${getFormattedDate()}.csv`;
+          const fileExists = await RNFS.exists(path);
+          if (!fileExists) {
+            const header = `"Date","Device ID","Temp °C","Moisture %","Weight (gm)","Commodity Name","Note"\n`;
+            await RNFS.writeFile(path, header + csvRow, 'utf8');
+          } else {
+            await RNFS.appendFile(path, csvRow, 'utf8');
+          }
+          setSnackbarMessage('Data saved to CSV! ');
+          Alert.alert('Success', `CSV file saved successfully at:\n\n${path}`)
+          setSnackbarVisible(true);
+        } catch (error) {
+          console.error('Failed to save CSV:', error);
+          setSnackbarMessage('Error saving CSV.');
+          setSnackbarVisible(true);
+        }
       } else {
-        await RNFS.appendFile(path, csvRow, 'utf8');
+        requestPermission();
       }
-
-      setSnackbarMessage('Data saved to CSV! ');
-      Alert.alert('Success',`CSV file saved successfully at:\n\n${path}`)
-      setSnackbarVisible(true);
-    } catch (error) {
-      console.error('Failed to save CSV:', error);
-      setSnackbarMessage('Error saving CSV.');
-      setSnackbarVisible(true);
     }
-  } else {
-    requestPermission()
-    // setSnackbarMessage('Storage permission denied');
-    // setSnackbarVisible(true);
-  }
-  
   };
 
 const requestStoragePermission = async (): Promise<boolean> => {
@@ -165,6 +155,11 @@ if (Platform.OS === 'android' && Number(Platform.Version) >= 30) {
 
 
   useEffect(() => {
+    if (Platform.OS !== 'ios' && Platform.OS !== 'android') {
+      setSnackbarMessage('BLE features are not supported on this platform.');
+      setSnackbarVisible(true);
+      return;
+    }
     let stopped = false;
     const handleUpdateValueForCharacteristic = (
       data: BleManagerDidUpdateValueForCharacteristicEvent
@@ -176,13 +171,14 @@ if (Platform.OS === 'android' && Number(Platform.Version) >= 30) {
       } else if (typeof data.value === 'string') {
         ascii = data.value;
       }
-
+      // console.log
       setReceivedValues(prev => {
         if (prev.length === 0 || prev[prev.length - 1].ascii !== ascii) {
           const updated = [...prev, { ascii }];
           if (updated.length >= 3) {
             stopped = true;
-            listener.remove();
+            // Remove listener if possible
+            if (listener && typeof listener.remove === 'function') listener.remove();
           }
           return updated;
         }
@@ -190,13 +186,17 @@ if (Platform.OS === 'android' && Number(Platform.Version) >= 30) {
       });
     };
 
-    const listener = BleManager.onDidUpdateValueForCharacteristic(
-      handleUpdateValueForCharacteristic
-    );
+    let listener: any = null;
+    if (
+      BleManager &&
+      typeof (BleManager as any).on === 'function'
+    ) {
+      listener = (BleManager as any).on('BleManagerDidUpdateValueForCharacteristic', handleUpdateValueForCharacteristic);
+    }
 
     return () => {
       stopped = true;
-      listener.remove();
+      if (listener && typeof listener.remove === 'function') listener.remove();
     };
   }, []);
 

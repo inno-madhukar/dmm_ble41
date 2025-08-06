@@ -97,7 +97,7 @@ const BottomTabs = () => {
         <Tab.Screen
           name="RecordsScreen"
           component={RecordsScreen}
-          options={{
+          options={{ 
             tabBarLabel: 'Records',
             tabBarIcon: ({ color, size }) => (
               <IconButton icon="file-document" size={size} iconColor={color} />

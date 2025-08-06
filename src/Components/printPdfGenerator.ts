@@ -1,8 +1,9 @@
 // utils/pdfGenerator.ts
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import RNFS from 'react-native-fs';
+import { Platform } from 'react-native';
+let RNFS: typeof import('react-native-fs') | undefined;
+let RNPrint: typeof import('react-native-print') | undefined;
 import { Buffer } from 'buffer';
-import RNPrint from 'react-native-print';
 import  {  useState } from 'react';
 
 global.Buffer = Buffer;
@@ -27,24 +28,31 @@ type BLERecordArray = BLERecord[];
   Commodity_Name:"Commodity Name",
   Note:"Note"
 };
-export default async function generateSimplePrintAndPDF(records:BLERecordArray,Dtype:string) {
-  
-let profile1 = {
-  image: '',
-  company: '',
-  email: '',
-  phone: '',
-  address: '',
-};
-const profileFilePath1 = `${RNFS.DownloadDirectoryPath}/Innovative_instrument/userdata/profile.json`;
+export default async function generateSimplePrintAndPDF(records: BLERecordArray, Dtype: string) {
+  if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
+    throw new Error('PDF generation is only supported on Android/iOS.');
+  }
+  RNFS = require('react-native-fs');
+  RNPrint = require('react-native-print');
 
-if (await RNFS.exists(profileFilePath1)) {
-  const data = await RNFS.readFile(profileFilePath1, 'utf8');
-  profile1 = JSON.parse(data);
-}
+  let profile1 = {
+    image: '',
+    company: '',
+    email: '',
+    phone: '',
+    address: '',
+  };
+  if (!RNFS) throw new Error('File system not available.');
+  const profileFilePath1 = `${RNFS.DownloadDirectoryPath}/Innovative_instrument/userdata/profile.json`;
+
+  if (await RNFS.exists(profileFilePath1)) {
+    const data = await RNFS.readFile(profileFilePath1, 'utf8');
+    profile1 = JSON.parse(data);
+  }
 console.log(profile1);
 
  const getImageBase64 = async (uri: string): Promise<string> => {
+  if (!RNFS) throw new Error('File system not available.');
   const path = uri.replace('file://', '');
   return await RNFS.readFile(path, 'base64');
 };
@@ -58,8 +66,7 @@ console.log(profile1);
   const { width, height } = page.getSize();
   let embeddedImage:any;
   
-  if(await RNFS.exists(profileFilePath1)){
-   
+  if (RNFS && await RNFS.exists(profileFilePath1)) {
     const base64 = await getImageBase64(profile1.image);
     if (base64.startsWith('/9j/')) {
       embeddedImage = await pdfDoc.embedJpg(base64);
@@ -182,7 +189,7 @@ console.log(profile1);
       y=Dy
       page = pdfDoc.addPage([595, 842]); // A4 size
       createLay(Lx,Ly)
-      if(await RNFS.exists(profileFilePath1)){
+      if (RNFS && await RNFS.exists(profileFilePath1)) {
         createHeader(height-20)
       }
       
@@ -269,7 +276,7 @@ varr.forEach((val)=>{
   }
 
   createLay(Lx,Ly)
-  if(await RNFS.exists(profileFilePath1)){
+  if (RNFS && await RNFS.exists(profileFilePath1)) {
     createHeader(height-20)
   }
   showData(Dx,Dy)
@@ -279,17 +286,18 @@ varr.forEach((val)=>{
   // ✅ Convert to base64
   const base64String = Buffer.from(pdfBytes).toString('base64');
 
- let path = `${RNFS.DocumentDirectoryPath}/Temp_Print_Table.pdf`;  // ✅ Save to file
+  if (!RNFS) throw new Error('File system not available.');
+  let path = `${RNFS.DocumentDirectoryPath}/Temp_Print_Table.pdf`;  // ✅ Save to file
 
-  if(Dtype !="print"){
-       const fName = Dtype.replace(/\.csv$/i, "");
-   path= `${RNFS.DocumentDirectoryPath}/${fName}.pdf`;
-   await RNFS.writeFile(path, base64String, 'base64');  
-   console.log(fName)
-   console.log(path)
-   return path
+  if (Dtype !== "print") {
+    const fName = Dtype.replace(/\.csv$/i, "");
+    path = `${RNFS.DocumentDirectoryPath}/${fName}.pdf`;
+    await RNFS.writeFile(path, base64String, 'base64');
+    console.log(fName)
+    console.log(path)
+    return path
   }
-await RNFS.writeFile(path, base64String, 'base64');
-console.log("hi")
+  await RNFS.writeFile(path, base64String, 'base64');
+  console.log("hi")
   return path;
 }
