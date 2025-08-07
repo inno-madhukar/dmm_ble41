@@ -186,15 +186,18 @@ const RecordsScreen: React.FC = () => {
         "CommodityName": string;
         "Note": string;
       };
-      const path = await generateSimplePrintAndPDF(csvData as BLERecord[], selectedFileName);
+      if(RNFS){
+        const path = await generateSimplePrintAndPDF(csvData as BLERecord[], selectedFileName);
+        const externalPath = `${RNFS.CachesDirectoryPath}/${selectedFileName.replace(".csv","")}.pdf`;
+        await RNFS.copyFile(path, externalPath);
       console.log(path)
       // const path = `${RNFS.DownloadDirectoryPath}/demo.pdf`;
       if (!Share) {
         Alert.alert('Error', 'Sharing not available on this platform.');
         return;
       }
-      await (Share as any).open({ url: `file://${path}`, type: 'application/pdf' });
-    } catch (error) {
+      await (Share as any).open({ url: `file://${externalPath}`, type: 'application/pdf' });
+    }} catch (error) {
       Alert.alert('Error', 'Failed to share PDF');
     }
   };
