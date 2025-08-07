@@ -4,7 +4,7 @@ import { Button, Text, Card, TouchableRipple, Modal,  Portal, Provider, IconButt
 import type { MyTabParamList } from '../navigation/BottomTabs'; // adjust path
 import { NavigationProp } from '@react-navigation/core';    
 
-let bleManager: any = undefined;
+let bleManager: any;
 type BleDisconnectPeripheralEvent = any;
 type BleScanCallbackType = any;
 type BleScanMatchMode = any;
@@ -12,6 +12,7 @@ type BleScanMode = any;
 type Peripheral = any;
 if (Platform.OS === 'android' || Platform.OS === 'ios') {
   bleManager = require('react-native-ble-manager').default;
+
 }
 
 import { lightTheme } from '../../theme';
@@ -134,6 +135,9 @@ const connectPeripheral = async (peripheral: Peripheral) => {
           (char: any) => char.properties?.Notify || char.properties?.Indicate
         );
         if (notifiableChar) {
+          console.log(
+            `[connectPeripheral][${peripheral.id}] starting notification for ${notifiableChar.characteristic}`
+          );
           try {
             await bleManager.startNotification(
               peripheral.id,
