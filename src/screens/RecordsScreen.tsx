@@ -11,11 +11,11 @@ import { Text, DataTable, IconButton, Portal, Button, Dialog } from 'react-nativ
 import { Platform } from 'react-native';
 let RNFS: typeof import('react-native-fs') | undefined;
 let Share: typeof import('react-native-share') | undefined;
-let RNPrint: typeof import('react-native-print') | undefined;
+import RNPrint from 'react-native-print';
 if (Platform.OS === 'ios' || Platform.OS === 'android') {
   RNFS = require('react-native-fs');
   Share = require('react-native-share');
-  RNPrint = require('react-native-print');
+  // RNPrint = require('react-native-print');
 }
 
 let DocumentPicker: any = null;
