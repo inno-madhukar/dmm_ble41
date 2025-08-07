@@ -291,11 +291,11 @@ varr.forEach((val)=>{
 
   if (Dtype !== "print") {
     const fName = Dtype.replace(/\.csv$/i, "");
-    path = `${RNFS.DocumentDirectoryPath}/${fName}.pdf`;
-    await RNFS.writeFile(path, base64String, 'base64');
+    let path1 = `${RNFS.DocumentDirectoryPath}/${fName}.pdf`;
+    await RNFS.writeFile(path1, base64String, 'base64');
     console.log(fName)
-    console.log(path)
-    return path
+    console.log(path1)
+    return path1
   }
   await RNFS.writeFile(path, base64String, 'base64');
   console.log("hi")

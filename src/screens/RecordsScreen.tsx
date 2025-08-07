@@ -14,7 +14,7 @@ let Share: typeof import('react-native-share') | undefined;
 import RNPrint from 'react-native-print';
 if (Platform.OS === 'ios' || Platform.OS === 'android') {
   RNFS = require('react-native-fs');
-  Share = require('react-native-share');
+  Share = require('react-native-share').default;
   // RNPrint = require('react-native-print');
 }
 
@@ -186,7 +186,7 @@ const RecordsScreen: React.FC = () => {
         "CommodityName": string;
         "Note": string;
       };
-      const path: string = await generateSimplePrintAndPDF(csvData as BLERecord[], selectedFileName);
+      const path = await generateSimplePrintAndPDF(csvData as BLERecord[], selectedFileName);
       console.log(path)
       // const path = `${RNFS.DownloadDirectoryPath}/demo.pdf`;
       if (!Share) {
@@ -210,6 +210,7 @@ const RecordsScreen: React.FC = () => {
 
       // If the path is a content URI, copy it to cache first
       if (selectedFilePath.startsWith('content://')) {
+        console.log("tejas")
         const fileName = selectedFileName || 'temp.csv';
         if (!RNFS) {
           Alert.alert('Error', 'File system not available on this platform.');
@@ -227,6 +228,7 @@ const RecordsScreen: React.FC = () => {
         return;
       }
       const fileExists = await RNFS.exists(pathToShare);
+      console.log(pathToShare)
       if (!fileExists) {
         Alert.alert('Error', 'File does not exist at:\n' + pathToShare);
         return;
