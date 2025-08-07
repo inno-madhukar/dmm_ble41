@@ -165,9 +165,12 @@ const RecordsScreen: React.FC = () => {
         "Note": string;
       };
       const path: string = await generateSimplePrintAndPDF(csvData as BLERecord[], selectedFileName);
+        const externalPath = `${RNFS.CachesDirectoryPath}/${selectedFileName}.pdf`;
+        await RNFS.copyFile(path, externalPath);
+
       console.log(path)
       // const path = `${RNFS.DownloadDirectoryPath}/demo.pdf`;
-      await Share.open({ url: `file://${path}`, type: 'application/pdf' });
+      await Share.open({ url: `file://${externalPath}`, type: 'application/pdf' });
     } catch (error) {
       Alert.alert('Error', 'Failed to share PDF');
     }
