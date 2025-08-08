@@ -37,11 +37,12 @@ const App = () => {
   return (
     <PaperProvider theme={lightTheme}>
       <NavigationContainer>
-        {Platform.OS === 'android' ? (
+        {Platform.OS === 'android' || Platform.OS === 'windows' || Platform.OS === 'ios' ? (
           <BottomTabs />
         ) : (
           <HelpScreen />
-        )}
+        )
+          }
       </NavigationContainer> 
     </PaperProvider>
   );

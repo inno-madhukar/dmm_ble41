@@ -15,7 +15,6 @@ import RNPrint from 'react-native-print';
 if (Platform.OS === 'ios' || Platform.OS === 'android') {
   RNFS = require('react-native-fs');
   Share = require('react-native-share').default;
-  // RNPrint = require('react-native-print');
 }
 
 let DocumentPicker: any = null;

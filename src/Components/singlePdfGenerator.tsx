@@ -8,7 +8,6 @@ import { Platform, Image as RNImage } from 'react-native';
 global.Buffer = Buffer;
 
 export async function generateStyledPDF({
-
   DeviceID,
   commodityName,
   moisture,
@@ -25,6 +24,7 @@ export async function generateStyledPDF({
   time: string;
   sampleQty: string;
   note: string
+  
 }) {
 
 
