@@ -2,8 +2,10 @@ import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { Provider as PaperProvider } from 'react-native-paper';
 import BottomTabs from './src/navigation/BottomTabs';
+import AppDrawer from './src/navigation/Drawerbar';
 import { lightTheme } from './theme';
 import { PermissionsAndroid, Platform } from 'react-native';
+
 let RNFS: typeof import('react-native-fs') | undefined;
 if (Platform.OS === 'android') {
   RNFS = require('react-native-fs');
@@ -37,10 +39,10 @@ const App = () => {
   return (
     <PaperProvider theme={lightTheme}>
       <NavigationContainer>
-        {Platform.OS === 'android' || Platform.OS === 'windows' || Platform.OS === 'ios' ? (
-          <BottomTabs />
+        {Platform.OS === 'windows' ? (
+          <AppDrawer />
         ) : (
-          <HelpScreen />
+          <BottomTabs />
         )
           }
       </NavigationContainer> 
