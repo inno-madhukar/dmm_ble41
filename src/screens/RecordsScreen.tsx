@@ -124,7 +124,9 @@ const RecordsScreen: React.FC = () => {
       if (error?.code === 'DOCUMENT_PICKER_CANCELED') {
         console.log('User cancelled file selection');
       } else {
-        Alert.alert('Error', `Failed to read CSV file.\nDetails: ${error?.message || 'Unknown error'}`);
+        // Alert.alert('Error', `Failed to read CSV file.\nDetails: ${error?.message || 'Unknown error'}`);
+          Alert.alert('Warning', `CSV file not Selected !`);
+
       }
     }
   };
@@ -148,7 +150,7 @@ const RecordsScreen: React.FC = () => {
       await RNPrint.print({ filePath: path });
     } catch (error) {
       console.log(error)
-      Alert.alert("error", 'Failed to generate PDF');
+      Alert.alert("Info", 'Failed to generate PDF');
     }
   };
 
@@ -165,14 +167,14 @@ const RecordsScreen: React.FC = () => {
         "Note": string;
       };
       const path: string = await generateSimplePrintAndPDF(csvData as BLERecord[], selectedFileName);
-        const externalPath = `${RNFS.CachesDirectoryPath}/${selectedFileName}.pdf`;
+        const externalPath = `${RNFS.CachesDirectoryPath}/${selectedFileName.replace(".csv", "")}.pdf`;
         await RNFS.copyFile(path, externalPath);
 
       console.log(path)
       // const path = `${RNFS.DownloadDirectoryPath}/demo.pdf`;
       await Share.open({ url: `file://${externalPath}`, type: 'application/pdf' });
     } catch (error) {
-      Alert.alert('Error', 'Failed to share PDF');
+      Alert.alert('Info', 'PDF not shared');
     }
   };
 
@@ -219,7 +221,7 @@ const RecordsScreen: React.FC = () => {
       </View>
 
       <TouchableOpacity style={styles.selectButton} onPress={selectCSVFile}>
-        <Text style={styles.selectButtonText}>SELECT A FILE</Text>
+        <Text style={styles.selectButtonText}>SELECT FILE</Text>
       </TouchableOpacity>
 
       {selectedFileName ? (

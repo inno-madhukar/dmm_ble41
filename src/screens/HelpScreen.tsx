@@ -11,8 +11,8 @@ const HelpScreen = () => {
   const { userID } = route.params;
 
   return (
-    <View style={{ flex: 1, padding: 16, justifyContent: 'center' }}>
-      <Text variant="headlineMedium">{`User ID: ${userID}`} Help</Text>
+    <View style={{ flex: 1,  justifyContent: 'center', margin: 'auto' }}>
+      <Text variant="headlineMedium">Help </Text>
       {/* <Text></Text> */}
     </View>
   );

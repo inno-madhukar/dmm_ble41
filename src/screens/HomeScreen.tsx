@@ -179,21 +179,34 @@ const connectPeripheral = async (peripheral: Peripheral) => {
     return () => listeners.forEach((l) => l.remove());
   }, []);
 
-   const handleAndroidPermissions = async () => {
-    if (Platform.OS === 'android' && Platform.Version >= 31) {
-      await PermissionsAndroid.requestMultiple([
-        PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
-        PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
-      ]);
-    } else if (Platform.OS === 'android' && Platform.Version >= 23) {
-      const granted = await PermissionsAndroid.check(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
-      );
-      if (!granted) {
-        await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
-      }
+const handleAndroidPermissions = async () => {
+  if (Platform.OS !== 'android') return;
+
+  if (Platform.Version >= 31) {
+    const granted = await PermissionsAndroid.requestMultiple([
+      PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+      PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+      // Add if advertising:
+      // PermissionsAndroid.PERMISSIONS.BLUETOOTH_ADVERTISE,
+    ]);
+
+    if (
+      granted[PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN] !== PermissionsAndroid.RESULTS.GRANTED ||
+      granted[PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT] !== PermissionsAndroid.RESULTS.GRANTED
+    ) {
+      console.warn("Bluetooth permissions not granted");
     }
-  };
+
+  } else if (Platform.Version >= 23) {
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+    );
+
+    if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+      console.warn("Location permission not granted");
+    }
+  }
+};
 
  const renderItem = ({ item }: { item: Peripheral }) => (
   <TouchableHighlight

@@ -15,7 +15,7 @@ import { Colors } from 'react-native/Libraries/NewAppScreen';
 import { useTheme } from 'react-native-paper';
 
 
-const profileFilePath = `${RNFS.DownloadDirectoryPath}/Innovative_instrument/userdata/profile.json`;
+const profileFilePath = `${RNFS.DocumentDirectoryPath}/profile.json`;
 
 const ProfileScreen = () => {
   const [editing, setEditing] = useState(false);
@@ -84,15 +84,17 @@ const ProfileScreen = () => {
         }
   
         const asset = response.assets?.[0];
+        console.log(asset);
         const fileName = asset?.fileName || '';
         const isJpg = fileName.toLowerCase().endsWith('.jpg') || fileName.toLowerCase().endsWith('.jpeg') || fileName.toLowerCase().endsWith('.png');
   
         if (!isJpg) {
-          Alert.alert('Invalid Image', 'Please select a JPG image only.');
+          Alert.alert('Invalid Image', 'Please select image only.');
           return;
         }
   
         if (asset?.uri) {
+          console.log(asset.uri);
           setProfile((prev) => ({ ...prev, image: asset.uri || '' }));
         }
       }
