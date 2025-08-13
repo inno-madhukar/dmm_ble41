@@ -223,10 +223,12 @@ if (Platform.OS === 'android' && Number(Platform.Version) >= 30) {
             val.ascii.split(',').map(s => s.trim())
           );
 
+                console.log(asciiArrays)
           const { deviceIdArray, readingsArray, commodityArray } = classifyArray(asciiArrays);
+    
           const formattedTime = getFormattedDateTime();
           const finalArray = [formattedTime, ...deviceIdArray, ...readingsArray, ...commodityArray];
- 
+            // console.log(finalArray)
           return (
             <>
               <View style={styles.iconRow}>

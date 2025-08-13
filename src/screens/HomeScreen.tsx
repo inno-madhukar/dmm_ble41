@@ -62,8 +62,8 @@ const HomeScreen = ({ navigation }:{navigation: NavigationProp<MyTabParamList>})
   const handleDiscoverPeripheral = (peripheral: Peripheral) => {
   const deviceName = peripheral.name || peripheral.advertising?.localName;
 
-  // Filter only devices that start with 'DMM'
-  if (deviceName?.startsWith('DMM')) {
+  // Filter only devices that have a name length of 7
+  if (deviceName?.length === 12) {
     peripheral.name = deviceName; // ensure name is set
     setPeripherals((map) => new Map(map.set(peripheral.id, peripheral)));
   }

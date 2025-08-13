@@ -10,11 +10,31 @@ const classifyArray = (arr: string[][]): {
   const cleanValue = (val: string) =>
     val.replace(/['"]/g, '').trim().replace(/\r?\n$/, '');
 
-  arr.forEach((valueArray) => {
+  // arr.forEach((valueArray) => {
+  //   console.log("val",valueArray)
+  //   const cleaned = valueArray.map(cleanValue);
+  //   const joined = cleaned.join(',').trim();
+
+  //   if (!deviceIdArray.length && /^DMMBLE/i.test(joined)) {
+  //     deviceIdArray = [joined];
+  //   } else if (
+  //     !readingsArray.length &&
+  //     cleaned.length === 3 &&
+  //     cleaned.every(v => /^\d+(\.\d+)?$/.test(v) || v.toUpperCase() === 'FULL')
+  //   ) {
+  //     readingsArray = cleaned;
+  //   } else if (!commodityArray.length) {
+  //     commodityArray = cleaned;
+  //   }
+  // });
+
+   arr.forEach((valueArray) => {
+    console.log("val",valueArray)
     const cleaned = valueArray.map(cleanValue);
+    console.log("cleaned",cleaned)
     const joined = cleaned.join(',').trim();
 
-    if (!deviceIdArray.length && /^DMMBLE/i.test(joined)) {
+    if (valueArray[0].length==12) {
       deviceIdArray = [joined];
     } else if (
       !readingsArray.length &&
@@ -26,7 +46,6 @@ const classifyArray = (arr: string[][]): {
       commodityArray = cleaned;
     }
   });
-
   return { deviceIdArray, readingsArray, commodityArray };
 };
 
