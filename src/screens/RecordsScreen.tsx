@@ -125,7 +125,7 @@ const RecordsScreen: React.FC = () => {
         console.log('User cancelled file selection');
       } else {
         // Alert.alert('Error', `Failed to read CSV file.\nDetails: ${error?.message || 'Unknown error'}`);
-          Alert.alert('Warning', `CSV file not Selected !`);
+        Alert.alert('Warning', `CSV file not Selected !`);
 
       }
     }
@@ -167,8 +167,8 @@ const RecordsScreen: React.FC = () => {
         "Note": string;
       };
       const path: string = await generateSimplePrintAndPDF(csvData as BLERecord[], selectedFileName);
-        const externalPath = `${RNFS.CachesDirectoryPath}/${selectedFileName.replace(".csv", "")}.pdf`;
-        await RNFS.copyFile(path, externalPath);
+      const externalPath = `${RNFS.CachesDirectoryPath}/${selectedFileName.replace(".csv", "")}.pdf`;
+      await RNFS.copyFile(path, externalPath);
 
       console.log(path)
       // const path = `${RNFS.DownloadDirectoryPath}/demo.pdf`;
@@ -210,7 +210,7 @@ const RecordsScreen: React.FC = () => {
       });
     } catch (error: any) {
       console.error('CSV Share Error:', error);
-      Alert.alert('Share Error', error?.message || 'Failed to share CSV file.');
+      Alert.alert('Share Error', 'Failed to share CSV file.');
     }
   };
 
@@ -236,50 +236,50 @@ const RecordsScreen: React.FC = () => {
         </View>
       ) : null}
 
-    {csvData.length > 0 && csvHeaders.length > 0 && (
-  <View style={styles.tableContainer}>
-    <ScrollView horizontal showsHorizontalScrollIndicator>
-      <View>
-        <DataTable>
+      {csvData.length > 0 && csvHeaders.length > 0 && (
+        <View style={styles.tableContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator>
+            <View>
+              <DataTable>
 
-          {/* Table Headers */}
-          <DataTable.Header>
-            {csvHeaders.map((header, index) => (
-              <DataTable.Title
-                key={index}
-                style={styles.cell}
-              >
-                <Text style={styles.headerText}>{header}</Text>
-              </DataTable.Title>
-            ))}
-          </DataTable.Header>
-
-          {/* Table Rows */}
-          <ScrollView style={{ maxHeight: 400 }}>
-            {csvData.map((row, rowIndex) => (
-              <DataTable.Row key={rowIndex}>
-                {hederobj.map((header, cellIndex) => (
-                  <DataTable.Cell
-                    key={cellIndex}
-                    style={styles.cell}
-                  >
-                    <Text
-                      numberOfLines={2}
-                      style={styles.cellText}
+                {/* Table Headers */}
+                <DataTable.Header>
+                  {csvHeaders.map((header, index) => (
+                    <DataTable.Title
+                      key={index}
+                      style={styles.cell}
                     >
-                      {row[header]}
-                    </Text>
-                  </DataTable.Cell>
-                ))}
-              </DataTable.Row>
-            ))}
-          </ScrollView>
+                      <Text style={styles.headerText}>{header}</Text>
+                    </DataTable.Title>
+                  ))}
+                </DataTable.Header>
 
-        </DataTable>
-      </View>
-    </ScrollView>
-  </View>
-)}
+                {/* Table Rows */}
+                <ScrollView style={{ maxHeight: 400 }}>
+                  {csvData.map((row, rowIndex) => (
+                    <DataTable.Row key={rowIndex}>
+                      {hederobj.map((header, cellIndex) => (
+                        <DataTable.Cell
+                          key={cellIndex}
+                          style={styles.cell}
+                        >
+                          <Text
+                            numberOfLines={2}
+                            style={styles.cellText}
+                          >
+                            {row[header]}
+                          </Text>
+                        </DataTable.Cell>
+                      ))}
+                    </DataTable.Row>
+                  ))}
+                </ScrollView>
+
+              </DataTable>
+            </View>
+          </ScrollView>
+        </View>
+      )}
 
 
       <Portal>
@@ -366,25 +366,25 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
 
- cell: {
-  width: 80,                 // 👈 fixed width for all columns
-  justifyContent: 'center',
-  alignItems: 'center',
-  paddingVertical: 8,
-  flexWrap: 'wrap',
-},
+  cell: {
+    width: 80,                 // 👈 fixed width for all columns
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 8,
+    flexWrap: 'wrap',
+  },
 
-cellText: {
-  textAlign: 'center',
-  textAlignVertical: 'center', // Only affects Android
-  fontSize: 11,
-},
+  cellText: {
+    textAlign: 'center',
+    textAlignVertical: 'center', // Only affects Android
+    fontSize: 11,
+  },
 
-headerText: {
-  fontWeight: 'bold',
-  textAlign: 'center',
-  fontSize: 13,
-},
+  headerText: {
+    fontWeight: 'bold',
+    textAlign: 'center',
+    fontSize: 13,
+  },
 
 
 
