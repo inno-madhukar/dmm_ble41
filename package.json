@@ -35,6 +35,25 @@
     "react-native-vector-icons": "^10.2.0",
     "react-native-windows": "^0.79.3"
   },
+  "codegenConfig": {
+    "name": "RNDmmble4Spec",
+    "type": "modules",
+    "jsSrcsDir": "src",
+    "outputDir": {
+      "ios": "ios/generated",
+      "android": "android/generated"
+    },
+    "android": {
+      "javaPackageName": "com.dmm_ble4"
+    },
+    "includesGeneratedCode": true,
+    "windows": {
+      "namespace": "dmm_ble4Codegen",
+      "outputDirectory": "windows/DmmBle4/codegen",
+      "separateDataTypes": true
+    }
+  },
+
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@babel/preset-env": "^7.25.3",
