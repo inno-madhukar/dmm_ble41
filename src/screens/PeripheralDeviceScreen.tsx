@@ -1,18 +1,25 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, ScrollView,PermissionsAndroid, Platform, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, ScrollView, PermissionsAndroid, Platform, Alert } from 'react-native';
 import { Text, TextInput, IconButton, Snackbar } from 'react-native-paper';
-import { useRoute, RouteProp } from '@react-navigation/native';
-import RNFS from 'react-native-fs';
-import type { MyTabParamList } from '../navigation/BottomTabs'; // adjust path
-import BleManager, {
+import { useRoute } from '@react-navigation/native';
+import type { MyTabParamList } from '../navigation/BottomTabs';
+import classifyArray from '../Components/arrClasiffy';
+let RNFS: typeof import('react-native-fs') | undefined;
+if (Platform.OS === 'ios' || Platform.OS === 'android') {
+  RNFS = require('react-native-fs');
+}
+import { NativeModules } from 'react-native';
+import { generateStyledPDF } from '../Components/singlePdfGenerator';
+const { ManageExternalStorage } = NativeModules;
+
+// ✅ Use `require` instead of `import`
+const BleManager = require('react-native-ble-manager').default;
+
+// ✅ Import only types (for TypeScript support)
+import type {
   PeripheralInfo,
   BleManagerDidUpdateValueForCharacteristicEvent,
 } from 'react-native-ble-manager';
-import classifyArray from '../Components/arrClasiffy'; // adjust path
-import RNPrint from 'react-native-print';
-import { NativeModules } from 'react-native';
-import {generateStyledPDF} from '../Components/singlePdfGenerator';
-const { ManageExternalStorage } = NativeModules;
 
 interface PeripheralDetailsProps {
   route: {
@@ -25,19 +32,20 @@ interface PeripheralDetailsProps {
 function getFormattedDate(): string {
   const date = new Date();
   const day = String(date.getDate()).padStart(2, '0');
-  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-                      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const month = monthNames[date.getMonth()];
   const year = date.getFullYear();
 
   return `${day}_${month}_${year}`;
 }
+
 function getFormattedDateTime(): string {
   const date = new Date();
 
   const day = String(date.getDate()).padStart(2, '0');
-  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-                      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const month = monthNames[date.getMonth()];
   const year = date.getFullYear();
 
@@ -48,128 +56,106 @@ function getFormattedDateTime(): string {
   return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
 }
 
-
 const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
-
   const peripheralData = route.params.peripheralData;
   const [receivedValues, setReceivedValues] = useState<{ ascii: string }[]>([]);
-  const [inputs, setInputs] = useState<string[]>(Array(5).fill(''));
   const [userNote, setUserNote] = useState('');
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  // const checker=useRef()
-// async function checkPermission() {
-//   const hasPermission = await ManageExternalStorage.hasPermission();
-//   if (!hasPermission) {
-//     console.log(hasPermission)
-//     requestPermission();
-    
-//   }
-//   // else{return true}
-// }
 
-  function requestPermission() {
-
-  ManageExternalStorage.requestPermission();
- 
-}
-
-
-const printData = async (data: string[], note: string) => {
-  const [timestamp, deviceId, temp, moisture, weight, commodity] = data;
-  console.log(note)
-  try {
-    const path=generateStyledPDF({
-DeviceID: deviceId,
-  commodityName: commodity,
-  moisture: moisture,
-  temperature: temp,
-  time: timestamp,
-  sampleQty: weight,
-  note:note,
-})
-  } catch (error) {
-    console.error('Print error:', error);
-    setSnackbarMessage('Error while printing');
-    setSnackbarVisible(true);
-  }
-};
-
-  const saveToCSV = async (data: string[], note: string) => {
-   
-  const hasPermission = await requestStoragePermission();
-  const hasPermission1 = await ManageExternalStorage.hasPermission();
-// console.log(hasPermission1)
-   if (hasPermission1 ) { 
-    let deviceName =
-      peripheralData?.name || peripheralData?.advertising?.localName || 'NO_NAME';
-      try {
-        const folder='DMM123'
-            // const csvLine = .join(',') + '\n';
-      const csvRow = [...data, note].map(val => `"${val}"`).join(',') + '\n';
-      console.log(csvRow)
-      console.log(note)
-      const safeName = deviceName.replace(/[^a-zA-Z0-9-_]/g, '_');
-      const path = `${RNFS.DownloadDirectoryPath}/Innovative_instrument/Data/${safeName}_${getFormattedDate()}.csv`;
-      console.log(path)
-      // const path = `${RNFS.DocumentDirectoryPath}/ble_readings.csv`;
-      const fileExists = await RNFS.exists(path);
-      console.log(fileExists)
-      if (!fileExists) {
-        const header = `"Date","Device ID","Temp °C","Moisture %","Weight (gm)","Commodity Name","Note"\n`;
-        await RNFS.writeFile(path, header + csvRow, 'utf8');
-      } else {
-        await RNFS.appendFile(path, csvRow, 'utf8');
-      }
-
-      setSnackbarMessage('Data saved to CSV! ');
-      Alert.alert('Success',`CSV file saved successfully at:\n\n${path}`)
-      setSnackbarVisible(true);
-    } catch (error) {
-      console.error('Failed to save CSV:', error);
-      setSnackbarMessage('Error saving CSV.');
-      setSnackbarVisible(true);
-    }
-  } else {
-    requestPermission()
-    // setSnackbarMessage('Storage permission denied');
-    // setSnackbarVisible(true);
-  }
-  
+  const requestPermission = () => {
+    ManageExternalStorage.requestPermission();
   };
 
-const requestStoragePermission = async (): Promise<boolean> => {
+  const printData = async (data: string[], note: string) => {
+    const [timestamp, deviceId, temp, moisture, weight, commodity] = data;
+    try {
+      await generateStyledPDF({
+        DeviceID: deviceId,
+        commodityName: commodity,
+        moisture: moisture,
+        temperature: temp,
+        time: timestamp,
+        sampleQty: weight,
+        note: note,
+      });
+    } catch (error) {
+      console.error('Print error:', error);
+      setSnackbarMessage('Error while printing');
+      setSnackbarVisible(true);
+    }
+  };
 
-if (Platform.OS === 'android' && Number(Platform.Version) >= 30) {
-  console.log('dfgh')
-  return true;
-}
+  const saveToCSV = async (data: string[], note: string) => {
+     if ((Platform.OS === 'ios' || Platform.OS === 'android') && RNFS) {
+    const hasPermission = await requestStoragePermission();
+    const hasExternalPermission = await ManageExternalStorage.hasPermission();
+
+    if (hasExternalPermission) {
+      let deviceName =
+        peripheralData?.name || peripheralData?.advertising?.localName || 'NO_NAME';
+
+      try {
+        const folder = 'DMM123';
+        const csvRow = [...data, note].map(val => `"${val}"`).join(',') + '\n';
+        const safeName = deviceName.replace(/[^a-zA-Z0-9-_]/g, '_');
+        const path = `${RNFS.DownloadDirectoryPath}/Innovative_instrument/Data/${safeName}_${getFormattedDate()}.csv`;
+        const fileExists = await RNFS.exists(path);
+
+        if (!fileExists) {
+          const header = `"Date","Device ID","Temp °C","Moisture %","Weight (gm)","Commodity Name","Note"\n`;
+          await RNFS.writeFile(path, header + csvRow, 'utf8');
+        } else {
+          await RNFS.appendFile(path, csvRow, 'utf8');
+        }
+
+        setSnackbarMessage('Data saved to CSV!');
+        Alert.alert('Success', `CSV file saved successfully at:\n\n${path}`);
+        setSnackbarVisible(true);
+      } catch (error) {
+        console.error('Failed to save CSV:', error);
+        setSnackbarMessage('Error saving CSV.');
+        setSnackbarVisible(true);
+      }
+    } else {
+      requestPermission();
+    }
+  }
+  };
+
+  const requestStoragePermission = async (): Promise<boolean> => {
+    if (Platform.OS === 'android' && Number(Platform.Version) >= 30) {
+      return true;
+    }
     try {
       const granted = await PermissionsAndroid.requestMultiple([
         PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
         PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
       ]);
 
-      const readGranted =
-        granted['android.permission.READ_EXTERNAL_STORAGE'] === PermissionsAndroid.RESULTS.GRANTED;
-      const writeGranted =
-        granted['android.permission.WRITE_EXTERNAL_STORAGE'] === PermissionsAndroid.RESULTS.GRANTED;
+      const readGranted = granted['android.permission.READ_EXTERNAL_STORAGE'] === PermissionsAndroid.RESULTS.GRANTED;
+      const writeGranted = granted['android.permission.WRITE_EXTERNAL_STORAGE'] === PermissionsAndroid.RESULTS.GRANTED;
 
       return readGranted && writeGranted;
     } catch (err) {
       console.warn('Permission error:', err);
-      console.log(err)
       return false;
     }
   };
 
-
   useEffect(() => {
+     if (Platform.OS !== 'ios' && Platform.OS !== 'android') {
+        setSnackbarMessage('BLE features are not supported on this platform.');
+        setSnackbarVisible(true);
+        return;
+      }
     let stopped = false;
+
     const handleUpdateValueForCharacteristic = (
       data: BleManagerDidUpdateValueForCharacteristicEvent
     ) => {
       if (stopped) return;
+
       let ascii = '';
       if (Array.isArray(data.value)) {
         ascii = String.fromCharCode(...data.value).slice(1);
@@ -201,14 +187,11 @@ if (Platform.OS === 'android' && Number(Platform.Version) >= 30) {
   }, []);
 
   const handleChange = (text: string) => {
-    // Remove existing line breaks first
     const plain = text.replace(/\n/g, '');
-
-    // Insert a line break every 10 characters
     const withNewlines = plain.match(/.{1,10}/g)?.join('\n') || '';
-
     setUserNote(withNewlines);
   };
+
   return (
     <View style={{ flex: 1, padding: 16, justifyContent: 'center' }}>
       <View style={{ alignItems: 'center' }}>
@@ -228,38 +211,27 @@ if (Platform.OS === 'android' && Number(Platform.Version) >= 30) {
     
           const formattedTime = getFormattedDateTime();
           const finalArray = [formattedTime, ...deviceIdArray, ...readingsArray, ...commodityArray];
-            // console.log(finalArray)
           return (
             <>
               <View style={styles.iconRow}>
                 <IconButton
                   icon="content-save"
                   size={24}
-                  onPress={() => saveToCSV(finalArray, userNote) }  //
+                  onPress={() => saveToCSV(finalArray, userNote)}
                 />
-               
-                <IconButton icon="printer" size={24}   onPress={() => printData(finalArray, userNote)} />
+                <IconButton
+                  icon="printer"
+                  size={24}
+                  onPress={() => printData(finalArray, userNote)}
+                />
               </View>
 
-              <Text style={styles.label}>
-                <Text style={styles.bold}>Device ID:</Text> {finalArray[1]}
-              </Text>
-              <Text style={styles.label}>
-                <Text style={styles.bold}>Item:</Text> {finalArray[5]}
-              </Text>
-              <Text style={styles.label}>
-                <Text style={styles.bold}>Moisture:</Text> {finalArray[3]} %
-              </Text>
-              <Text style={styles.label}>
-                <Text style={styles.bold}>Weight:</Text> {finalArray[4]}{' '}
-                {finalArray[4].toUpperCase() !== 'FULL' ? 'grams' : ''}
-              </Text>
-              <Text style={styles.label}>
-                <Text style={styles.bold}>Temperature:</Text> {finalArray[2]} °C
-              </Text>
-              <Text style={styles.label}>
-                <Text style={styles.bold}>Timestamp:</Text> {finalArray[0]}
-              </Text>
+              <Text style={styles.label}><Text style={styles.bold}>Device ID:</Text> {finalArray[1]}</Text>
+              <Text style={styles.label}><Text style={styles.bold}>Item:</Text> {finalArray[5]}</Text>
+              <Text style={styles.label}><Text style={styles.bold}>Moisture:</Text> {finalArray[3]} %</Text>
+              <Text style={styles.label}><Text style={styles.bold}>Weight:</Text> {finalArray[4]} {finalArray[4].toUpperCase() !== 'FULL' ? 'grams' : ''}</Text>
+              <Text style={styles.label}><Text style={styles.bold}>Temperature:</Text> {finalArray[2]} °C</Text>
+              <Text style={styles.label}><Text style={styles.bold}>Timestamp:</Text> {finalArray[0]}</Text>
 
               <TextInput
                 label="Note"
@@ -268,9 +240,8 @@ if (Platform.OS === 'android' && Number(Platform.Version) >= 30) {
                 multiline
                 onChangeText={handleChange}
                 style={styles.input}
-                 maxLength={50}
+                maxLength={50}
               />
-              
             </>
           );
         })() : (

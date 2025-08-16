@@ -3,13 +3,17 @@ import { View,TouchableHighlight, StyleSheet, Platform,PermissionsAndroid,FlatLi
 import { Button, Text, Card, TouchableRipple, Modal,  Portal, Provider, IconButton,Divider  } from 'react-native-paper';
 import type { MyTabParamList } from '../navigation/BottomTabs'; // adjust path
 import { NavigationProp } from '@react-navigation/core';    
-import BleManager, {
-  BleDisconnectPeripheralEvent,
-  BleScanCallbackType,
-  BleScanMatchMode,
-  BleScanMode,
-  Peripheral,
-} from 'react-native-ble-manager';
+
+let bleManager: any;
+type BleDisconnectPeripheralEvent = any;
+type BleScanCallbackType = any;
+type BleScanMatchMode = any;
+type BleScanMode = any;
+type Peripheral = any;
+if (Platform.OS === 'android' || Platform.OS === 'ios') {
+  bleManager = require('react-native-ble-manager').default;
+
+}
 
 import { lightTheme } from '../../theme';
 const SECONDS_TO_SCAN_FOR = 3;
@@ -24,7 +28,15 @@ declare module 'react-native-ble-manager' {
   }
 }
 
-const HomeScreen = ({ navigation }:{navigation: NavigationProp<MyTabParamList>}) => {             //      navigation.navigate('PeripheralDeviceScreen', { peripheralData: {} });
+
+const HomeScreen = ({ navigation }:{navigation: NavigationProp<MyTabParamList>}) => {
+  if (!bleManager) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Bluetooth features are not supported on this platform.</Text>
+      </View>
+    );
+  }
 
   const [visible, setVisible] = useState(false);
   const [isenabled, setIsEnabled] = useState(false);
@@ -73,7 +85,7 @@ const HomeScreen = ({ navigation }:{navigation: NavigationProp<MyTabParamList>})
   const togglePeripheralConnection = async (peripheral: Peripheral) => {
     if (peripheral?.connected) {
       try {
-        await BleManager.disconnect(peripheral.id);
+        await bleManager.disconnect(peripheral.id);
       } catch (error) {
         console.error(`[togglePeripheralConnection][${peripheral.id}] disconnect error`, error);
       }
@@ -97,16 +109,16 @@ const connectPeripheral = async (peripheral: Peripheral) => {
         return map;
       });
 
-      await BleManager.connect(peripheral.id);
+      await bleManager.connect(peripheral.id);
       await sleep(900);
 
       if (Platform.OS === 'android') {
         try {
-          await BleManager.requestMTU(peripheral.id, 512);
+          await bleManager.requestMTU(peripheral.id, 512);
         } catch {}
       }
 
-      const peripheralData = await BleManager.retrieveServices(peripheral.id);
+      const peripheralData = await bleManager.retrieveServices(peripheral.id);
 
       setPeripherals((map) => {
         let p = map.get(peripheral.id);
@@ -120,11 +132,14 @@ const connectPeripheral = async (peripheral: Peripheral) => {
 
       if (peripheralData.characteristics?.length) {
         const notifiableChar = peripheralData.characteristics.find(
-          (char) => char.properties?.Notify || char.properties?.Indicate
+          (char: any) => char.properties?.Notify || char.properties?.Indicate
         );
         if (notifiableChar) {
+          console.log(
+            `[connectPeripheral][${peripheral.id}] starting notification for ${notifiableChar.characteristic}`
+          );
           try {
-            await BleManager.startNotification(
+            await bleManager.startNotification(
               peripheral.id,
               notifiableChar.service,
               notifiableChar.characteristic
@@ -144,14 +159,14 @@ const connectPeripheral = async (peripheral: Peripheral) => {
  const scanForDevices = async () => {
     try {
       await handleAndroidPermissions();
-      await BleManager.enableBluetooth();
+      await bleManager.enableBluetooth();
       setIsScanning(true);
       setScanState(true);
       setPeripherals(new Map());
-      BleManager.scan(SERVICE_UUIDS, SECONDS_TO_SCAN_FOR, ALLOW_DUPLICATES, {
-        matchMode: BleScanMatchMode.Sticky,
-        scanMode: BleScanMode.LowLatency,
-        callbackType: BleScanCallbackType.AllMatches,
+      bleManager.scan(SERVICE_UUIDS, SECONDS_TO_SCAN_FOR, ALLOW_DUPLICATES, {
+        matchMode: 1, // BleScanMatchMode.Sticky
+        scanMode: 2, // BleScanMode.LowLatency
+        callbackType: 1, // BleScanCallbackType.AllMatches
       }).catch(console.error);
     } catch (error) {
       console.error('Error initializing BLE:', error);
@@ -161,7 +176,7 @@ const connectPeripheral = async (peripheral: Peripheral) => {
      useEffect(() => {
     const initObservers = async () => {
       try {
-        await BleManager.start({ showAlert: true });
+        await bleManager.start({ showAlert: true });
         scanForDevices();
       } catch (error) {
         console.error('BLE Init error:', error);
@@ -169,10 +184,10 @@ const connectPeripheral = async (peripheral: Peripheral) => {
     };
 
     const listeners = [
-      BleManager.onDiscoverPeripheral(handleDiscoverPeripheral),
-      BleManager.onStopScan(handleStopScan),
-      BleManager.onConnectPeripheral(handleConnectPeripheral),
-      BleManager.onDisconnectPeripheral(handleDisconnectedPeripheral),
+      bleManager.onDiscoverPeripheral(handleDiscoverPeripheral),
+      bleManager.onStopScan(handleStopScan),
+      bleManager.onConnectPeripheral(handleConnectPeripheral),
+      bleManager.onDisconnectPeripheral(handleDisconnectedPeripheral),
     ];
 
     initObservers();

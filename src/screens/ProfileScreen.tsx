@@ -9,13 +9,20 @@ import {
   Alert,
 } from 'react-native';
 import { Text, TextInput, Button } from 'react-native-paper';
-import * as ImagePicker from 'react-native-image-picker';
-import RNFS from 'react-native-fs';
+let ImagePicker: typeof import('react-native-image-picker') | undefined;
+let RNFS: typeof import('react-native-fs') | undefined;
+if (Platform.OS === 'ios' || Platform.OS === 'android') {
+  ImagePicker = require('react-native-image-picker');
+  RNFS = require('react-native-fs');
+}
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import { useTheme } from 'react-native-paper';
 
 
-const profileFilePath = `${RNFS.DocumentDirectoryPath}/profile.json`;
+// const profileFilePath = `${RNFS.DocumentDirectoryPath}/profile.json`;
+const profileFilePath = (Platform.OS === 'ios' || Platform.OS === 'android') && RNFS
+  ? `${RNFS.DocumentDirectoryPath}/profile.json`
+  : '';
 
 const ProfileScreen = () => {
   const [editing, setEditing] = useState(false);
@@ -46,13 +53,15 @@ const ProfileScreen = () => {
 
   // Load profile data on mount
   useEffect(() => {
-    RNFS.exists(profileFilePath).then((exists) => {
-      if (exists) {
-        RNFS.readFile(profileFilePath, 'utf8').then((data) => {
-          setProfile(JSON.parse(data));
-        });
-      }
-    });
+    if ((Platform.OS === 'ios' || Platform.OS === 'android') && RNFS) {
+      RNFS.exists(profileFilePath).then((exists: boolean) => {
+        if (exists) {
+          RNFS.readFile(profileFilePath, 'utf8').then((data: string) => {
+            setProfile(JSON.parse(data));
+          });
+        }
+      });
+    }
   }, []);
 
   // Handle image pick
@@ -62,44 +71,32 @@ const ProfileScreen = () => {
       Alert.alert('Permission denied', 'Storage permission is required.');
       return;
     }
-
-    ImagePicker.launchImageLibrary(
-      {
-        mediaType: 'photo',
-        selectionLimit: 1,
-        includeExtra: true,
-      },
-
-      // (response) => {
-      //   if (response.assets && response.assets[0]?.uri) {
-      //     setProfile((prev) => ({ ...prev, image: response.assets?.[0]?.uri || '' }));
-      //   }
-      // }
-
-      (response) => {
-        if (response.didCancel) return;
-        if (response.errorCode) {
-          Alert.alert('Error', 'Failed to pick image.');
-          return;
+    if ((Platform.OS === 'ios' || Platform.OS === 'android') && ImagePicker) {
+      ImagePicker.launchImageLibrary(
+        {
+          mediaType: 'photo',
+          selectionLimit: 1,
+          includeExtra: true,
+        },
+        (response: any) => {
+          if (response.didCancel) return;
+          if (response.errorCode) {
+            Alert.alert('Error', 'Failed to pick image.');
+            return;
+          }
+          const asset = response.assets?.[0];
+          const fileName = asset?.fileName || '';
+          const isImage = fileName.toLowerCase().endsWith('.jpg') || fileName.toLowerCase().endsWith('.jpeg') || fileName.toLowerCase().endsWith('.png');
+          if (!isImage) {
+            Alert.alert('Invalid Image', 'Please select image only.');
+            return;
+          }
+          if (asset?.uri) {
+            setProfile((prev) => ({ ...prev, image: asset.uri || '' }));
+          }
         }
-  
-        const asset = response.assets?.[0];
-        console.log(asset);
-        const fileName = asset?.fileName || '';
-        const isJpg = fileName.toLowerCase().endsWith('.jpg') || fileName.toLowerCase().endsWith('.jpeg') || fileName.toLowerCase().endsWith('.png');
-  
-        if (!isJpg) {
-          Alert.alert('Invalid Image', 'Please select image only.');
-          return;
-        }
-  
-        if (asset?.uri) {
-          console.log(asset.uri);
-          setProfile((prev) => ({ ...prev, image: asset.uri || '' }));
-        }
-      }
-      
-    );
+      );
+    }
   };
 
   // Validate fields before saving
@@ -148,13 +145,14 @@ const ProfileScreen = () => {
   // Save to JSON file
   const handleSave = async () => {
     if (!validateProfile()) return;
-
-    try {
-      await RNFS.writeFile(profileFilePath, JSON.stringify(profile), 'utf8');
-      Alert.alert('Success', 'Profile saved successfully.');
-      setEditing(false);
-    } catch (e) {
-      Alert.alert('Error', 'Failed to save profile.');
+    if ((Platform.OS === 'ios' || Platform.OS === 'android') && RNFS) {
+      try {
+        await RNFS.writeFile(profileFilePath, JSON.stringify(profile), 'utf8');
+        Alert.alert('Success', 'Profile saved successfully.');
+        setEditing(false);
+      } catch (e) {
+        Alert.alert('Error', 'Failed to save profile.');
+      }
     }
   };
 

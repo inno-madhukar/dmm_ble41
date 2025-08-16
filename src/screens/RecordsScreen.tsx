@@ -7,19 +7,28 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { Text, DataTable, IconButton, Portal, Button, Dialog } from 'react-native-paper';
-import RNFS from 'react-native-fs';
-import Share from 'react-native-share';
+
+import { Platform } from 'react-native';
+let RNFS: typeof import('react-native-fs') | undefined;
+let Share: typeof import('react-native-share') | undefined;
 import RNPrint from 'react-native-print';
+if (Platform.OS === 'ios' || Platform.OS === 'android') {
+  RNFS = require('react-native-fs');
+  Share = require('react-native-share').default;
+}
 
 let DocumentPicker: any = null;
 let types: any = null;
 
-try {
-  const DocumentPickerModule = require('@react-native-documents/picker');
-  DocumentPicker = DocumentPickerModule.default || DocumentPickerModule;
-  types = DocumentPickerModule.types || DocumentPickerModule.default?.types;
-} catch (error) {
-  console.warn('Failed to import DocumentPicker:', error);
+
+if (Platform.OS === 'ios' || Platform.OS === 'android') {
+  try {
+    const DocumentPickerModule = require('@react-native-documents/picker');
+    DocumentPicker = DocumentPickerModule.default || DocumentPickerModule;
+    types = DocumentPickerModule.types || DocumentPickerModule.default?.types;
+  } catch (error) {
+    console.warn('Failed to import DocumentPicker:', error);
+  }
 }
 
 import generateSimplePrintAndPDF from '../Components/printPdfGenerator';
@@ -81,6 +90,10 @@ const RecordsScreen: React.FC = () => {
   };
 
   const selectCSVFile = async (): Promise<void> => {
+    if (Platform.OS !== 'ios' && Platform.OS !== 'android') {
+      Alert.alert('Unsupported Platform', 'File selection is only supported on Android/iOS.');
+      return;
+    }
     try {
       if (!DocumentPicker || !DocumentPicker.pick) {
         throw new Error('DocumentPicker is not properly installed or imported');
@@ -94,6 +107,10 @@ const RecordsScreen: React.FC = () => {
       const file: DocumentPickerResponse = result[0];
       setSelectedFileName(file.name || 'Unknown file');
       console.log(file.uri)
+      if (!RNFS) {
+        Alert.alert('Error', 'File system not available on this platform.');
+        return;
+      }
       const fileExists = await RNFS.exists(file.uri);
       setSelectedFilePath(file.uri); // Save path for sharing
       if (!fileExists) {
@@ -147,6 +164,10 @@ const RecordsScreen: React.FC = () => {
         "Note": string;
       };
       const path: string = await generateSimplePrintAndPDF(csvData as BLERecord[], "print");
+      if (!RNPrint) {
+        Alert.alert('Error', 'Printing not available on this platform.');
+        return;
+      }
       await RNPrint.print({ filePath: path });
     } catch (error) {
       console.log(error)
@@ -166,15 +187,19 @@ const RecordsScreen: React.FC = () => {
         "CommodityName": string;
         "Note": string;
       };
-      const path: string = await generateSimplePrintAndPDF(csvData as BLERecord[], selectedFileName);
-      const externalPath = `${RNFS.CachesDirectoryPath}/${selectedFileName.replace(".csv", "")}.pdf`;
-      await RNFS.copyFile(path, externalPath);
-
+      if(RNFS){
+        const path = await generateSimplePrintAndPDF(csvData as BLERecord[], selectedFileName);
+        const externalPath = `${RNFS.CachesDirectoryPath}/${selectedFileName.replace(".csv","")}.pdf`;
+        await RNFS.copyFile(path, externalPath);
       console.log(path)
       // const path = `${RNFS.DownloadDirectoryPath}/demo.pdf`;
-      await Share.open({ url: `file://${externalPath}`, type: 'application/pdf' });
-    } catch (error) {
-      Alert.alert('Info', 'PDF not shared');
+      if (!Share) {
+        Alert.alert('Error', 'Sharing not available on this platform.');
+        return;
+      }
+      await (Share as any).open({ url: `file://${externalPath}`, type: 'application/pdf' });
+    }} catch (error) {
+      Alert.alert('Error', 'Failed to share PDF');
     }
   };
 
@@ -189,7 +214,12 @@ const RecordsScreen: React.FC = () => {
 
       // If the path is a content URI, copy it to cache first
       if (selectedFilePath.startsWith('content://')) {
+        console.log("tejas")
         const fileName = selectedFileName || 'temp.csv';
+        if (!RNFS) {
+          Alert.alert('Error', 'File system not available on this platform.');
+          return;
+        }
         const destPath = `${RNFS.CachesDirectoryPath}/${fileName}`;
 
         // Copy file to accessible location
@@ -197,13 +227,22 @@ const RecordsScreen: React.FC = () => {
         pathToShare = destPath;
       }
 
+      if (!RNFS) {
+        Alert.alert('Error', 'File system not available on this platform.');
+        return;
+      }
       const fileExists = await RNFS.exists(pathToShare);
+      console.log(pathToShare)
       if (!fileExists) {
         Alert.alert('Error', 'File does not exist at:\n' + pathToShare);
         return;
       }
 
-      await Share.open({
+      if (!Share) {
+        Alert.alert('Error', 'Sharing not available on this platform.');
+        return;
+      }
+      await (Share as any).open({
         url: `file://${pathToShare}`,
         type: 'text/csv',
         failOnCancel: false,

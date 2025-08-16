@@ -1,19 +1,14 @@
 import React from 'react';
 import { View } from 'react-native';
 import { Text } from 'react-native-paper';
-import { useRoute, RouteProp } from '@react-navigation/native';
-import type { MyTabParamList } from '../navigation/BottomTabs'; // adjust path
-
-type HelpScreenRouteProp = RouteProp<MyTabParamList, 'HelpScreen'>;
 
 const HelpScreen = () => {
-  const route = useRoute<HelpScreenRouteProp>();
-  const { userID } = route.params;
-
   return (
-    <View style={{ flex: 1,  justifyContent: 'center', margin: 'auto' }}>
-      <Text variant="headlineMedium">Help </Text>
-      {/* <Text></Text> */}
+    <View style={{ flex: 1, padding: 16, justifyContent: 'center', alignItems: 'center' }}>
+      <Text variant="headlineMedium">Help & Info</Text>
+      <Text style={{ marginTop: 16, textAlign: 'center' }}>
+        This is the help screen. For support or documentation, please contact support or visit our website.
+      </Text>
     </View>
   );
 };
