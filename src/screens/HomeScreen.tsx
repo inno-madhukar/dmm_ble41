@@ -1,14 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View,TouchableHighlight, StyleSheet, Platform,PermissionsAndroid,FlatList, Alert } from 'react-native';
-import { Button, Text, Card, TouchableRipple, Modal,  Portal, Provider, IconButton,Divider  } from 'react-native-paper';
+import { View, TouchableHighlight, StyleSheet, Platform, PermissionsAndroid, FlatList, Alert, Permission } from 'react-native';
+import { Button, Text, Card, TouchableRipple, Modal, Portal, Provider, IconButton, Divider } from 'react-native-paper';
 import type { MyTabParamList } from '../navigation/BottomTabs'; // adjust path
-import { NavigationProp } from '@react-navigation/core';    
+import { NavigationProp } from '@react-navigation/core';
 
 let bleManager: any;
 type BleDisconnectPeripheralEvent = any;
-type BleScanCallbackType = any;
-type BleScanMatchMode = any;
-type BleScanMode = any;
 type Peripheral = any;
 if (Platform.OS === 'android' || Platform.OS === 'ios') {
   bleManager = require('react-native-ble-manager').default;
@@ -29,7 +26,7 @@ declare module 'react-native-ble-manager' {
 }
 
 
-const HomeScreen = ({ navigation }:{navigation: NavigationProp<MyTabParamList>}) => {
+const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList> }) => {
   if (!bleManager) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -39,18 +36,19 @@ const HomeScreen = ({ navigation }:{navigation: NavigationProp<MyTabParamList>})
   }
 
   const [visible, setVisible] = useState(false);
-  const [isenabled, setIsEnabled] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [scanstate, setScanState] = useState(false);
+  const [scanbtn, setScanbtn] = useState(false)
   const [peripherals, setPeripherals] = useState(
     new Map<Peripheral['id'], Peripheral>()
   );
-    const hideModal = () => {
-        setVisible(false);
-      }
-    const showModal = () => {
-        setVisible(true);
-    }
+
+  const hideModal = () => {
+    setVisible(false);
+  }
+  const showModal = () => {
+    setVisible(true);
+  }
 
   const handleStopScan = () => {
     setIsScanning(false);
@@ -60,7 +58,9 @@ const HomeScreen = ({ navigation }:{navigation: NavigationProp<MyTabParamList>})
 
   const handleDisconnectedPeripheral = (event: BleDisconnectPeripheralEvent) => {
     setPeripherals((map) => {
+
       let p = map.get(event.peripheral);
+      console.log(event)
       if (p) {
         p.connected = false;
         return new Map(map.set(event.peripheral, p));
@@ -69,20 +69,22 @@ const HomeScreen = ({ navigation }:{navigation: NavigationProp<MyTabParamList>})
     });
   };
 
-  const handleConnectPeripheral = (_event: any) => {};
+  const handleConnectPeripheral = (_event: any) => { };
 
   const handleDiscoverPeripheral = (peripheral: Peripheral) => {
-  const deviceName = peripheral.name || peripheral.advertising?.localName;
+    console.log(peripheral)
+    const deviceName = peripheral.name || peripheral.advertising?.localName;
+    // Filter only devices that have a name length of 12
+    if (deviceName?.length === 12) {
+      peripheral.name = deviceName; // ensure name is set
+      setPeripherals((map) => new Map(map.set(peripheral.id, peripheral)));
 
-  // Filter only devices that have a name length of 7
-  if (deviceName?.length === 12) {
-    peripheral.name = deviceName; // ensure name is set
-    setPeripherals((map) => new Map(map.set(peripheral.id, peripheral)));
-  }
-};
+    }
+  };
 
 
   const togglePeripheralConnection = async (peripheral: Peripheral) => {
+
     if (peripheral?.connected) {
       try {
         await bleManager.disconnect(peripheral.id);
@@ -94,11 +96,11 @@ const HomeScreen = ({ navigation }:{navigation: NavigationProp<MyTabParamList>})
     }
   };
 
-    function sleep(ms: number) {
+  function sleep(ms: number) {
     return new Promise<void>((resolve) => setTimeout(resolve, ms));
   }
-  
-const connectPeripheral = async (peripheral: Peripheral) => {
+
+  const connectPeripheral = async (peripheral: Peripheral) => {
     try {
       setPeripherals((map) => {
         let p = map.get(peripheral.id);
@@ -115,7 +117,7 @@ const connectPeripheral = async (peripheral: Peripheral) => {
       if (Platform.OS === 'android') {
         try {
           await bleManager.requestMTU(peripheral.id, 512);
-        } catch {}
+        } catch { }
       }
 
       const peripheralData = await bleManager.retrieveServices(peripheral.id);
@@ -144,36 +146,41 @@ const connectPeripheral = async (peripheral: Peripheral) => {
               notifiableChar.service,
               notifiableChar.characteristic
             );
-          } catch {}
+          } catch { }
         }
       }
 
       navigation.navigate('PeripheralDeviceScreen', {
         peripheralData: peripheralData as any,
       });
+      bleManager.stopScan()
     } catch (error) {
       console.error(`[connectPeripheral][${peripheral.id}] error`, error);
     }
   };
 
- const scanForDevices = async () => {
+  const scanForDevices = async () => {
     try {
+      console.log(peripherals.values())
       await handleAndroidPermissions();
       await bleManager.enableBluetooth();
       setIsScanning(true);
       setScanState(true);
+      setScanbtn(true);
       setPeripherals(new Map());
+      console.log(peripherals)
       bleManager.scan(SERVICE_UUIDS, SECONDS_TO_SCAN_FOR, ALLOW_DUPLICATES, {
         matchMode: 1, // BleScanMatchMode.Sticky
         scanMode: 2, // BleScanMode.LowLatency
         callbackType: 1, // BleScanCallbackType.AllMatches
       }).catch(console.error);
+
     } catch (error) {
       console.error('Error initializing BLE:', error);
     }
   };
 
-     useEffect(() => {
+  useEffect(() => {
     const initObservers = async () => {
       try {
         await bleManager.start({ showAlert: true });
@@ -194,105 +201,100 @@ const connectPeripheral = async (peripheral: Peripheral) => {
     return () => listeners.forEach((l) => l.remove());
   }, []);
 
-const handleAndroidPermissions = async () => {
-  if (Platform.OS !== 'android') return;
+  async function requestPermissions(permissions: Permission[]) {
+    if (Platform.OS !== "android") return true;
 
-  if (Platform.Version >= 31) {
-    const granted = await PermissionsAndroid.requestMultiple([
-      PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
-      PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
-      // Add if advertising:
-      // PermissionsAndroid.PERMISSIONS.BLUETOOTH_ADVERTISE,
-    ]);
+    try {
+      const results = await PermissionsAndroid.requestMultiple(permissions);
 
-    if (
-      granted[PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN] !== PermissionsAndroid.RESULTS.GRANTED ||
-      granted[PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT] !== PermissionsAndroid.RESULTS.GRANTED
-    ) {
-      console.warn("Bluetooth permissions not granted");
-    }
+      // Check each result
+      const allGranted = Object.values(results).every(
+        (r) => r === PermissionsAndroid.RESULTS.GRANTED
+      );
 
-  } else if (Platform.Version >= 23) {
-    const granted = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
-    );
+      if (!allGranted) {
+        console.warn("Some permissions denied:", results);
+      }
 
-    if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-      console.warn("Location permission not granted");
+      return allGranted; //  true if all granted,  false if any denied
+    } catch (err) {
+      console.error("Permission error:", err);
+      return false;
     }
   }
-};
 
- const renderItem = ({ item }: { item: Peripheral }) => (
-  <TouchableHighlight
-        underlayColor={lightTheme.colors.primary}
-        onPress={() => togglePeripheralConnection(item)}
-      >
-  <View>
-    <View style={styles.row}>
-      <Text variant="titleMedium" style={styles.deviceName}>
-        {item.name || 'Unknown Device'}
-      </Text>
-      <IconButton icon="bluetooth" size={24} onPress={() => togglePeripheralConnection(item)} />
-    </View>
-    <Divider style={styles.divider} />
-  </View>
-  </TouchableHighlight>
-);
-  return (
-     
-      <View style={styles.container}>
-        <View style={{ alignItems: 'center'}}>
-        <Text variant="headlineMedium" style={{color: '#2f3ceeff'}}>Digital Moisture Meter BLE</Text>
-      </View>
-       {/* <Divider style={styles.divider} /> */}
-        {
-          scanstate ? (
-            <>                
-              <FlatList
-                data={Array.from(peripherals.values())}
-                keyExtractor={(item) => item.id}
-                renderItem={renderItem}
-                contentContainerStyle={styles.listContainer}
-                ListHeaderComponent={
-                  <Text variant="titleMedium" style={styles.header}>
-                    {scanstate ? ' List of Available Devices' : 'No Peripherals found.'}
-                  </Text>
-                }
-              />
-            <Button
-              mode="contained"
-              onPress={scanForDevices}
-              style={styles.button}
-               disabled={isScanning}
+  const handleAndroidPermissions = async () => {
+    if (Platform.OS !== 'android') return;
 
-            >
-               Refresh
-            </Button>
-      
-      </>
-          ) : (
-           <View>
+    if (Platform.Version >= 23) {
 
-      <View style={styles.subcontainer}>
-        <Text variant="labelSmall" style={styles.text}>
-          Make sure your device is powered on and in pairing mode. Scanning may take a few seconds.
-        </Text>
-        <Button
-          mode="contained"
-          onPress={scanForDevices}
-          style={styles.button}
-          // disabled={isScanning}
-        >
-          Scan Devices
-        </Button>
-      </View>
+      const ok = await requestPermissions([
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+      ]);
+
+      if (ok) {
+        console.log(" All permissions granted");
+      } else {
+        console.log(" Some permissions denied");
+      }
+    }
+
+  };
+
+  const renderItem = ({ item }: { item: Peripheral }) => (
+    <TouchableHighlight
+      underlayColor={lightTheme.colors.primary}
+      onPress={() => togglePeripheralConnection(item)}
+    >
+      <View>
+        <View style={styles.row}>
+          <Text variant="titleMedium" style={styles.deviceName}>
+            {item.name || 'Unknown Device'}
+          </Text>
+          <IconButton icon="bluetooth" size={24} onPress={() => togglePeripheralConnection(item)} />
         </View>
-          )
+        <Divider style={styles.divider} />
+      </View>
+    </TouchableHighlight>
+  );
+  return (
 
-        }
+    <View style={styles.container}>
+      <View style={{ alignItems: 'center' }}>
+        <Text variant="headlineMedium" style={{ color: '#2f3ceeff' }}>Digital Moisture Meter BLE</Text>
+      </View>
+      {
+        <>
+          {console.log("FlatList rendered, devices:", Array.from(peripherals))}
+          <FlatList
+            data={Array.from(peripherals.values())}
 
-        
+            keyExtractor={(item) => item.id}
+            renderItem={renderItem}
+            contentContainerStyle={styles.listContainer}
+            ListHeaderComponent={
+              <Text variant="titleMedium" style={styles.header}>
+                {scanstate ? ' List of Available Devices' : 'No Peripherals found.'}
+              </Text>
+            }
+          />
+          <Button
+            mode="contained"
+            onPress={scanForDevices}
+            style={styles.button}
+            disabled={isScanning}
+
+          >
+            {scanbtn ? ' Refresh' : 'Scan Devices'}
+          </Button>
+
+        </>
+
+      }
+
+
       <Modal visible={visible} onDismiss={hideModal} contentContainerStyle={styles.modalContainer}>
         <IconButton icon="alert" size={48} style={styles.modalIcon} />
         <Text variant="titleMedium" style={styles.modalText}>
@@ -320,10 +322,10 @@ const handleAndroidPermissions = async () => {
         >
           Cancel
         </Button>
-          </Modal>
-        
-      </View>
- 
+      </Modal>
+
+    </View>
+
   );
 };
 
@@ -337,8 +339,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffffff',
   },
   subcontainer: {
-       marginTop: '50%',
-       paddingTop: '20%',
+    marginTop: '50%',
+    paddingTop: '20%',
 
   },
   text: {
@@ -371,40 +373,40 @@ const styles = StyleSheet.create({
     width: '60%',
   },
   card: {
-  marginVertical: 6,
-  marginHorizontal: 12,
-  borderRadius: 8,
-  elevation: 2, // for shadow on Android
-},
-peripheralId: {
-  color: '#666',
-  fontSize: 12,
-  marginTop: 4,
-},
+    marginVertical: 6,
+    marginHorizontal: 12,
+    borderRadius: 8,
+    elevation: 2, // for shadow on Android
+  },
+  peripheralId: {
+    color: '#666',
+    fontSize: 12,
+    marginTop: 4,
+  },
   listContent: {
     paddingHorizontal: 16,
     paddingBottom: 24,
-  },emptyRow: {
+  }, emptyRow: {
     marginTop: 40,
     alignItems: 'center',
   }, noPeripherals: {
     color: '#999',
   },
-    row: {
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 10,
   },
-    deviceName: {
+  deviceName: {
     fontWeight: '600',
   },
-    divider: {
+  divider: {
     height: 1,
     backgroundColor: '#3000ff', // Purple line like in image
     opacity: 0.7,
   },
-    listContainer: {
+  listContainer: {
     padding: 16,
   },
   header: {

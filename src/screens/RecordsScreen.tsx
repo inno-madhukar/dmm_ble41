@@ -259,9 +259,9 @@ const RecordsScreen: React.FC = () => {
         <Text variant="headlineMedium" style={{ color: '#2f3ceeff' }}>Digital Moisture Meter BLE</Text>
       </View>
 
-      <TouchableOpacity style={styles.selectButton} onPress={selectCSVFile}>
-        <Text style={styles.selectButtonText}>SELECT FILE</Text>
-      </TouchableOpacity>
+      <Button  mode="contained"  style={styles.sbutton} onPress={selectCSVFile}>
+        Select File
+      </Button>
 
       {selectedFileName ? (
         <View style={styles.fileRow}>
@@ -366,12 +366,16 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   selectButton: {
-    backgroundColor: '#FFA86B',
+    // backgroundColor: '#FFA86B',
     alignSelf: 'center',
     paddingVertical: 10,
     paddingHorizontal: 22,
     borderRadius: 20,
     marginBottom: 16,
+  },
+  sbutton: {
+    alignSelf: 'center',
+    // width: '80%',
   },
   selectButtonText: {
     color: '#fff',

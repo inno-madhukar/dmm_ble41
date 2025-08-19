@@ -41,7 +41,7 @@ const ContactUsModal = forwardRef<ContactUsModalRef>((_, ref) => {
         <Text style={styles.label}>Website</Text>
         <Text style={styles.text}>www.innovative-instruments.in</Text>
 
-        <Button mode="contained" style={{ marginTop: 20 }} onPress={() => setVisible(false)}>
+        <Button mode="contained" style={{ marginTop: 20, width: '30%', alignSelf: 'center' }} onPress={() => setVisible(false)}>
           Close
         </Button>
       </Modal>
@@ -65,6 +65,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginTop: 12,
     textAlign: 'center',
+   
   },
   text: {
     textAlign: 'center',

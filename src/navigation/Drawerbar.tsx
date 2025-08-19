@@ -26,7 +26,6 @@ export type MyTabParamList = {
 const CustomHeader = ({ onContactPress }: { onContactPress: () => void }) => {
 
   const [menuVisible, setMenuVisible] = useState(false);
-  const navigation = useNavigation<BottomTabNavigationProp<MyTabParamList>>();
 
   return (
     <Appbar.Header style={{ backgroundColor: '#eca921ff' }}>

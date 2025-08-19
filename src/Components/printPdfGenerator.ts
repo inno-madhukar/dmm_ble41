@@ -285,7 +285,6 @@ varr.forEach((val)=>{
 
   // ✅ Convert to base64
   const base64String = Buffer.from(pdfBytes).toString('base64');
-
   if (!RNFS) throw new Error('File system not available.');
   let path = `${RNFS.DocumentDirectoryPath}/Temp_Print_Table.pdf`;  // ✅ Save to file
 
@@ -293,11 +292,8 @@ varr.forEach((val)=>{
     const fName = Dtype.replace(/\.csv$/i, "");
     let path1 = `${RNFS.DocumentDirectoryPath}/${fName}.pdf`;
     await RNFS.writeFile(path1, base64String, 'base64');
-    console.log(fName)
-    console.log(path1)
     return path1
   }
   await RNFS.writeFile(path, base64String, 'base64');
-  console.log("hi")
   return path;
 }

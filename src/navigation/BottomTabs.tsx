@@ -6,8 +6,6 @@ import { IconButton, Menu, useTheme, Appbar } from 'react-native-paper';
 import ProfileScreen from '../screens/ProfileScreen';
 import HelpScreen from '../screens/HelpScreen';
 import RecordsScreen from '../screens/RecordsScreen';
-import { useNavigation } from '@react-navigation/native';
-import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import HomeStack from '../screens/HomeStack';
 const Tab = createBottomTabNavigator();
 import ContactModal, { ContactUsModalRef } from '../screens/ContectUsModal';
@@ -23,7 +21,6 @@ export type MyTabParamList = {
 const CustomHeader = ({ onContactPress }: { onContactPress: () => void }) => {
 
   const [menuVisible, setMenuVisible] = useState(false);
-  const navigation = useNavigation<BottomTabNavigationProp<MyTabParamList>>();
 
   return (
     <Appbar.Header style={{ backgroundColor: '#eca921ff' }}>

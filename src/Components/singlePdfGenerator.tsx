@@ -124,7 +124,6 @@ export async function generateStyledPDF({
   page.drawLine({ start: { x: 40, y }, end: { x: width - 40, y }, thickness: 1 });
 
   y -= 50;
-console.log("ssdsdsdsd")
   // 🧾 Info Block
   const info = [
 

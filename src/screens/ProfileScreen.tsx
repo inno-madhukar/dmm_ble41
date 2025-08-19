@@ -7,6 +7,7 @@ import {
   Image,
   TouchableOpacity,
   Alert,
+  Permission,
 } from 'react-native';
 import { Text, TextInput, Button } from 'react-native-paper';
 let ImagePicker: typeof import('react-native-image-picker') | undefined;
@@ -15,7 +16,6 @@ if (Platform.OS === 'ios' || Platform.OS === 'android') {
   ImagePicker = require('react-native-image-picker');
   RNFS = require('react-native-fs');
 }
-import { Colors } from 'react-native/Libraries/NewAppScreen';
 import { useTheme } from 'react-native-paper';
 
 
@@ -36,15 +36,35 @@ const ProfileScreen = () => {
 
   const { colors } = useTheme();
 
+  async function requestPermission(permission: Permission) {
+    if (Platform.OS !== "android") return true;
+
+    try {
+      const result = await PermissionsAndroid.request(permission);
+
+      if (result === PermissionsAndroid.RESULTS.GRANTED) {
+        return true; // ✅ granted
+      } else if (result === PermissionsAndroid.RESULTS.DENIED) {
+        console.warn(`Permission ${permission} denied`);
+        return false; // ❌ denied
+      } else if (result === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
+        console.warn(`Permission ${permission} set to never ask again`);
+        return false; // ❌ permanently denied
+      }
+    } catch (err) {
+      console.error("Permission error:", err);
+      return false;
+    }
+  }
+
   async function requestStoragePermission() {
     if (Platform.OS === 'android') {
-      try {
-        const granted = await PermissionsAndroid.requestMultiple([
-          PermissionsAndroid.PERMISSIONS.CAMERA,
-        ]);
-        return granted['android.permission.CAMERA'] === PermissionsAndroid.RESULTS.GRANTED;
-      } catch (err) {
-        console.warn(err);
+      const ok = await requestPermission(PermissionsAndroid.PERMISSIONS.CAMERA);
+      if (ok) {
+        console.log("✅ Camera granted");
+        return ok;
+      }
+      else{
         return false;
       }
     }
@@ -208,18 +228,18 @@ const ProfileScreen = () => {
         multiline
       />
 
-<Button
-  mode="contained"
-  onPress={editing ? handleSave : () => setEditing(true)}
-  textColor={editing ? colors.primary : 'white'}
-      buttonColor={editing ? 'white' : colors.primary}
-      style={[
-        styles.button,
-        editing && { borderWidth: 1.5, borderColor: colors.primary }
-      ]}
->
-  {editing ? 'Save' : 'Edit'}
-</Button>
+      <Button
+        mode="contained"
+        onPress={editing ? handleSave : () => setEditing(true)}
+        textColor={editing ? colors.primary : 'white'}
+        buttonColor={editing ? 'white' : colors.primary}
+        style={[
+          styles.button,
+          editing && { borderWidth: 1.5, borderColor: colors.primary }
+        ]}
+      >
+        {editing ? 'Save' : 'Edit'}
+      </Button>
     </View>
   );
 };

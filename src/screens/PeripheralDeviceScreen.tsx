@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, PermissionsAndroid, Platform, Alert } from 'react-native';
 import { Text, TextInput, IconButton, Snackbar } from 'react-native-paper';
-import { useRoute } from '@react-navigation/native';
-import type { MyTabParamList } from '../navigation/BottomTabs';
 import classifyArray from '../Components/arrClasiffy';
 let RNFS: typeof import('react-native-fs') | undefined;
 if (Platform.OS === 'ios' || Platform.OS === 'android') {
