@@ -108,6 +108,7 @@ const scsv = async (): Promise<void> => {
   const selectCSVFile = async (): Promise<void> => {
     
     if (Platform.OS !== 'ios' && Platform.OS !== 'android') {
+     await scsv()
       Alert.alert('Unsupported Platform', 'File selection is only supported on Android/iOS.');
       return;
     }
@@ -276,7 +277,7 @@ const scsv = async (): Promise<void> => {
         <Text variant="headlineMedium" style={{ color: '#2f3ceeff' }}>Digital Moisture Meter BLE</Text>
       </View>
 
-      <Button  mode="contained"  style={styles.sbutton} onPress={scsv}>
+      <Button  mode="contained"  style={styles.sbutton} onPress={selectCSVFile}>
         Select File
       </Button>
 
