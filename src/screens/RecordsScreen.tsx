@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { Text, DataTable, IconButton, Portal, Button, Dialog } from 'react-native-paper';
+import Dmmble4 from '../NativeDmmble4';
 
 import { Platform } from 'react-native';
 let RNFS: typeof import('react-native-fs') | undefined;
@@ -89,7 +90,23 @@ const RecordsScreen: React.FC = () => {
     return { headers, data };
   };
 
+const scsv = async (): Promise<void> => {
+  try {
+    const data = await Dmmble4.readCsv();
+
+    if (data.length === 0) {
+      Alert.alert("CSV Reader", "No data found in CSV.");
+      return;
+    }
+
+    Alert.alert("CSV Reader", `First cell: ${data[0][0]}`);
+  } catch (err:any) {
+    Alert.alert("Error", JSON.stringify(err));
+  }
+};
+
   const selectCSVFile = async (): Promise<void> => {
+    
     if (Platform.OS !== 'ios' && Platform.OS !== 'android') {
       Alert.alert('Unsupported Platform', 'File selection is only supported on Android/iOS.');
       return;
@@ -259,7 +276,7 @@ const RecordsScreen: React.FC = () => {
         <Text variant="headlineMedium" style={{ color: '#2f3ceeff' }}>Digital Moisture Meter BLE</Text>
       </View>
 
-      <Button  mode="contained"  style={styles.sbutton} onPress={selectCSVFile}>
+      <Button  mode="contained"  style={styles.sbutton} onPress={scsv}>
         Select File
       </Button>
 

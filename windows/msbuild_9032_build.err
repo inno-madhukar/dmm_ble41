@@ -1,0 +1,1 @@
+D:\Innovative instruments APP\dmm_ble4\dmm_ble4\windows\DmmBle4\dmm_ble4.cpp(58,22): error C2440: 'initializing': cannot convert from 'winrt::hstring' to 'std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t>>' [D:\Innovative instruments APP\dmm_ble4\dmm_ble4\windows\DmmBle4\DmmBle4.vcxproj]

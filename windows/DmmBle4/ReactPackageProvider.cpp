@@ -2,6 +2,8 @@
 #include "ReactPackageProvider.h"
 #include "NativeModules.h"
 
+
+#include "dmm_ble4.h"
 using namespace winrt::Microsoft::ReactNative;
 
 namespace winrt::DmmBle4::implementation

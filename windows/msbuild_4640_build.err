@@ -1,0 +1,1 @@
+Package.appxmanifest(53,6): error APPX1402: Content of the file 'Package.appxmanifest' is not well-formed XML. 'rescap' is an undeclared prefix. Line 53, position 6. [D:\Innovative instruments APP\dmm_ble4\dmm_ble4\windows\DmmBle4\DmmBle4.vcxproj]

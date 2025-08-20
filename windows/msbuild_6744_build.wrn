@@ -1,0 +1,1 @@
+ROSLYNCODETASKFACTORYCSHARPCOMPILER : warning CS1668: Invalid search path 'C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\atlmfc\lib\x64' specified in 'LIB environment variable' -- 'directory does not exist' [D:\Innovative instruments APP\dmm_ble4\dmm_ble4\node_modules\react-native-windows\Microsoft.ReactNative\Microsoft.ReactNative.vcxproj]
