@@ -8,6 +8,7 @@ if (Platform.OS === 'ios' || Platform.OS === 'android') {
 }
 import { NativeModules } from 'react-native';
 import { generateStyledPDF } from '../Components/singlePdfGenerator';
+import DMMTitle from '../Components/Title';
 const { ManageExternalStorage } = NativeModules;
 
 // ✅ Use `require` instead of `import`
@@ -192,11 +193,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
 
   return (
     <View style={{ flex: 1, padding: 16, justifyContent: 'center' }}>
-      <View style={{ alignItems: 'center' }}>
-        <Text variant="headlineMedium" style={{ color: '#2f3ceeff' }}>
-          Digital Moisture Meter BLE
-        </Text>
-      </View>
+      <DMMTitle />
 
       <ScrollView contentContainerStyle={styles.container}>
         {receivedValues.length === 3 ? (() => {
@@ -267,6 +264,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
 const styles = StyleSheet.create({
   container: {
     padding: 16,
+        // backgroundColor: '#ffffffff',
   },
   label: {
     marginBottom: 6,

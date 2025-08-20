@@ -3,7 +3,7 @@ import { View, TouchableHighlight, StyleSheet, Platform, PermissionsAndroid, Fla
 import { Button, Text, Card, TouchableRipple, Modal, Portal, Provider, IconButton, Divider } from 'react-native-paper';
 import type { MyTabParamList } from '../navigation/BottomTabs'; // adjust path
 import { NavigationProp } from '@react-navigation/core';
-
+import DMMTitle from '../Components/Title';
 let bleManager: any;
 type BleDisconnectPeripheralEvent = any;
 type Peripheral = any;
@@ -248,23 +248,32 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
       underlayColor={lightTheme.colors.primary}
       onPress={() => togglePeripheralConnection(item)}
     >
-      <View>
-        <View style={styles.row}>
+      <View>  
+          <View style={styles.row}>
+        <View style={styles.deviceInfo}>
           <Text variant="titleMedium" style={styles.deviceName}>
-            {item.name || 'Unknown Device'}
+            {`Device ID : ${item.name || 'Unknown Device'}`}
           </Text>
-          <IconButton icon="bluetooth" size={24} onPress={() => togglePeripheralConnection(item)} />
+          <Text variant="titleSmall" style={styles.macId}>
+            {`MAC ID : ${item.id || 'Unknown MAC'}`}
+          </Text>
         </View>
+        <IconButton
+          icon="bluetooth"
+          size={24}
+          onPress={() => togglePeripheralConnection(item)}
+        />
+
+      </View>
         <Divider style={styles.divider} />
       </View>
+
     </TouchableHighlight>
   );
   return (
 
     <View style={styles.container}>
-      <View style={{ alignItems: 'center' }}>
-        <Text variant="headlineMedium" style={{ color: '#2f3ceeff' }}>Digital Moisture Meter BLE</Text>
-      </View>
+      <DMMTitle />
       {
         <>
           {console.log("FlatList rendered, devices:", Array.from(peripherals))}
@@ -336,7 +345,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     justifyContent: 'flex-start',
-    backgroundColor: '#ffffffff',
+    // backgroundColor: '#ffffffff',
   },
   subcontainer: {
     marginTop: '50%',
@@ -359,6 +368,15 @@ const styles = StyleSheet.create({
     borderRadius: 10,
 
   },
+  deviceInfo: {
+    flexDirection: 'column',
+    flex: 1, // take remaining space
+  },
+  macId: {
+    color: '#888888ff',
+    // marginTop: 2,
+  },
+
   modalText: {
     marginBottom: 5,
     textAlign: 'center',
@@ -389,7 +407,8 @@ const styles = StyleSheet.create({
   }, emptyRow: {
     marginTop: 40,
     alignItems: 'center',
-  }, noPeripherals: {
+  },
+  noPeripherals: {
     color: '#999',
   },
   row: {
@@ -403,7 +422,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: '#3000ff', // Purple line like in image
+    backgroundColor: '#09070fff', // Purple line like in image
     opacity: 0.7,
   },
   listContainer: {
@@ -411,7 +430,7 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: 12,
-    fontWeight: 'bold',
+    // fontWeight: 'bold',
     textAlign: 'center',
   },
 });

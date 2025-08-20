@@ -7,8 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { Text, DataTable, IconButton, Portal, Button, Dialog } from 'react-native-paper';
-import Dmmble4 from '../NativeDmmble4';
-
+import DMMTitle from '../Components/Title';
 import { Platform } from 'react-native';
 let RNFS: typeof import('react-native-fs') | undefined;
 let Share: typeof import('react-native-share') | undefined;
@@ -92,6 +91,7 @@ const RecordsScreen: React.FC = () => {
 
 const scsv = async (): Promise<void> => {
   try {
+    const { default: Dmmble4 } = await import('../NativeDmmble4');
     const data = await Dmmble4.readCsv();
 
     if (data.length === 0) {
@@ -273,10 +273,8 @@ const scsv = async (): Promise<void> => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={{ alignItems: 'center', marginBottom: 20 }}>
-        <Text variant="headlineMedium" style={{ color: '#2f3ceeff' }}>Digital Moisture Meter BLE</Text>
-      </View>
-
+     <DMMTitle />
+    <View style={{ alignItems: 'center', marginBottom: 20 }}></View>
       <Button  mode="contained"  style={styles.sbutton} onPress={selectCSVFile}>
         Select File
       </Button>

@@ -17,7 +17,7 @@ if (Platform.OS === 'ios' || Platform.OS === 'android') {
   RNFS = require('react-native-fs');
 }
 import { useTheme } from 'react-native-paper';
-
+import DMMTitle from '../Components/Title';
 
 // const profileFilePath = `${RNFS.DocumentDirectoryPath}/profile.json`;
 const profileFilePath = (Platform.OS === 'ios' || Platform.OS === 'android') && RNFS
@@ -178,9 +178,7 @@ const ProfileScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text variant="headlineMedium" style={{ color: '#2f3ceeff' }}>
-        Digital Moisture Meter BLE
-      </Text>
+      <DMMTitle />
 
       <TouchableOpacity onPress={editing ? handlePickImage : undefined}>
         {profile.image ? (
@@ -246,8 +244,8 @@ const ProfileScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 24,
-    backgroundColor: '#fff',
+    padding: 16,
+    // backgroundColor: '#fff',
     flex: 1,
   },
   input: {
@@ -264,7 +262,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: '#eee',
+    backgroundColor: '#dadadaff',
     justifyContent: 'center',
     alignItems: 'center',
     marginVertical: 16,

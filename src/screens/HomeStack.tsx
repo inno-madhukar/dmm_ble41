@@ -24,7 +24,7 @@ const HomeStack = () => {
         <Stack.Screen
           name="HomeScreen"
           component={HomeScreen}
-          options={{ headerShown: true, title: ' ' }}
+          options={{ headerShown: false, title: ' ' }}
         />
         <Stack.Screen
           name="PeripheralDeviceScreen"

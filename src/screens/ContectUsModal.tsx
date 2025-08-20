@@ -30,12 +30,12 @@ const ContactUsModal = forwardRef<ContactUsModalRef>((_, ref) => {
         <Text style={styles.label}>Address</Text>
         <Text style={styles.text}>125 Mahajan Society</Text>
         <Text style={styles.text}>Behind convent school</Text>
-        <Text style={styles.text}>Fatehgunj, Vadodara 390000</Text>
+        <Text style={styles.text}>Fatehgunj, Vadodara 390002</Text>
 
         <Text style={styles.label}>Phone</Text>
         <Text style={styles.text}>+91 265 2791184</Text>
 
-        <Text style={styles.label}>SMS/WhatsApp</Text>
+        <Text style={styles.label}>SMS/WhatsApp/Call</Text>
         <Text style={styles.text}>+91 63566 15024</Text>
 
         <Text style={styles.label}>Website</Text>
