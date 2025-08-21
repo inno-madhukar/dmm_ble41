@@ -1,5 +1,5 @@
 import React, { forwardRef, useImperativeHandle, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet,Linking } from 'react-native';
 import { Modal, Portal, Text, Button, Divider } from 'react-native-paper';
 
 export type ContactUsModalRef = {
@@ -14,6 +14,10 @@ const ContactUsModal = forwardRef<ContactUsModalRef>((_, ref) => {
     open: () => setVisible(true),
     close: () => setVisible(false),
   }));
+
+   const handleLinkPress = () => {
+    Linking.openURL('https://www.innovative-instruments.in');
+  };
 
   return (
     <Portal>
@@ -39,9 +43,13 @@ const ContactUsModal = forwardRef<ContactUsModalRef>((_, ref) => {
         <Text style={styles.text}>+91 63566 15024</Text>
 
         <Text style={styles.label}>Website</Text>
-        <Text style={styles.text}>www.innovative-instruments.in</Text>
-
-        <Button mode="contained" style={{ marginTop: 20, width: '30%', alignSelf: 'center' }} onPress={() => setVisible(false)}>
+ <Text
+        style={styles.textl}
+        onPress={handleLinkPress}
+      >
+        www.innovative-instruments.in
+      </Text>
+        <Button mode="contained" style={{ marginTop: 20, alignSelf: 'center' }} onPress={() => setVisible(false)}>
           Close
         </Button>
       </Modal>
@@ -70,6 +78,14 @@ const styles = StyleSheet.create({
   text: {
     textAlign: 'center',
     marginBottom: 2,
+    //  textDecorationLine: 'underline',
+    // fontSize: 16,
+  },
+    textl: {
+    textAlign: 'center',
+    marginBottom: 2,
+     textDecorationLine: 'underline',
+    // fontSize: 16,
   },
 });
 

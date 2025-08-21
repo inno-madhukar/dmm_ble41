@@ -419,6 +419,7 @@ const styles = StyleSheet.create({
   },
   deviceName: {
     fontWeight: '600',
+    
   },
   divider: {
     height: 1,
@@ -429,8 +430,11 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   header: {
-    marginBottom: 12,
+    marginBottom: 14,
+    marginTop: 10,
     // fontWeight: 'bold',
+    // color: '#121213ff',
+   fontSize: 16, 
     textAlign: 'center',
   },
 });

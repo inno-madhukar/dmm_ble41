@@ -11,6 +11,7 @@
     "windows": "npx @react-native-community/cli run-windows"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-documents/picker": "^10.1.5",
     "@react-native-documents/viewer": "^1.0.1",
     "@react-navigation/bottom-tabs": "^7.4.2",
@@ -53,7 +54,6 @@
       "separateDataTypes": true
     }
   },
-
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@babel/preset-env": "^7.25.3",
