@@ -14,6 +14,7 @@ export async function getStoredDevices(): Promise<StoredDevice[]> {
 
 export async function saveDevice(device: StoredDevice) {
   const devices = await getStoredDevices();
+  console.log(devices);
   if (!devices.find(d => d.id === device.id)) {
     devices.push(device);
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(devices));

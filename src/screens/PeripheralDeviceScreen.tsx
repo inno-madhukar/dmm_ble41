@@ -255,7 +255,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
           onPress: () => setSnackbarVisible(false),
         }}
       >
-        {snackbarMessage}
+        {snackbarMessage} 
       </Snackbar>
     </View>
   );
