@@ -48,7 +48,7 @@ interface DocumentPickerResponse {
   type?: string;
   size?: number;
 }
-const hederobj = ["Date", "DeviceID", "Temp", "Moisture", "Weight", "CommodityName", "Note"
+const hederobj = ["Date", "DeviceID", "Moisture %", "Temp°C",  "Weight", "CommodityName", "Note"
 ]
 const RecordsScreen: React.FC = () => {
   const [csvData, setCsvData] = useState<CSVRow[]>([]);
@@ -175,8 +175,8 @@ const scsv = async (): Promise<void> => {
       type BLERecord = {
         "Date": string;
         "DeviceID": string;
-        "Temp": string;
         "Moisture": string;
+        "Temp": string;
         "Weight": string;
         "CommodityName": string;
         "Note": string;

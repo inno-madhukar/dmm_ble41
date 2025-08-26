@@ -26,3 +26,7 @@ export async function removeDevice(id: string) {
   const updated: StoredDevice[] = devices.filter((d: StoredDevice) => d.id !== id);
   await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
 }
+
+export async function removeAllDevices() {
+  await AsyncStorage.removeItem(STORAGE_KEY);
+}

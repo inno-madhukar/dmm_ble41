@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, ScrollView, PermissionsAndroid, Platform, Alert } from 'react-native';
 import { Text, TextInput, IconButton, Snackbar } from 'react-native-paper';
 import classifyArray from '../Components/arrClasiffy';
@@ -19,6 +19,7 @@ import type {
   PeripheralInfo,
   BleManagerDidUpdateValueForCharacteristicEvent,
 } from 'react-native-ble-manager';
+import { useNavigation } from '@react-navigation/native';
 
 interface PeripheralDetailsProps {
   route: {
@@ -61,13 +62,14 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
   const [userNote, setUserNote] = useState('');
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-
+  const notNotify=useRef(0);
   const requestPermission = () => {
     ManageExternalStorage.requestPermission();
   };
+  const navigation = useNavigation();
 
   const printData = async (data: string[], note: string) => {
-    const [timestamp, deviceId, temp, moisture, weight, commodity] = data;
+    const [timestamp, deviceId, moisture, temp, weight, commodity] = data;
     try {
       await generateStyledPDF({
         DeviceID: deviceId,
@@ -102,7 +104,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
         const fileExists = await RNFS.exists(path);
 
         if (!fileExists) {
-          const header = `"Date","Device ID","Temp °C","Moisture %","Weight (gm)","Commodity Name","Note"\n`;
+          const header = `"Date","Device ID","Moisture %","Temp °C","Weight (gm)","Commodity Name","Note"\n`;
           await RNFS.writeFile(path, header + csvRow, 'utf8');
         } else {
           await RNFS.appendFile(path, csvRow, 'utf8');
@@ -149,12 +151,13 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
         return;
       }
     let stopped = false;
-
+    notNotify.current=0;
     const handleUpdateValueForCharacteristic = (
       data: BleManagerDidUpdateValueForCharacteristicEvent
     ) => {
+      console.log("started getting notify data");
       if (stopped) return;
-
+        console.log(data);
       let ascii = '';
       if (Array.isArray(data.value)) {
         ascii = String.fromCharCode(...data.value).slice(1);
@@ -166,6 +169,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
         if (prev.length === 0 || prev[prev.length - 1].ascii !== ascii) {
           const updated = [...prev, { ascii }];
           if (updated.length >= 3) {
+            notNotify.current = 1;
             stopped = true;
             listener.remove();
           }
@@ -174,13 +178,30 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
         return prev;
       });
     };
-
+    setTimeout(() => {
+      if(notNotify.current===0){
+        console.log("stopping the listener");
+       BleManager.disconnect(peripheralData.id); 
+        listener.remove();
+        stopped = true;
+        // Alert.alert("Warning ","Device is not connected"); 
+        // useNavigation().navigate('homeScreen');
+        navigation.goBack();
+      }
+      else{
+        console.log("not stopping the listener");
+      }
+    }, 3000);
     const listener = BleManager.onDidUpdateValueForCharacteristic(
+   
       handleUpdateValueForCharacteristic
     );
 
     return () => {
+      console.log("unmounting the ....")
       stopped = true;
+      //  BleManager.disconnect(peripheralData.id); 
+      //  useNavigation('homeScreen',peripheralData);
       listener.remove();
     };
   }, []);
@@ -223,9 +244,9 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
 
               <Text style={styles.label}><Text style={styles.bold}>Device ID:</Text> {finalArray[1]}</Text>
               <Text style={styles.label}><Text style={styles.bold}>Item:</Text> {finalArray[5]}</Text>
-              <Text style={styles.label}><Text style={styles.bold}>Moisture:</Text> {finalArray[3]} %</Text>
+              <Text style={styles.label}><Text style={styles.bold}>Moisture:</Text> {finalArray[2]} %</Text>
               <Text style={styles.label}><Text style={styles.bold}>Weight:</Text> {finalArray[4]} {finalArray[4].toUpperCase() !== 'FULL' ? 'grams' : ''}</Text>
-              <Text style={styles.label}><Text style={styles.bold}>Temperature:</Text> {finalArray[2]} °C</Text>
+              <Text style={styles.label}><Text style={styles.bold}>Temperature:</Text> {finalArray[3]} °C</Text>
               <Text style={styles.label}><Text style={styles.bold}>Timestamp:</Text> {finalArray[0]}</Text>
 
               <TextInput

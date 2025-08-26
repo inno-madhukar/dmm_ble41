@@ -23,7 +23,7 @@ const HomeStack = () => {
       <Stack.Navigator>
         <Stack.Screen
           name="HomeScreen"
-          component={HomeScreen}
+          component={HomeScreen}    //unmountOnBlur: true -> use for unmount screen, due to tab the screens are not unmount, so we should do manualy. 
           options={{ headerShown: false, title: ' ' }}
         />
         <Stack.Screen
