@@ -10,7 +10,7 @@ import {
   SectionList,
   Permission,
 } from 'react-native';
-import { Button, Text, IconButton, Divider ,ActivityIndicator } from 'react-native-paper';
+import { Button, Text, IconButton, Divider, ActivityIndicator } from 'react-native-paper';
 import type { MyTabParamList } from '../navigation/BottomTabs';
 import { NavigationProp } from '@react-navigation/core';
 import DMMTitle from '../Components/Title';
@@ -38,6 +38,8 @@ declare module 'react-native-ble-manager' {
 }
 
 const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList> }) => {
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
   if (!bleManager) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -49,77 +51,123 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
   const [isScanning, setIsScanning] = useState(false);
   const [peripherals, setPeripherals] = useState(new Map<Peripheral['id'], Peripheral>());
   const [storedDevices, setStoredDevices] = useState<any[]>([]);
-
-  // 👉 Key fix: keep latest storedDevices in a ref to avoid stale-closure in event handler
+  let f1: boolean = false;
+  // Key fix: keep latest storedDevices in a ref to avoid stale-closure in event handler
   const flagRef = useRef(false);
   const storedDevicesRef = useRef<any[]>([]);
+  const ignoredDevicesRef = useRef<Set<string>>(new Set());
+  const currentIgnoredDeviceRef = useRef<string>("");
+  const perfectConnectRef = useRef(0);
   useEffect(() => {
     storedDevicesRef.current = storedDevices;
   }, [storedDevices]);
 
 
-  // useFocusEffect(
-  //   useCallback(() => {
-  //     if (flagRef.current) {
-  //       scanForDevices();
-  //     }
-  //     return () => {
-  //       console.log("📴 Screen unfocused → stop scanning");
-  //       bleManager.stopScan()
-  //         .then(() => console.log("Scan stopped"))
-  //         .catch((err: any) => console.error("Stop scan failed", err));
-  //     };
-  //   }, [])
-  // );
+  useFocusEffect(
+    useCallback(() => {
+
+      f1 = false;
+
+      if (flagRef.current) {
+        console.log("📴 Screen focused → start scanning");
+        flagRef.current = false;
+        // scanForDevices();
+
+      }
+      // if (currentIgnoredDeviceRef.current != "") {
+      //   console.log(currentIgnoredDeviceRef)
+      //   const timeout = setTimeout(() => { 
+      //     if (currentIgnoredDeviceRef.current != "") {
+      //       ignoredDevicesRef.current.delete(currentIgnoredDeviceRef.current);
+      //     }
+      //     console.log("✅ Ignore list cleared after 4 sec");
+      //   }, 6000);
+      // }
+
+
+      return () => {
+        flagRef.current = true;
+        console.log("📴 Screen unfocused → stop scanning");
+        bleManager.stopScan()
+          .then(() => console.log("Scan stopped"))
+          .catch((err: any) => console.error("Stop scan failed", err));
+      };
+    }, [])
+  );
   const handleStopScan = () => {
     setIsScanning(false);
-    console.debug('[handleStopScan] scan stopped.');
+    console.log('[handleStopScan] scan stopped.');
   };
 
-  const handleDisconnectedPeripheral = (event: BleDisconnectPeripheralEvent) => {
-    setPeripherals((map) => {
-      let p = map.get(event.peripheral);
-      if (p) {
-        p.connected = false;
-        return new Map(map.set(event.peripheral, p));
-      }
-      return map;
-    });
+  const handleDisconnectedPeripheral = async (event: BleDisconnectPeripheralEvent) => {
+    let cperi = "";
+
+    // setPeripherals((map) => {   
+    //   let p = map.get(event.peripheral);
+    //   cperi = p.name;
+    //   if (p) {
+    //     p.connected = false;
+    //     return new Map(map.set(event.peripheral, p));
+    //   }
+    //   return map;
+    // });
+    const disconnectedDevice = storedDevicesRef.current.find(
+  (d: any) => d.id === event.peripheral
+);
+Alert.alert(
+  "Connection Lost",
+  disconnectedDevice
+    ? `The device ${disconnectedDevice.name || disconnectedDevice.id} has been disconnected or is no longer available.`
+    : `Device ${event.peripheral} has been disconnected.`
+);
   };
 
   const handleDiscoverPeripheral = async (peripheral: Peripheral) => {
     const deviceName = peripheral.name || peripheral.advertising?.localName;
     if (!deviceName) return;
-    console.log("sc..", peripheral)
-    // setPeripherals((map) => map.set(peripheral.id, peripheral));
-    // ✅ Update state immutably to ensure re-render
-    // setPeripherals(new Map());
-    setPeripherals((map) => new Map(map.set(peripheral.id, peripheral)));
-
-    // 🔧 Use ref (latest value) instead of closed-over state
-    const match = storedDevicesRef.current.find(
-      (d) => d.id === peripheral.id || d.name === deviceName
-    );
-
-    if (match) {
-      // bleManager.stopScan();    
-      console.log('Auto-connecting to stored device:', match);
-      await connectPeripheral(peripheral);
+    console.log(peripheral)
+    if (deviceName.length === 12) {
+      setPeripherals((map) => new Map(map.set(peripheral.id, peripheral)));
     }
+    if (ignoredDevicesRef.current.has(peripheral.id)) {
+      console.log("Ignoring previously ignored device:", peripheral.id);
+      return;
+    }
+    // 🔧 Use ref (latest value) instead of closed-over state
+    // const match = storedDevicesRef.current.find(
+    //   (d) => d.id === peripheral.id || d.name === deviceName
+    // );
+    // console.log(match && !f1)
+    // if (match && !f1) {
+    //   f1 = true;
+    //   // bleManager.stopScan();
+    //   console.log('Auto-connecting to stored device:', match);
+    //   await connectPeripheral(peripheral);
+    //   ignoredDevicesRef.current.add(peripheral.id);
+    //   currentIgnoredDeviceRef.current = peripheral.id;
+    //   f1 = false;
+    //   if (currentIgnoredDeviceRef.current != "") {
+    //     console.log(currentIgnoredDeviceRef)
+    //     const timeout = setTimeout(() => {
+
+    //       console.log("✅ Ignore list cleared after 4 sec");
+    //     }, 6000);
+    //   }
+    // }
   };
 
   const togglePeripheralConnection = async (peripheral: Peripheral) => {
     try {
-      const per = peripherals.get(peripheral.id);
-      console.log("Peripheral fetched:", per);
-      if (!per) {
-        // Device not currently available
-        Alert.alert(
-          "Device Not Available",
-          "Please turn on the device and keep it nearby, then try again."
-        );
-        return;
-      }
+      // const per = peripherals.get(peripheral.id);
+      // console.log("Peripheral fetched:", per);
+      // if (!per) {
+      //   // Device not currently available
+      //   Alert.alert(
+      //     "Device Not Available",
+      //     "Please turn on the device and keep it nearby, then try again."
+      //   );
+      //   return;
+      // }
 
       if (peripheral?.connected) {
         try {
@@ -142,7 +190,15 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
   }
 
   const connectPeripheral = async (peripheral: Peripheral) => {
-    try {
+    perfectConnectRef.current = 0;
+    setTimeout(() => {
+      if (perfectConnectRef.current == 0) {
+        bleManager.disconnect(peripheral.id)
+        f1 = false;
+      }
+
+    }, 2000);
+    try { 
 
       setPeripherals((map) => {
         let p = map.get(peripheral.id);
@@ -154,26 +210,40 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
       });
 
       try {
+        console.log("Connecting to", peripheral.id);
         await bleManager.connect(peripheral.id);
         console.log("Connected to", peripheral.id);
-        Alert.alert("Connected", `Successfully connected to device \n ${peripheral.name || peripheral.id}`);
+
       } catch (err) {
         console.error("Connect attempt failed:", err);
-        Alert.alert(
-          "Connection Failed",
-          "The device stopped advertising or is unavailable. Please try again."
-        );
+        // Alert.alert(
+        //   "Connection Failed",
+        //   `The device \`${peripheral.name}\` stopped advertising or is unavailable. Please try again.`
+        // );
       }
-      await sleep(900);
+      await sleep(500);
 
       if (Platform.OS === 'android') {
         try {
+          console.log("setting mtu")
           await bleManager.requestMTU(peripheral.id, 512);
-        } catch { }
+        } catch {
+
+          const ignoredId = currentIgnoredDeviceRef.current;
+          bleManager.disconnect(peripheral.id);
+          if (ignoredId) {
+            const deleted = ignoredDevicesRef.current.delete(ignoredId);
+            console.log("🗑 Deleted from ignore list?", deleted, "ID:", ignoredId);
+          } else {
+            console.warn("⚠ No currentIgnoredDeviceRef set, nothing to delete.");
+          }
+
+          console.warn('Failed to set MTU to 512');
+        }
       }
 
       const peripheralData = await bleManager.retrieveServices(peripheral.id);
-
+      console.log('Peripheral info:', peripheralData);
       setPeripherals((map) => {
         let p = map.get(peripheral.id);
         if (p) {
@@ -211,40 +281,54 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
       }
 
       bleManager.stopScan();
+      perfectConnectRef.current = 1;
+      Alert.alert(
+        "Device Connected",
+        `${peripheral.name} connected successfully.`
+      );
       navigation.navigate('PeripheralDeviceScreen', {
         peripheralData: peripheralData as any,
       });
 
     } catch (error) {
-      Alert.alert(
-        "Device Not Available",
-        "Please turn on the device and keep it nearby, then try again."
-      );
+
+      // Alert.alert(
+      //   "Device Not Available",
+      //   "Please turn on the device and keep it nearby, then try again."
+      // );
       console.error(`[connectPeripheral][${peripheral.id}] error`, error);
+
     }
   };
 
   const scanForDevices = async () => {
     try {
-      console.log("scanning stated.......")
-      await handleAndroidPermissions();
-      await bleManager.enableBluetooth();
+      ignoredDevicesRef.current.clear();
+      const permissionState = await handleAndroidPermissions();
+      console.log("Permission state:", permissionState);
+      const bleState = await bleManager.enableBluetooth();
+      console.log("Bluetooth state:", bleState);
       setIsScanning(true);
       setPeripherals(new Map());
-
-      bleManager.scan(SERVICE_UUIDS, SECONDS_TO_SCAN_FOR, ALLOW_DUPLICATES).catch(console.error);
+      bleManager.scan(SERVICE_UUIDS, 5, ALLOW_DUPLICATES).catch(console.error);
+      console.log("Scanning started...");
     } catch (error) {
       console.error('Error initializing BLE:', error);
     }
   };
 
   useEffect(() => {
+    console.log("Initializing BLE...");
+    flagRef.current = false;
     const initObservers = async () => {
       try {
         await bleManager.start({ showAlert: true });
         const devices = (await getStoredDevices()) || [];
         setStoredDevices(devices);
-        await scanForDevices();
+        console.log("use effect sfarted")
+        if (flagRef.current == true) {
+          // await scanForDevices();
+        }
       } catch (error) {
         console.error('BLE Init error:', error);
       }
@@ -258,8 +342,12 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
     ];
 
     initObservers();
-    flagRef.current = true; // mark as initialized
-    return () => listeners.forEach((l) => l.remove());
+    // mark as initialized
+
+    return () => {
+      console.log("Cleaning up listeners...");
+      listeners.forEach((l) => l.remove());
+    };
   }, []);
 
   // Optional: observe updates to storedDevices
@@ -289,9 +377,9 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
     }
   };
   const clearSavedDevices = async () => {
-     await removeAllDevices();
-     Alert.alert("Success", "All saved devices have been removed.");
-      setStoredDevices([]);
+    await removeAllDevices();
+    Alert.alert("Success", "All saved devices have been removed.");
+    setStoredDevices([]);
   };
   // ----------------- UI Render -----------------
   const renderItem = ({ item, section }: { item: Peripheral | { id: string; name: string }, section: any }) => {
@@ -327,6 +415,7 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
       </TouchableHighlight>
     );
   };
+
   const available = Array.from(peripherals.values()).filter(
     (p) => !storedDevices.some((d) => d.id === p.id) // exclude saved devices
   );
@@ -346,7 +435,7 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
       <DMMTitle />
       <View style={styles.scanHeader}>
         <Text style={styles.scanStatus}>
-         Scanning for devices...
+          Scanning for devices...
         </Text>
         <ActivityIndicator animating={true} style={{ marginLeft: 8 }} />
         <Button
@@ -416,14 +505,14 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     // backgroundColor: '#ebebebff',
     marginTop: 40,
-    
+
   },
-    scanHeader: {
+  scanHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
   },
-   scanStatus: {
+  scanStatus: {
     fontSize: 14,
     opacity: 0.8,
   },
@@ -431,7 +520,7 @@ const styles = StyleSheet.create({
     marginLeft: 'auto',
     borderRadius: 16,
   },
-   rowWrapper: {
+  rowWrapper: {
     borderRadius: 16,
     marginVertical: 6,
     overflow: 'hidden',

@@ -36,7 +36,6 @@ import generateSimplePrintAndPDF from '../Components/printPdfGenerator';
 interface CSVRow {
   [key: string]: string;
 }
-
 interface ParsedCSVData {
   headers: string[];
   data: CSVRow[];

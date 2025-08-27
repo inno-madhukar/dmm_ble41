@@ -104,8 +104,9 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
         const fileExists = await RNFS.exists(path);
 
         if (!fileExists) {
+          const BOM = '\uFEFF';
           const header = `"Date","Device ID","Moisture %","Temp °C","Weight (gm)","Commodity Name","Note"\n`;
-          await RNFS.writeFile(path, header + csvRow, 'utf8');
+          await RNFS.writeFile(path, BOM + header + csvRow, 'utf8');
         } else {
           await RNFS.appendFile(path, csvRow, 'utf8');
         }
@@ -153,10 +154,17 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
     let stopped = false;
     notNotify.current=0;
     const handleUpdateValueForCharacteristic = (
+
       data: BleManagerDidUpdateValueForCharacteristicEvent
     ) => {
+      
+            // setReceivedValues([]);
       console.log("started getting notify data");
-      if (stopped) return;
+      if (stopped){
+        // setReceivedValues([]);
+        console.log("stopped is true, exiting the function");
+        return;
+      } 
         console.log(data);
       let ascii = '';
       if (Array.isArray(data.value)) {
@@ -164,19 +172,21 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
       } else if (typeof data.value === 'string') {
         ascii = data.value;
       }
-
+      console.log(ascii)
       setReceivedValues(prev => {
         if (prev.length === 0 || prev[prev.length - 1].ascii !== ascii) {
           const updated = [...prev, { ascii }];
           if (updated.length >= 3) {
             notNotify.current = 1;
             stopped = true;
+
             listener.remove();
           }
           return updated;
         }
         return prev;
       });
+
     };
     setTimeout(() => {
       if(notNotify.current===0){
@@ -220,13 +230,15 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
         {receivedValues.length === 3 ? (() => {
           const asciiArrays = receivedValues.slice(0, 3).map(val =>
             val.ascii.split(',').map(s => s.trim())
+            
           );
-
+                  // setReceivedValues([]);
                 console.log(asciiArrays)
           const { deviceIdArray, readingsArray, commodityArray } = classifyArray(asciiArrays);
     
           const formattedTime = getFormattedDateTime();
           const finalArray = [formattedTime, ...deviceIdArray, ...readingsArray, ...commodityArray];
+          //  setReceivedValues([]);
           return (
             <>
               <View style={styles.iconRow}>
@@ -245,7 +257,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
               <Text style={styles.label}><Text style={styles.bold}>Device ID:</Text> {finalArray[1]}</Text>
               <Text style={styles.label}><Text style={styles.bold}>Item:</Text> {finalArray[5]}</Text>
               <Text style={styles.label}><Text style={styles.bold}>Moisture:</Text> {finalArray[2]} %</Text>
-              <Text style={styles.label}><Text style={styles.bold}>Weight:</Text> {finalArray[4]} {finalArray[4].toUpperCase() !== 'FULL' ? 'grams' : ''}</Text>
+              <Text style={styles.label}><Text style={styles.bold}>Weight:</Text> {finalArray[4]} {finalArray[4]?.toUpperCase() !== 'FULL' ? 'grams' : ''}</Text>
               <Text style={styles.label}><Text style={styles.bold}>Temperature:</Text> {finalArray[3]} °C</Text>
               <Text style={styles.label}><Text style={styles.bold}>Timestamp:</Text> {finalArray[0]}</Text>
 
@@ -260,6 +272,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
               />
             </>
           );
+               
         })() : (
           <Text style={{ textAlign: 'center', marginTop: 20 }}>
             Waiting for data...

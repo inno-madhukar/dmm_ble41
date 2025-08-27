@@ -21,89 +21,43 @@ export type MyTabParamList = {
 
 const CustomHeader = ({ onContactPress }: { onContactPress: () => void }) => {
   const [menuVisible, setMenuVisible] = useState(false);
-  const [imageVisible, setImageVisible] = useState(false);
 
   return (
-    <>
-      {/* Header */}
-      <Appbar.Header style={{ backgroundColor: lightTheme.colors.primary }}>
-        {/* Left logo (clickable) */}
-        <TouchableOpacity onPress={() => setImageVisible(true)}>
-          <Image
-            source={require("../assets/logo1.jpg")} // adjust path
-            style={{
-              width: 32,
-              height: 32,
-              marginLeft: 8,
-              resizeMode: "contain",
-              borderRadius: 4,
-            }}
-          />
-        </TouchableOpacity>
+    <View style={styles.header}>
+      {/* Left logo */}
+      <Image
+        source={require("../assets/Asset1.png")}
+        style={styles.logo}
+      />
 
-        {/* Centered title */}
-        <Appbar.Content
-          title="INNOVATIVE INSTRUMENTS"
-          titleStyle={{
-            textAlign: "center",
-            fontWeight: "bold",
-            color: "white",
-            fontSize: 19,
+      {/* Right menu */}
+      <Menu
+        visible={menuVisible}
+        onDismiss={() => setMenuVisible(false)}
+        anchor={
+          <IconButton
+            icon="dots-vertical"
+            iconColor="white"
+            size={22}
+            onPress={() => setMenuVisible(true)}
+          />
+        }
+      >
+        <Menu.Item
+          title="Contact Us"
+          leadingIcon="phone"
+          style={styles.menuItem}
+          titleStyle={styles.menuTitle}
+          onPress={() => {
+            setMenuVisible(false);
+            onContactPress();
           }}
         />
-
-        {/* Right menu */}
-        <Menu
-          visible={menuVisible}
-          onDismiss={() => setMenuVisible(false)}
-          anchor={
-            <IconButton
-              icon="dots-vertical"
-              iconColor="white"
-              size={20}
-              onPress={() => setMenuVisible(true)}
-            />
-          }
-        >
-           <Menu.Item
-    title="Contact Us"
-    leadingIcon="phone"   // optional: add an icon
-    style={{
-      backgroundColor: "#f0f0f0ff", // menu item background
-      borderRadius: 6,
-      marginHorizontal: 0,
-    }}
-    titleStyle={{
-      fontWeight: "600",
-      color: "#333",
-      fontSize: 15,
-    }}
-    onPress={() => {
-      setMenuVisible(false);
-      onContactPress();
-    }}
-  />
-        </Menu>
-      </Appbar.Header>
-
-      {/* Full-screen zoomable image modal */}
-<Modal visible={imageVisible} transparent animationType="fade">
-  <View style={styles.modalBackground}>
-    <TouchableOpacity
-      style={styles.modalBackground}
-      activeOpacity={1}
-      onPressOut={() => setImageVisible(false)}
-    >
-      <Image
-        source={require("../assets/logo1.jpg")}  // ✅ fix path
-        style={styles.fullImage}
-      />
-    </TouchableOpacity>
-  </View>
-</Modal>
-    </>
+      </Menu>
+    </View>
   );
 };
+
 
 
 
@@ -185,6 +139,30 @@ const styles = StyleSheet.create({
     // width: "10%",
     height: "33%",
     resizeMode: "contain",
+  },
+    header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: lightTheme.colors.primary,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    elevation: 4,
+  },
+  logo: {
+    width: "90%",
+    height: "90%",
+    resizeMode: "stretch",
+    borderRadius: 6,
+  },
+  menuItem: {
+    backgroundColor: "#f0f0f0",
+    borderRadius: 6,
+  },
+  menuTitle: {
+    fontWeight: "600",
+    fontSize: 15,
+    color: "#333",
   },
 });
 
