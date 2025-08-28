@@ -10,7 +10,11 @@ import { NativeModules } from 'react-native';
 import { generateStyledPDF } from '../Components/singlePdfGenerator';
 import DMMTitle from '../Components/Title';
 const { ManageExternalStorage } = NativeModules;
-
+let Share: typeof import('react-native-share') | undefined;
+if (Platform.OS === 'ios' || Platform.OS === 'android') {
+  // RNFS = require('react-native-fs');
+  Share = require('react-native-share').default;
+}
 // ✅ Use `require` instead of `import`
 const BleManager = require('react-native-ble-manager').default;
 
@@ -62,7 +66,17 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
   const [userNote, setUserNote] = useState('');
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const notNotify=useRef(0);
+  const notNotify = useRef(0);
+
+  const [clientName, setClientName] = useState('');
+  const [truckNumber, setTruckNumber] = useState('');
+  const [location, setLocation] = useState('');
+  const [contactPerson, setContactPerson] = useState('');
+  const [remarks, setRemarks] = useState('');
+  const [vendorId, setVendorId] = useState('');
+  const [totalWeight, setTotalWeight] = useState('');
+  const [showShareDialog, setShowShareDialog] = useState(false);
+
   const requestPermission = () => {
     ManageExternalStorage.requestPermission();
   };
@@ -72,15 +86,30 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
   const printData = async (data: string[], note: string) => {
     const [timestamp, deviceId, moisture, temp, weight, commodity] = data;
     try {
-      await generateStyledPDF({
-        DeviceID: deviceId,
-        commodityName: commodity,
-        moisture: moisture,
-        temperature: temp,
-        time: timestamp,
-        sampleQty: weight,
-        note: note,
-      });
+
+      if (RNFS) {
+        const path = await generateStyledPDF({
+          DeviceID: deviceId,
+          commodityName: commodity,
+          moisture: moisture,
+          temperature: temp,
+          time: timestamp,
+          sampleQty: weight,
+          note: note,
+        });
+        if(note=="share"){
+            const externalPath = `${RNFS.CachesDirectoryPath}/${route.params.peripheralData.name}.pdf`;
+        await RNFS.copyFile(path, externalPath);
+        console.log(path)
+        // const path = `${RNFS.DownloadDirectoryPath}/demo.pdf`;
+        if (!Share) {
+          Alert.alert('Error', 'Sharing not available on this platform.');
+          return;
+        }
+        await (Share as any).open({ url: `file://${externalPath}`, type: 'application/pdf' });
+        }
+      
+      }
     } catch (error) {
       console.error('Print error:', error);
       setSnackbarMessage('Error while printing');
@@ -88,42 +117,42 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
     }
   };
 
-  const saveToCSV = async (data: string[], note: string) => {
-     if ((Platform.OS === 'ios' || Platform.OS === 'android') && RNFS) {
-    const hasPermission = await requestStoragePermission();
-    const hasExternalPermission = await ManageExternalStorage.hasPermission();
+  const saveToCSV = async (data: string[], note: string, clientName: string, location: string, truckNumber: string, vendorId: string, totalWeight: string, remarks: string) => {
+    if ((Platform.OS === 'ios' || Platform.OS === 'android') && RNFS) {
+      const hasPermission = await requestStoragePermission();
+      const hasExternalPermission = await ManageExternalStorage.hasPermission();
 
-    if (hasExternalPermission) {
-      let deviceName =
-        peripheralData?.name || peripheralData?.advertising?.localName || 'NO_NAME';
+      if (hasExternalPermission) {
+        let deviceName =
+          peripheralData?.name || peripheralData?.advertising?.localName || 'NO_NAME';
 
-      try {
-        const folder = 'DMM123';
-        const csvRow = [...data, note].map(val => `"${val}"`).join(',') + '\n';
-        const safeName = deviceName.replace(/[^a-zA-Z0-9-_]/g, '_');
-        const path = `${RNFS.DownloadDirectoryPath}/Innovative_instrument/Data/${safeName}_${getFormattedDate()}.csv`;
-        const fileExists = await RNFS.exists(path);
+        try {
+          const folder = 'DMM123';
+          const csvRow = [...data, clientName, location, truckNumber, vendorId, totalWeight, remarks].map(val => `"${val}"`).join(',') + '\n';
+          const safeName = deviceName.replace(/[^a-zA-Z0-9-_]/g, '_');
+          const path = `${RNFS.DownloadDirectoryPath}/Innovative_instrument/Data/${safeName}_${getFormattedDate()}.csv`;
+          const fileExists = await RNFS.exists(path);
 
-        if (!fileExists) {
-          const BOM = '\uFEFF';
-          const header = `"Date","Device ID","Moisture %","Temp °C","Weight (gm)","Commodity Name","Note"\n`;
-          await RNFS.writeFile(path, BOM + header + csvRow, 'utf8');
-        } else {
-          await RNFS.appendFile(path, csvRow, 'utf8');
+          if (!fileExists) {
+            const BOM = '\uFEFF';
+            const header = `"Date","Device ID","Moisture %","Temp °C","Weight (gm)","Commodity Name","Client Name","Location","Truck Number","Vendor ID","Total Weight","Remarks"\n`;
+            await RNFS.writeFile(path, header + csvRow, 'utf8');
+          } else {
+            await RNFS.appendFile(path, csvRow, 'utf8');
+          }
+
+          setSnackbarMessage('Data saved to CSV!');
+          Alert.alert('Success', `CSV file saved successfully at:\n\n${path}`);
+          setSnackbarVisible(true);
+        } catch (error) {
+          console.error('Failed to save CSV:', error);
+          setSnackbarMessage('Error saving CSV.');
+          setSnackbarVisible(true);
         }
-
-        setSnackbarMessage('Data saved to CSV!');
-        Alert.alert('Success', `CSV file saved successfully at:\n\n${path}`);
-        setSnackbarVisible(true);
-      } catch (error) {
-        console.error('Failed to save CSV:', error);
-        setSnackbarMessage('Error saving CSV.');
-        setSnackbarVisible(true);
+      } else {
+        requestPermission();
       }
-    } else {
-      requestPermission();
     }
-  }
   };
 
   const requestStoragePermission = async (): Promise<boolean> => {
@@ -147,22 +176,22 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
   };
 
   useEffect(() => {
-     if (Platform.OS !== 'ios' && Platform.OS !== 'android') {
-        setSnackbarMessage('BLE features are not supported on this platform.');
-        setSnackbarVisible(true);
-        return;
-      }
-    
-      setReceivedValues([])
-    notNotify.current=0;
+    if (Platform.OS !== 'ios' && Platform.OS !== 'android') {
+      setSnackbarMessage('BLE features are not supported on this platform.');
+      setSnackbarVisible(true);
+      return;
+    }
+
+    setReceivedValues([])
+    notNotify.current = 0;
     const handleUpdateValueForCharacteristic = (
 
       data: BleManagerDidUpdateValueForCharacteristicEvent
     ) => {
-            // setReceivedValues([]);
+      // setReceivedValues([]);
       console.log("started getting notify data");
-      
-        console.log(data);
+
+      console.log(data);
       let ascii = '';
       if (Array.isArray(data.value)) {
         ascii = String.fromCharCode(...data.value).slice(1);
@@ -184,18 +213,18 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
 
     };
     setTimeout(() => {
-      if(notNotify.current===0){
+      if (notNotify.current === 0) {
         console.log("stopping the listener");
-       BleManager.disconnect(peripheralData.id); 
+        BleManager.disconnect(peripheralData.id);
         listener.remove();
         navigation.goBack();
       }
-      else{
+      else {
         console.log("not stopping the listener");
       }
     }, 3000);
     const listener = BleManager.onDidUpdateValueForCharacteristic(
-   
+
       handleUpdateValueForCharacteristic
     );
 
@@ -211,21 +240,39 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
     setUserNote(withNewlines);
   };
 
+  // const sendsinglepdf = async (finalArray: string[]) => {
+
+  //   if (RNFS) {
+
+  //     const path = await printData(finalArray, userNote)
+  //     const externalPath = `${RNFS.CachesDirectoryPath}/${route.params.peripheralData.name}.pdf`;
+  //     await RNFS.copyFile(path, externalPath);
+  //     console.log(path)
+  //     // const path = `${RNFS.DownloadDirectoryPath}/demo.pdf`;
+  //     if (!Share) {
+  //       Alert.alert('Error', 'Sharing not available on this platform.');
+  //       return;
+  //     }
+  //     await (Share as any).open({ url: `file://${externalPath}`, type: 'application/pdf' });
+  //   }
+  // }
+
+
   return (
     <View style={{ flex: 1, padding: 16, justifyContent: 'center' }}>
       <DMMTitle />
 
       <ScrollView contentContainerStyle={styles.container}>
-        {receivedValues.length === 3 ? (() => {
-          {/* {true ? (() => { */}
+        {/* {receivedValues.length === 3 ? (() => { */}
+        {true ? (() => {
           const asciiArrays = receivedValues.slice(0, 3).map(val =>
             val.ascii.split(',').map(s => s.trim())
-            
+
           );
-                  // setReceivedValues([]);
-                console.log(asciiArrays)
+          // setReceivedValues([]);
+          console.log(asciiArrays)
           const { deviceIdArray, readingsArray, commodityArray } = classifyArray(asciiArrays);
-    
+
           const formattedTime = getFormattedDateTime();
           const finalArray = [formattedTime, ...deviceIdArray, ...readingsArray, ...commodityArray];
           //  setReceivedValues([]);
@@ -235,13 +282,14 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
                 <IconButton
                   icon="content-save"
                   size={24}
-                  onPress={() => saveToCSV(finalArray, userNote)}
+                  onPress={() => saveToCSV(finalArray, userNote, clientName, location, truckNumber, vendorId, totalWeight, remarks)}
                 />
                 <IconButton
                   icon="printer"
                   size={24}
-                  onPress={() => printData(finalArray, userNote)}
+                  onPress={() => printData(finalArray, "notshare")}
                 />
+                <IconButton icon="share-variant" size={24} onPress={() => { printData(finalArray, "share") }} />
               </View>
 
               <Text style={styles.label}><Text style={styles.bold}>Device ID:</Text> {finalArray[1]}</Text>
@@ -252,17 +300,57 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
               <Text style={styles.label}><Text style={styles.bold}>Timestamp:</Text> {finalArray[0]}</Text>
 
               <TextInput
-                label="Note"
+                label="Client Name"
                 mode="outlined"
-                value={userNote}
-                multiline
-                onChangeText={handleChange}
+                value={clientName}
+                onChangeText={setClientName}
+                style={styles.input}
+                maxLength={50}
+              />
+
+              <TextInput
+                label="Location"
+                mode="outlined"
+                value={location}
+                onChangeText={setLocation}
+                style={styles.input}
+                maxLength={50}
+              />
+              <TextInput
+                label="Truck Number"
+                mode="outlined"
+                value={truckNumber}
+                onChangeText={setTruckNumber}
+                style={styles.input}
+                maxLength={50}
+              />
+              <TextInput
+                label="Vendor ID"
+                mode="outlined"
+                value={vendorId}
+                onChangeText={setVendorId}
+                style={styles.input}
+                maxLength={50}
+              />
+              <TextInput
+                label="Total Weight"
+                mode="outlined"
+                value={totalWeight}
+                onChangeText={setTotalWeight}
+                style={styles.input}
+                maxLength={50}
+              />
+              <TextInput
+                label="Remarks"
+                mode="outlined"
+                value={remarks}
+                onChangeText={setRemarks}
                 style={styles.input}
                 maxLength={50}
               />
             </>
           );
-               
+
         })() : (
           <Text style={{ textAlign: 'center', marginTop: 20 }}>
             Waiting for data...
@@ -279,7 +367,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
           onPress: () => setSnackbarVisible(false),
         }}
       >
-        {snackbarMessage} 
+        {snackbarMessage}
       </Snackbar>
     </View>
   );
@@ -288,7 +376,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-        // backgroundColor: '#ffffffff',
+    // backgroundColor: '#ffffffff',
   },
   label: {
     marginBottom: 6,

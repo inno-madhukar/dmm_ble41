@@ -21,6 +21,7 @@ import { useCallback } from "react";
 let bleManager: any;
 type BleDisconnectPeripheralEvent = any;
 type Peripheral = any;
+let scanInterval: NodeJS.Timeout;
 
 if (Platform.OS === 'android' || Platform.OS === 'ios') {
   bleManager = require('react-native-ble-manager').default;
@@ -82,14 +83,14 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
     }, [])
   );
   const handleStopScan = () => {
-    setIsScanning(false);
+    setIsScanning(true);
     console.log('[handleStopScan] scan stopped.');
   };
 
   const handleDisconnectedPeripheral = async (event: BleDisconnectPeripheralEvent) => {
 
     await sleep(2000);
-    re_connect_Prev=false;
+    re_connect_Prev = false;
     const disconnectedDevice = storedDevicesRef.current.find(
       (d: any) => d.id === event.peripheral
     );
@@ -259,6 +260,12 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
     }
   };
 
+  const startScan = () => {
+    bleManager.scan([], 7, true) // [] = all services, 7 = seconds, true = allow duplicates
+      .then(() => console.log("Scanning..."))
+      .catch((err: any) => console.error("Scan error", err));
+  };
+
   const scanForDevices = async () => {
     try {
       ignoredDevicesRef.current.clear();
@@ -268,7 +275,15 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
       console.log("Bluetooth state:", bleState);
       setIsScanning(true);
       setPeripherals(new Map());
-      bleManager.scan(SERVICE_UUIDS, 0, ALLOW_DUPLICATES).catch(console.error);
+      startScan();
+      scanInterval = setInterval(() => {
+        bleManager.stopScan()
+          .then(() => {
+            console.log("Restarting scan...");
+            startScan();
+          });
+      }, 8000);
+      // bleManager.scan(SERVICE_UUIDS, 0, ALLOW_DUPLICATES).catch(console.error);
       console.log("Scanning started...");
     } catch (error) {
       console.error('Error initializing BLE:', error);
@@ -305,6 +320,8 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
     return () => {
       console.log("Cleaning up listeners...");
       listeners.forEach((l) => l.remove());
+      clearInterval(scanInterval);
+      bleManager.stopScan();
     };
   }, []);
 
@@ -386,16 +403,16 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
     {
       title: 'Saved Devices',
       data: storedDevices,
-    }, 
+    },
   ];
   return (
     <View style={styles.container}>
       <DMMTitle />
       <View style={styles.scanHeader}>
-       {isScanning ? (<Text style={styles.scanStatus}>Scanning for devices...</Text>):(<Text style={styles.scanStatus}> </Text>)}
+        {isScanning ? (<Text style={styles.scanStatus}>Scanning for devices...</Text>) : (<Text style={styles.scanStatus}> </Text>)}
         <ActivityIndicator animating={isScanning} style={{ marginLeft: 8 }} />
         <Button
-          mode="contained-tonal"
+          mode="contained"
           onPress={scanForDevices}
           compact
           style={styles.scanButton}

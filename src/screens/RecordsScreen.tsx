@@ -1,15 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Alert,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  TouchableOpacity, FlatList
+
 } from 'react-native';
-import { Text, DataTable, IconButton, Portal, Button, Dialog } from 'react-native-paper';
+import { Text, DataTable, IconButton, Portal, Button, Dialog, Menu, TextInput } from 'react-native-paper';
+// import { , Button, DataTable, Text,  } from "react-native-paper";
+
 import DMMTitle from '../Components/Title';
 import { Platform } from 'react-native';
 let RNFS: typeof import('react-native-fs') | undefined;
+if (Platform.OS === 'ios' || Platform.OS === 'android') {
+  RNFS = require('react-native-fs');
+}
 let Share: typeof import('react-native-share') | undefined;
 import RNPrint from 'react-native-print';
 if (Platform.OS === 'ios' || Platform.OS === 'android') {
@@ -47,120 +53,199 @@ interface DocumentPickerResponse {
   type?: string;
   size?: number;
 }
-const hederobj = ["Date", "DeviceID", "Moisture %", "Temp°C",  "Weight", "CommodityName", "Note"
+const hederobj = ["Date", 'Device ID', 'Moisture %', 'Temp °C', 'Weight (gm)', 'Commodity Name', 'Client Name', 'Location', 'Truck Number', 'Vendor ID', 'Total Weight', 'Remarks'
 ]
+const tabheaderobj = ['date', 'device_id', 'moisture_', 'temp_c', 'weight_gm', 'commodity_name', 'client_name', 'location', 'truck_number', 'vendor_id'];
 const RecordsScreen: React.FC = () => {
   const [csvData, setCsvData] = useState<CSVRow[]>([]);
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
-  const [selectedFileName, setSelectedFileName] = useState<string>('');
+  const [selectedFileName, setSelectedFileName] = useState<string>('AllFILE');
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [selectedFilePath, setSelectedFilePath] = useState<string>('');
+  const [selectedColumn, setSelectedColumn] = useState<string>("");
+  const [filterText, setFilterText] = useState<string>("");
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [selectedRows, setSelectedRows] = useState<number[]>([]);
 
   let parsedData: ParsedCSVData;
 
-  const parseCSV = (csvText: string): ParsedCSVData => {
-    const cleaned = csvText.replace(/"(.*?)"/gs, (match) =>
-      match.replace(/[\r\n]+/g, ' ')
+  useEffect(() => {
+    if (selectedFileName == "AllFILE") {
+      loadAllCSVs(); // loads all stored CSVs
+    }
+  }, [selectedFileName]);
+
+
+  const loadAllCSVs = async () => {
+    try {
+      if ((Platform.OS === 'ios' || Platform.OS === 'android') && RNFS) {
+        const folderPath = `${RNFS.DownloadDirectoryPath}/Innovative_instrument/Data`; // your folder
+        const files = await RNFS.readDir(folderPath);
+
+        // filter only .csv files
+        const csvFiles = files.filter((f) => f.isFile() && f.name.endsWith(".csv"));
+
+        let mergedHeaders: string[] = [];
+        let mergedData: CSVRow[] = [];
+
+        for (const file of csvFiles) {
+          const fileContent = await RNFS.readFile(file.path, "utf8");
+          const parsed = parseCSV(fileContent);
+
+          if (parsed.headers.length > 0 && mergedHeaders.length === 0) {
+            mergedHeaders = parsed.headers; // take headers from first file
+          }
+
+          mergedData = [...mergedData, ...parsed.data];
+        }
+
+        // update state
+        setCsvHeaders(mergedHeaders);
+        setCsvData(mergedData);
+        // setFilteredData(mergedData);
+      }
+    } catch (err) {
+      console.error("Error loading CSVs:", err);
+    }
+  };
+
+  const toggleRowSelection = (rowIndex: number) => {
+    setSelectedRows((prev) =>
+      prev.includes(rowIndex)
+        ? prev.filter((i) => i !== rowIndex) // unselect
+        : [...prev, rowIndex] // select
     );
-    const lines: string[] = cleaned.split('\n');
-    const headers: string[] = lines[0].split(',').map((header: string) => header.trim().replace(/"/g, ''));
+  };
+  // Utility: normalize headers → safe keys for objects
+  const normalizeHeader = (header: string) =>
+    header
+      .trim()
+  // .replace(/"/g, "")
+  // .replace(/\s+/g, "_")      // spaces → underscore
+  // .replace(/[()%°]/g, "")    // remove special chars
+  // .replace(/_+/g, "_")       // collapse multiple underscores
+  // .toLowerCase();            // lower case for consistency
+
+  const parseCSV = (csvText: string): ParsedCSVData => {
+    // Replace line breaks inside quotes with space
+    const cleaned = csvText.replace(/"(.*?)"/gs, (match) =>
+      match.replace(/[\r\n]+/g, " ")
+    );
+
+    const lines = cleaned.split(/\r?\n/).filter(line => line.trim() !== "");
+    if (lines.length === 0) return { headers: [], data: [] };
+
+    // Original headers (for UI)
+    const rawHeaders = lines[0].split(",").map((h) => h.trim().replace(/"/g, ""));
+    // Normalized headers (for keys)
+    const headers = rawHeaders.map(normalizeHeader);
+
     const data: CSVRow[] = [];
 
     for (let i = 1; i < lines.length; i++) {
-      if (lines[i].trim() !== '') {
-        const values: string[] = lines[i].split(',').map((value: string) => value.trim().replace(/"/g, ''));
-        const row: CSVRow = {};
-        hederobj.forEach((header: string, index: number) => {
-          if (header == 'Note') {
-            row[header] = values[index].replaceAll(" ", "\n") || '';
-          }
-          else if (header == 'Date') {
-            row[header] = values[index].replaceAll(" ", "\n") || '';
-          }
-          else {
-            row[header] = values[index] || '';
-          }
+      const values = lines[i]
+        .split(",")
+        .map((value) => value.trim().replace(/"/g, ""));
 
-        });
-        data.push(row);
-      }
+      const row: CSVRow = {};
+      headers.forEach((header, index) => {
+        // safe fallback if column missing
+        row[header] = values[index] ?? "";
+      });
+
+      data.push(row);
     }
+
+
     return { headers, data };
   };
+  const scsv = async (): Promise<void> => {
+    try {
+      const { default: Dmmble4 } = await import('../NativeDmmble4');
+      const data = await Dmmble4.readCsv();
 
-const scsv = async (): Promise<void> => {
-  try {
-    const { default: Dmmble4 } = await import('../NativeDmmble4');
-    const data = await Dmmble4.readCsv();
+      if (data.length === 0) {
+        Alert.alert("CSV Reader", "No data found in CSV.");
+        return;
+      }
 
-    if (data.length === 0) {
-      Alert.alert("CSV Reader", "No data found in CSV.");
-      return;
+      Alert.alert("CSV Reader", `First cell: ${data[0][0]}`);
+    } catch (err: any) {
+      Alert.alert("Error", JSON.stringify(err));
     }
-
-    Alert.alert("CSV Reader", `First cell: ${data[0][0]}`);
-  } catch (err:any) {
-    Alert.alert("Error", JSON.stringify(err));
-  }
-};
+  };
 
   const selectCSVFile = async (): Promise<void> => {
-    
     if (Platform.OS !== 'ios' && Platform.OS !== 'android') {
-     await scsv()
       Alert.alert('Unsupported Platform', 'File selection is only supported on Android/iOS.');
       return;
     }
+
     try {
       if (!DocumentPicker || !DocumentPicker.pick) {
         throw new Error('DocumentPicker is not properly installed or imported');
       }
 
-      const result: DocumentPickerResponse[] = await DocumentPicker.pick({
+      const results: DocumentPickerResponse[] = await DocumentPicker.pick({
         type: [types?.csv || 'text/csv'],
-        allowMultiSelection: false,
+        allowMultiSelection: true,
       });
 
-      const file: DocumentPickerResponse = result[0];
-      setSelectedFileName(file.name || 'Unknown file');
-      console.log(file.uri)
       if (!RNFS) {
         Alert.alert('Error', 'File system not available on this platform.');
         return;
       }
-      const fileExists = await RNFS.exists(file.uri);
-      setSelectedFilePath(file.uri); // Save path for sharing
-      if (!fileExists) {
-        console.log(".........................................")
+
+      // UI: Show all file names
+      const fileNames = results.map(f => f.name || 'Unknown file').join(', ');
+      setSelectedFileName(fileNames);
+
+      const allData: any[] = [];
+      let headers: string[] = [];
+
+      for (const file of results) {
+        const fileUri = file.uri;
         const fileName = file.name || 'temp.csv';
-        const cachePath = `${RNFS.CachesDirectoryPath}/${fileName}`;
-        await RNFS.copyFile(file.uri, cachePath);
-        const fileContent: string = await RNFS.readFile(file.uri, 'utf8');
-        parsedData = parseCSV(fileContent);
-        console.log(parsedData.data)
-        setCsvData(parsedData.data);
-        setCsvHeaders(parsedData.headers);
-        await RNFS.unlink(cachePath);
-        console.log(cachePath)
-      } else {
-        const fileContent: string = await RNFS.readFile(file.uri, 'utf8');
-        parsedData = parseCSV(fileContent);
-        setCsvData(parsedData.data);
-        setCsvHeaders(parsedData.headers);
+
+        // Some Android URIs are not "real files" → copy them to cache
+        let filePath = fileUri;
+        const fileExists = await RNFS.exists(fileUri);
+
+        if (!fileExists) {
+          const cachePath = `${RNFS.CachesDirectoryPath}/${fileName}`;
+          await RNFS.copyFile(fileUri, cachePath);
+          filePath = cachePath;
+        }
+
+        // Read & parse
+        const fileContent: string = await RNFS.readFile(filePath, 'utf8');
+        const parsed = parseCSV(fileContent);
+
+        if (parsed.headers?.length && headers.length === 0) {
+          headers = parsed.headers; // keep first file's headers
+        }
+
+        allData.push(...parsed.data);
+
+        // If copied → cleanup
+        if (!fileExists) {
+          await RNFS.unlink(filePath);
+        }
       }
 
-      Alert.alert(
-        'CSV File Selected',
-        `File: ${file.name}`
-      );
+      // Save all parsed data & headers
+      setCsvData(allData);
+      setCsvHeaders(headers);
+      console.log(allData)
+      console.log(headers);
+      Alert.alert('CSV Files Selected', `Files: ${fileNames}`);
 
     } catch (error: any) {
       if (error?.code === 'DOCUMENT_PICKER_CANCELED') {
         console.log('User cancelled file selection');
       } else {
-        // Alert.alert('Error', `Failed to read CSV file.\nDetails: ${error?.message || 'Unknown error'}`);
-        Alert.alert('Warning', `CSV file not Selected !`);
-
+        console.error('CSV Read Error:', error);
+        Alert.alert('Warning', `CSV file not selected!`);
       }
     }
   };
@@ -180,7 +265,11 @@ const scsv = async (): Promise<void> => {
         "CommodityName": string;
         "Note": string;
       };
-      const path: string = await generateSimplePrintAndPDF(csvData as BLERecord[], "print");
+      const rowsToPrint =
+        selectedRows.length > 0
+          ? selectedRows.map((i) => filteredData[i])
+          : filteredData;
+      const path: string = await generateSimplePrintAndPDF(rowsToPrint as BLERecord[], "print");
       if (!RNPrint) {
         Alert.alert('Error', 'Printing not available on this platform.');
         return;
@@ -204,21 +293,27 @@ const scsv = async (): Promise<void> => {
         "CommodityName": string;
         "Note": string;
       };
-      if(RNFS){
-        const path = await generateSimplePrintAndPDF(csvData as BLERecord[], selectedFileName);
-        const externalPath = `${RNFS.CachesDirectoryPath}/${selectedFileName.replace(".csv","")}.pdf`;
+      if (RNFS) {
+        const rowsToPrint =
+          selectedRows.length > 0
+            ? selectedRows.map((i) => filteredData[i])
+            : filteredData;
+        const path = await generateSimplePrintAndPDF(rowsToPrint as BLERecord[], selectedFileName);
+        const externalPath = `${RNFS.CachesDirectoryPath}/${selectedFileName.replace(".csv", "")}.pdf`;
         await RNFS.copyFile(path, externalPath);
-      console.log(path)
-      // const path = `${RNFS.DownloadDirectoryPath}/demo.pdf`;
-      if (!Share) {
-        Alert.alert('Error', 'Sharing not available on this platform.');
-        return;
+        console.log(path)
+        // const path = `${RNFS.DownloadDirectoryPath}/demo.pdf`;
+        if (!Share) {
+          Alert.alert('Error', 'Sharing not available on this platform.');
+          return;
+        }
+        await (Share as any).open({ url: `file://${externalPath}`, type: 'application/pdf' });
       }
-      await (Share as any).open({ url: `file://${externalPath}`, type: 'application/pdf' });
-    }} catch (error) {
+    } catch (error) {
       Alert.alert('Error', 'Failed to share PDF');
     }
   };
+
 
 
   const shareCSV = async (): Promise<void> => {
@@ -270,18 +365,48 @@ const scsv = async (): Promise<void> => {
     }
   };
 
+  const filteredData = csvData.filter((row) => {
+    if (!filterText) return true; // no filter, show all
+
+    if (selectedColumn === "All") {
+      // Search across all columns
+      return csvHeaders.some((header) =>
+        row[header]?.toLowerCase().includes(filterText.toLowerCase())
+      );
+    }
+
+    if (selectedColumn) {
+      return row[selectedColumn]?.toLowerCase().includes(filterText.toLowerCase());
+    }
+
+    return true;
+  });
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
-     <DMMTitle />
-    <View style={{ alignItems: 'center', marginBottom: 20 }}></View>
-      <Button  mode="contained"  style={styles.sbutton} onPress={selectCSVFile}>
-        Select File
-      </Button>
+      <DMMTitle />
+      <View style={{ alignItems: 'center', marginBottom: 20 }}></View>
+      <View style={{ flexDirection: "row", justifyContent: "center", marginBottom: 20 }}>
+        {/* Select File */}
+        <Button mode="contained" style={styles.sbutton} onPress={selectCSVFile}>
+          Select File
+        </Button>
+
+        {/* Select All Files */}
+        <Button
+          mode="outlined"
+          style={[styles.sbutton, { marginLeft: 10 }]}
+          onPress={() => setSelectedFileName("AllFILE")}
+        >
+          Select All Files
+        </Button>
+      </View>
 
       {selectedFileName ? (
         <View style={styles.fileRow}>
           <Text style={styles.selectedFile}>
-            <Text style={{ fontWeight: 'bold' }}>Selected file:</Text> {selectedFileName}
+            <Text style={{ fontWeight: 'bold' }}>Selected files:</Text> {" "}
+            {selectedFileName === "AllFILE" ? "All Files" : selectedFileName}
           </Text>
           <View style={styles.iconRow}>
             <IconButton icon="share-variant" size={24} onPress={() => setShowShareDialog(true)} />
@@ -290,7 +415,47 @@ const scsv = async (): Promise<void> => {
         </View>
       ) : null}
 
-      {csvData.length > 0 && csvHeaders.length > 0 && (
+      {csvHeaders.length > 0 && (
+        <View style={{ flexDirection: "row", alignItems: "center", marginVertical: 8 }}>
+          <Menu
+            visible={menuVisible}
+            onDismiss={() => setMenuVisible(false)}
+            anchor={
+              <Button mode="outlined" onPress={() => setMenuVisible(true)}>
+                {selectedColumn || "Select Column"}
+              </Button>
+            }
+          >
+            <Menu.Item
+              onPress={() => {
+                setSelectedColumn("All");
+                setMenuVisible(false);
+              }}
+              title="All"
+            />
+            {csvHeaders.map((header, index) => (
+              <Menu.Item
+                key={index}
+                onPress={() => {
+                  setSelectedColumn(header);
+                  setMenuVisible(false);
+                }}
+                title={header}
+              />
+            ))}
+          </Menu>
+          <TextInput
+            label="Filter value"
+            mode="outlined"
+            value={filterText}
+            onChangeText={setFilterText}
+            style={{ flex: 1, marginLeft: 8 }}
+          />
+        </View>
+      )}
+
+
+      {filteredData.length > 0 && csvHeaders.length > 0 && (
         <View style={styles.tableContainer}>
           <ScrollView horizontal showsHorizontalScrollIndicator>
             <View>
@@ -299,39 +464,43 @@ const scsv = async (): Promise<void> => {
                 {/* Table Headers */}
                 <DataTable.Header>
                   {csvHeaders.map((header, index) => (
-                    <DataTable.Title
-                      key={index}
-                      style={styles.cell}
-                    >
+                    <DataTable.Title key={index} style={styles.cell}>
                       <Text style={styles.headerText}>{header}</Text>
                     </DataTable.Title>
                   ))}
                 </DataTable.Header>
 
                 {/* Table Rows */}
-                <ScrollView style={{ maxHeight: 400 }}>
-                  {csvData.map((row, rowIndex) => (
-                    <DataTable.Row key={rowIndex}>
-                      {hederobj.map((header, cellIndex) => (
-                        <DataTable.Cell
-                          key={cellIndex}
-                          style={styles.cell}
-                        >
-                          <Text
-                            numberOfLines={2}
-                            style={styles.cellText}
-                          >
-                            {row[header]}
-                          </Text>
-                        </DataTable.Cell>
-                      ))}
-                    </DataTable.Row>
-                  ))}
-                </ScrollView>
+                <FlatList
+                  data={filteredData}
+                  keyExtractor={(_, index) => index.toString()}
+                  nestedScrollEnabled
+                  style={{ maxHeight: 400 }}
+                  renderItem={({ item: row, index: rowIndex }) => {
+                    const isSelected = selectedRows.includes(rowIndex);
 
+                    return (
+                      <DataTable.Row
+                        onPress={() => toggleRowSelection(rowIndex)}
+                        style={{
+                          backgroundColor: isSelected ? "#d0ebff" : "transparent",
+                        }}
+                      >
+                        {hederobj.map((header, cellIndex) => (
+                          <DataTable.Cell key={cellIndex} style={styles.cell}>
+                            <Text numberOfLines={2} style={styles.cellText}>
+                              {row[header]}
+                            </Text>
+                          </DataTable.Cell>
+                        ))}
+                      </DataTable.Row>
+                    );
+                  }}
+                />
               </DataTable>
             </View>
           </ScrollView>
+
         </View>
       )}
 

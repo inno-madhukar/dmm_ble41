@@ -24,7 +24,7 @@ export async function generateStyledPDF({
   time: string;
   sampleQty: string;
   note: string
-  
+
 }) {
 
 
@@ -42,7 +42,7 @@ export async function generateStyledPDF({
     const data = await RNFS.readFile(profileFilePath1, 'utf8');
     profile1 = JSON.parse(data);
   }
-  
+
   console.log(profile1);
 
   const getImageBase64 = async (uri: string): Promise<string> => {
@@ -50,7 +50,7 @@ export async function generateStyledPDF({
     return await RNFS.readFile(path, 'base64');
   };
 
- 
+
   const pdfDoc = await PDFDocument.create();
   const page = pdfDoc.addPage([595, 842]); // A4 size
 
@@ -59,64 +59,64 @@ export async function generateStyledPDF({
   const { width, height } = page.getSize();
   let y = height - 40;
 
-  let embeddedImage:any;
+  let embeddedImage: any;
 
- async function createHeader(){
-    
-  const base64 = await getImageBase64(profile1.image);
-  if (base64.startsWith('/9j/')) {
-    embeddedImage = await pdfDoc.embedJpg(base64);
-  } else if (base64.startsWith('iVBORw0KGgo')) {
-    embeddedImage = await pdfDoc.embedPng(base64);
-  } else {
-    throw new Error('Unsupported image format (not JPG or PNG)');
-  }
+  async function createHeader() {
 
-  page.drawImage(embeddedImage, {
-    x: 40,
-    y: height - 75,
-    width: 80,
-    height: 60,
-  });
-
-
-  // 🏢 Company Info
-  page.drawText(profile1.company, {
-    x: 150,
-    y: y - 10,
-    size: 16,
-    font: boldFont,
-    color: rgb(0, 0, 0),
-  });
-  page.drawText(
-    profile1.address,
-    {
-      x: 150,
-      y: y - 30,
-      size: 10,
-      font,
-      color: rgb(0.1, 0.1, 0.1),
-      lineHeight: 12,
+    const base64 = await getImageBase64(profile1.image);
+    if (base64.startsWith('/9j/')) {
+      embeddedImage = await pdfDoc.embedJpg(base64);
+    } else if (base64.startsWith('iVBORw0KGgo')) {
+      embeddedImage = await pdfDoc.embedPng(base64);
+    } else {
+      throw new Error('Unsupported image format (not JPG or PNG)');
     }
-  );
 
-  // 📧 Contact Info
-  page.drawText(`Email: ${profile1.email}`, {
-    x: width - 230,
-    y: y - 10,
-    size: 8,
-    font,
-  });
-  page.drawText(`Ph No: ${profile1.phone}`, {
-    x: width - 230,
-    y: y - 25,
-    size: 8,
-    font,
-  });
+    page.drawImage(embeddedImage, {
+      x: 40,
+      y: height - 75,
+      width: 80,
+      height: 60,
+    });
+
+
+    // 🏢 Company Info
+    page.drawText(profile1.company, {
+      x: 150,
+      y: y - 10,
+      size: 16,
+      font: boldFont,
+      color: rgb(0, 0, 0),
+    });
+    page.drawText(
+      profile1.address,
+      {
+        x: 150,
+        y: y - 30,
+        size: 10,
+        font,
+        color: rgb(0.1, 0.1, 0.1),
+        lineHeight: 12,
+      }
+    );
+
+    // 📧 Contact Info
+    page.drawText(`Email: ${profile1.email}`, {
+      x: width - 230,
+      y: y - 10,
+      size: 8,
+      font,
+    });
+    page.drawText(`Ph No: ${profile1.phone}`, {
+      x: width - 230,
+      y: y - 25,
+      size: 8,
+      font,
+    });
 
   }
 
-  if(await RNFS.exists(profileFilePath1)){
+  if (await RNFS.exists(profileFilePath1)) {
     await createHeader();
   }
 
@@ -211,7 +211,8 @@ export async function generateStyledPDF({
 
   await RNFS.writeFile(path, base64String, 'base64');
 
-  try {
+  if (note != "share") {
+     try {
     await RNPrint.print({ filePath: path });
   } catch (err) {
     console.warn('Printing was cancelled or failed:', err);
@@ -221,6 +222,8 @@ export async function generateStyledPDF({
       .then(() => console.log('Temporary PDF deleted.'))
       .catch(err => console.warn('Failed to delete temp PDF:', err));
   }
+  }
 
-  return path;
+
+ return path;
 }
