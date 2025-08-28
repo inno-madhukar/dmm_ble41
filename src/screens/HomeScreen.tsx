@@ -64,18 +64,18 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
 
   useFocusEffect(
     useCallback(() => {
-      re_connect_Prev = false;
+      // re_connect_Prev = false;
       if (flagRef.current) {
         console.log("📴 Screen focused → start scanning");
         flagRef.current = false;
-        
-        scanForDevices();
+
+        // scanForDevices();
       }
       return () => {
         flagRef.current = true;
         console.log("📴 Screen unfocused → stop scanning");
-        
-        bleManager.stopScan()
+
+        // bleManager.stopScan()
         //   .then(() => console.log("Scan stopped"))
         //   .catch((err: any) => console.error("Stop scan failed", err));
       };
@@ -88,6 +88,8 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
 
   const handleDisconnectedPeripheral = async (event: BleDisconnectPeripheralEvent) => {
 
+    await sleep(2000);
+    re_connect_Prev=false;
     const disconnectedDevice = storedDevicesRef.current.find(
       (d: any) => d.id === event.peripheral
     );
@@ -120,10 +122,9 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
       // bleManager.stopScan();
       console.log('Auto-connecting to stored device:', match);
       await connectPeripheral(peripheral);
-
       ignoredDevicesRef.current.add(peripheral.id);
       currentIgnoredDeviceRef.current = peripheral.id;
-      re_connect_Prev = false;
+      // re_connect_Prev = false;
       if (currentIgnoredDeviceRef.current != "") {
         console.log(currentIgnoredDeviceRef)
         const timeout = setTimeout(() => {
@@ -163,7 +164,7 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
     setTimeout(() => {
       if (perfectConnectRef.current == 0) {
         bleManager.disconnect(peripheral.id)
-        re_connect_Prev = false;
+        // re_connect_Prev = false;
       }
 
     }, 3000);
@@ -177,15 +178,11 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
         }
         return map;
       });
- 
-      try {
-        console.log("Connecting to", peripheral.id);
-        await bleManager.connect(peripheral.id);
-        console.log("Connected to", peripheral.id);
 
+      try {
+        await bleManager.connect(peripheral.id);
       } catch (err) {
         console.error("Connect attempt failed:", err);
-
       }
       await sleep(500);
 
@@ -246,7 +243,7 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
         }
       }
 
-      bleManager.stopScan();
+      // bleManager.stopScan();
       perfectConnectRef.current = 1;
       Alert.alert(
         "Device Connected",
@@ -389,16 +386,14 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
     {
       title: 'Saved Devices',
       data: storedDevices,
-    },
+    }, 
   ];
   return (
     <View style={styles.container}>
       <DMMTitle />
       <View style={styles.scanHeader}>
-        <Text style={styles.scanStatus}>
-          Scanning for devices...
-        </Text>
-        <ActivityIndicator animating={true} style={{ marginLeft: 8 }} />
+       {isScanning ? (<Text style={styles.scanStatus}>Scanning for devices...</Text>):(<Text style={styles.scanStatus}> </Text>)}
+        <ActivityIndicator animating={isScanning} style={{ marginLeft: 8 }} />
         <Button
           mode="contained-tonal"
           onPress={scanForDevices}

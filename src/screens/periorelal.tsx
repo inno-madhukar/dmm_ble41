@@ -63,6 +63,15 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const notNotify=useRef(0);
+
+    const [clientName, setClientName] = useState('');
+  const [truckNumber, setTruckNumber] = useState('');
+  const [location, setLocation] = useState('');
+  const [contactPerson, setContactPerson] = useState('');
+  const [remarks, setRemarks] = useState('');
+  const [vendorId, setVendorId] = useState('');
+  const [totalWeight, setTotalWeight] = useState('');
+
   const requestPermission = () => {
     ManageExternalStorage.requestPermission();
   };
@@ -216,8 +225,8 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
       <DMMTitle />
 
       <ScrollView contentContainerStyle={styles.container}>
-        {receivedValues.length === 3 ? (() => {
-          {/* {true ? (() => { */}
+        {/* {receivedValues.length === 3 ? (() => { */}
+          {true ? (() => {
           const asciiArrays = receivedValues.slice(0, 3).map(val =>
             val.ascii.split(',').map(s => s.trim())
             
@@ -251,15 +260,55 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
               <Text style={styles.label}><Text style={styles.bold}>Temperature:</Text> {finalArray[3]} °C</Text>
               <Text style={styles.label}><Text style={styles.bold}>Timestamp:</Text> {finalArray[0]}</Text>
 
-              <TextInput
-                label="Note"
-                mode="outlined"
-                value={userNote}
-                multiline
-                onChangeText={handleChange}
-                style={styles.input}
-                maxLength={50}
-              />
+                 <TextInput
+        label="Client Name"
+        mode="outlined"
+        value={clientName}
+        onChangeText={setClientName}
+        style={styles.input}
+        maxLength={50}
+      />
+    
+      <TextInput
+        label="Location"
+        mode="outlined"
+        value={location}
+        onChangeText={setLocation}
+        style={styles.input}
+        maxLength={50}
+      />
+        <TextInput
+        label="Truck Number"
+        mode="outlined"
+        value={truckNumber}
+        onChangeText={setTruckNumber}
+        style={styles.input}
+        maxLength={50}
+      />
+      <TextInput
+        label="Vendor ID"
+        mode="outlined"
+        value={contactPerson}
+        onChangeText={setContactPerson}
+        style={styles.input}
+        maxLength={50}
+      />
+      <TextInput
+        label="Total Weight"
+        mode="outlined"
+        value={totalWeight}
+        onChangeText={setTotalWeight}
+        style={styles.input}
+        maxLength={50}
+      />
+      <TextInput
+        label="Remarks"
+        mode="outlined"
+        value={remarks}
+        onChangeText={setRemarks}
+        style={styles.input}
+        maxLength={50}
+      />
             </>
           );
                
