@@ -1,7 +1,7 @@
 import React, { forwardRef, useImperativeHandle, useState } from 'react';
 import { View, StyleSheet,Linking } from 'react-native';
 import { Modal, Portal, Text, Button, Divider } from 'react-native-paper';
-
+import ShowClientsModal from '../Components/showClients';
 export type ContactUsModalRef = {
   open: () => void;
   close: () => void;
@@ -52,6 +52,7 @@ const ContactUsModal = forwardRef<ContactUsModalRef>((_, ref) => {
         <Button mode="contained" style={{ marginTop: 20, alignSelf: 'center' }} onPress={() => setVisible(false)}>
           Close
         </Button>
+      <ShowClientsModal />
       </Modal>
     </Portal>
   );

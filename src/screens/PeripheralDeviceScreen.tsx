@@ -77,6 +77,15 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
   const [totalWeight, setTotalWeight] = useState('');
   const [showShareDialog, setShowShareDialog] = useState(false);
 
+  interface Client {
+    clientName: string;
+    location: string;
+    truckNumber: string;
+    vendorId: string;
+    totalWeight: string;
+    remarks: string;
+  }
+
   const requestPermission = () => {
     ManageExternalStorage.requestPermission();
   };
@@ -97,24 +106,59 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
           sampleQty: weight,
           note: note,
         });
-        if(note=="share"){
-            const externalPath = `${RNFS.CachesDirectoryPath}/${route.params.peripheralData.name}.pdf`;
-        await RNFS.copyFile(path, externalPath);
-        console.log(path)
-        // const path = `${RNFS.DownloadDirectoryPath}/demo.pdf`;
-        if (!Share) {
-          Alert.alert('Error', 'Sharing not available on this platform.');
-          return;
+        if (note == "share") {
+          const externalPath = `${RNFS.CachesDirectoryPath}/${route.params.peripheralData.name}.pdf`;
+          await RNFS.copyFile(path, externalPath);
+          console.log(path)
+          // const path = `${RNFS.DownloadDirectoryPath}/demo.pdf`;
+          if (!Share) {
+            Alert.alert('Error', 'Sharing not available on this platform.');
+            return;
+          }
+          await (Share as any).open({ url: `file://${externalPath}`, type: 'application/pdf' });
         }
-        await (Share as any).open({ url: `file://${externalPath}`, type: 'application/pdf' });
-        }
-      
+
       }
     } catch (error) {
       console.error('Print error:', error);
       setSnackbarMessage('Error while printing');
       setSnackbarVisible(true);
     }
+  };
+
+  const saveClientData = async (client: Client) => {
+    try {
+      let existingClients: Client[] = [];
+      if (RNFS) {
+        const CLIENTS_FILE = `${RNFS.DownloadDirectoryPath}/Innovative_instrument/userdata/clients.json`;
+
+        // 1️⃣ If file exists, read existing clients
+        if (await RNFS.exists(CLIENTS_FILE)) {
+          const content = await RNFS.readFile(CLIENTS_FILE, "utf8");
+          existingClients = JSON.parse(content);
+        }
+
+        // 2️⃣ Check if client already exists (by name)
+        const index = existingClients.findIndex(c => c.clientName === client.clientName);
+
+        if (index !== -1) {
+          // update existing client
+          existingClients[index] = client;
+          
+        } else {
+          // add new client
+          existingClients.push(client);
+        }
+
+        // 3️⃣ Save back to file
+        await RNFS.writeFile(CLIENTS_FILE, JSON.stringify(existingClients, null, 2), "utf8");
+
+        console.log("✅ Client data saved to clients.json");
+      }
+    } catch (error) {
+      console.error("❌ Error saving client data:", error);
+    }
+
   };
 
   const saveToCSV = async (data: string[], note: string, clientName: string, location: string, truckNumber: string, vendorId: string, totalWeight: string, remarks: string) => {
@@ -132,7 +176,6 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
           const safeName = deviceName.replace(/[^a-zA-Z0-9-_]/g, '_');
           const path = `${RNFS.DownloadDirectoryPath}/Innovative_instrument/Data/${safeName}_${getFormattedDate()}.csv`;
           const fileExists = await RNFS.exists(path);
-
           if (!fileExists) {
             const BOM = '\uFEFF';
             const header = `"Date","Device ID","Moisture %","Temp °C","Weight (gm)","Commodity Name","Client Name","Location","Truck Number","Vendor ID","Total Weight","Remarks"\n`;
@@ -140,6 +183,17 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
           } else {
             await RNFS.appendFile(path, csvRow, 'utf8');
           }
+
+          const client: Client = {
+            clientName,
+            location,
+            truckNumber,
+            vendorId,
+            totalWeight,
+            remarks,
+          };
+
+          await saveClientData(client);
 
           setSnackbarMessage('Data saved to CSV!');
           Alert.alert('Success', `CSV file saved successfully at:\n\n${path}`);
@@ -205,6 +259,8 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
           if (updated.length >= 3) {
             notNotify.current = 1;
             listener.remove();
+            setSnackbarMessage('Data Received Successfully');
+            setSnackbarVisible(true);
           }
           return updated;
         }
@@ -231,6 +287,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
     return () => {
       console.log("unmounting the ....")
       listener.remove();
+      // BleManager.disconnect(peripheralData.id);
     };
   }, [route.params?.peripheralData]);
 
@@ -240,31 +297,14 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
     setUserNote(withNewlines);
   };
 
-  // const sendsinglepdf = async (finalArray: string[]) => {
-
-  //   if (RNFS) {
-
-  //     const path = await printData(finalArray, userNote)
-  //     const externalPath = `${RNFS.CachesDirectoryPath}/${route.params.peripheralData.name}.pdf`;
-  //     await RNFS.copyFile(path, externalPath);
-  //     console.log(path)
-  //     // const path = `${RNFS.DownloadDirectoryPath}/demo.pdf`;
-  //     if (!Share) {
-  //       Alert.alert('Error', 'Sharing not available on this platform.');
-  //       return;
-  //     }
-  //     await (Share as any).open({ url: `file://${externalPath}`, type: 'application/pdf' });
-  //   }
-  // }
-
 
   return (
     <View style={{ flex: 1, padding: 16, justifyContent: 'center' }}>
       <DMMTitle />
 
       <ScrollView contentContainerStyle={styles.container}>
-        {/* {receivedValues.length === 3 ? (() => { */}
-        {true ? (() => {
+        {receivedValues.length === 3 ? (() => {
+          // {true ? (() => {
           const asciiArrays = receivedValues.slice(0, 3).map(val =>
             val.ascii.split(',').map(s => s.trim())
 

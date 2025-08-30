@@ -66,6 +66,8 @@ const RecordsScreen: React.FC = () => {
   const [filterText, setFilterText] = useState<string>("");
   const [menuVisible, setMenuVisible] = useState(false);
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggestionMenuVisible, setSuggestionMenuVisible] = useState(false);
 
   let parsedData: ParsedCSVData;
 
@@ -382,6 +384,22 @@ const RecordsScreen: React.FC = () => {
     return true;
   });
 
+  useEffect(() => {
+    if (selectedColumn === "Client Name" && filterText.length > 1) {
+      const matches = csvData
+        .map(r => r["Client Name"])
+        .filter(name => name?.toLowerCase().includes(filterText.toLowerCase()))
+        .filter((v, i, arr) => arr.indexOf(v) === i) // unique
+        .slice(0, 5); // limit 5
+      setSuggestions(matches);
+      setSuggestionMenuVisible(matches.length > 0);
+    } else {
+      setSuggestions([]);
+      setSuggestionMenuVisible(false);
+    }
+  }, [filterText, selectedColumn, csvData]);
+
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <DMMTitle />
@@ -444,13 +462,35 @@ const RecordsScreen: React.FC = () => {
               />
             ))}
           </Menu>
-          <TextInput
-            label="Filter value"
-            mode="outlined"
-            value={filterText}
-            onChangeText={setFilterText}
-            style={{ flex: 1, marginLeft: 8 }}
-          />
+          <View style={{ flex: 1, marginLeft: 8 }}>
+            <Menu
+              visible={suggestionMenuVisible}
+              onDismiss={() => setSuggestionMenuVisible(false)}
+              anchor={
+                <View style={{ flex: 1 }}>
+                  <TextInput
+                    label="Filter value"
+                    mode="outlined"
+                    value={filterText}
+                    onChangeText={setFilterText}
+                    style={{ width: "100%" }}
+                  />
+                </View>
+              }
+              style={{ width: "80%" }} // optional, controls dropdown width
+            >
+              {suggestions.map((s, i) => (
+                <Menu.Item
+                  key={i}
+                  title={s}
+                  onPress={() => {
+                    setFilterText(s);
+                    setSuggestionMenuVisible(false);
+                  }}
+                />
+              ))}
+            </Menu>
+          </View>
         </View>
       )}
 

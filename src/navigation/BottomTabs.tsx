@@ -10,7 +10,7 @@ import HomeStack from '../screens/HomeStack';
 const Tab = createBottomTabNavigator();
 import ContactModal, { ContactUsModalRef } from '../screens/ContectUsModal';
 import { lightTheme } from '../../theme';
-
+import ShowClientsModal from '../Components/showClients';
 export type MyTabParamList = {
   HomeScreen: undefined;
   RecordsScreen: undefined;
@@ -53,6 +53,8 @@ const CustomHeader = ({ onContactPress }: { onContactPress: () => void }) => {
             onContactPress();
           }}
         />
+        
+        
       </Menu>
     </View>
   );
@@ -121,7 +123,16 @@ const BottomTabs = () => {
             ),
           }}
         />
-
+   <Tab.Screen
+          name="Clients"
+          component={ShowClientsModal}
+          options={{
+            tabBarLabel: 'Clients',
+            tabBarIcon: ({ color, size }) => (
+              <IconButton icon="account" size={size} iconColor={color} />
+            ),
+          }}
+        />
       </Tab.Navigator>
       <ContactModal ref={contactModalRef} />
     </>
