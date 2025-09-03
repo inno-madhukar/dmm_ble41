@@ -412,7 +412,7 @@ const RecordsScreen: React.FC = () => {
 
         {/* Select All Files */}
         <Button
-          mode="outlined"
+          mode="contained"
           style={[styles.sbutton, { marginLeft: 10 }]}
           onPress={() => setSelectedFileName("AllFILE")}
         >
@@ -423,7 +423,7 @@ const RecordsScreen: React.FC = () => {
       {selectedFileName ? (
         <View style={styles.fileRow}>
           <Text style={styles.selectedFile}>
-            <Text style={{ fontWeight: 'bold' }}>Selected files:</Text> {" "}
+            <Text style={{ fontWeight: 'bold' }}>Selected files:</Text> {"  "}
             {selectedFileName === "AllFILE" ? "All Files" : selectedFileName}
           </Text>
           <View style={styles.iconRow}>

@@ -129,7 +129,7 @@ const BottomTabs = () => {
           options={{
             tabBarLabel: 'Clients',
             tabBarIcon: ({ color, size }) => (
-              <IconButton icon="account" size={size} iconColor={color} />
+              <IconButton icon="account-box" size={size} iconColor={color} />
             ),
           }}
         />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, ScrollView, PermissionsAndroid, Platform, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView, PermissionsAndroid, FlatList, TouchableOpacity, Platform, Alert } from 'react-native';
 import { Text, TextInput, IconButton, Snackbar } from 'react-native-paper';
 import classifyArray from '../Components/arrClasiffy';
 let RNFS: typeof import('react-native-fs') | undefined;
@@ -76,11 +76,16 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
   const [vendorId, setVendorId] = useState('');
   const [totalWeight, setTotalWeight] = useState('');
   const [showShareDialog, setShowShareDialog] = useState(false);
+  const [allClients, setAllClients] = useState<Client[]>([]);
+  const [suggestions, setSuggestions] = useState<Client[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
+  const [truckSuggestions, setTruckSuggestions] = useState<string[]>([]);
+  const [showTruckDropdown, setShowTruckDropdown] = useState(false);
   interface Client {
     clientName: string;
     location: string;
-    truckNumber: string;
+    truckNumbers: string[];
     vendorId: string;
     totalWeight: string;
     remarks: string;
@@ -128,35 +133,55 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
 
   const saveClientData = async (client: Client) => {
     try {
-      let existingClients: Client[] = [];
+      let clients: Client[] = [];
       if (RNFS) {
         const CLIENTS_FILE = `${RNFS.DownloadDirectoryPath}/Innovative_instrument/userdata/clients.json`;
 
-        // 1️⃣ If file exists, read existing clients
         if (await RNFS.exists(CLIENTS_FILE)) {
           const content = await RNFS.readFile(CLIENTS_FILE, "utf8");
-          existingClients = JSON.parse(content);
+          clients = JSON.parse(content);
         }
 
-        // 2️⃣ Check if client already exists (by name)
-        const index = existingClients.findIndex(c => c.clientName === client.clientName);
+        // Find existing client
+        const existingIndex = clients.findIndex(
+          (c) => c.clientName.toLowerCase() === client.clientName.toLowerCase()
+        );
 
-        if (index !== -1) {
-          // update existing client
-          existingClients[index] = client;
-          
+        if (existingIndex >= 0) {
+          // Existing client → merge truck numbers + update fields
+          const existing = clients[existingIndex];
+
+          client.truckNumbers.forEach((truck) => {
+            if (!existing.truckNumbers.includes(truck)) {
+              existing.truckNumbers.push(truck);
+            }
+          });
+
+          // Update other fields (optional: only if new values provided)
+          existing.location = client.location || existing.location;
+          existing.vendorId = client.vendorId || existing.vendorId;
+          existing.totalWeight = client.totalWeight || existing.totalWeight;
+          existing.remarks = client.remarks || existing.remarks;
+
+          clients[existingIndex] = existing;
+          setAllClients(prev => {
+            const updated = [...prev];
+            updated[existingIndex] = existing;
+            return updated;
+          });
         } else {
-          // add new client
-          existingClients.push(client);
+          // New client → add directly
+          clients.push(client);
+          setAllClients(prev => [...prev, client]);  // ✅ update suggestions instantly
+
         }
 
-        // 3️⃣ Save back to file
-        await RNFS.writeFile(CLIENTS_FILE, JSON.stringify(existingClients, null, 2), "utf8");
-
-        console.log("✅ Client data saved to clients.json");
+        // Save back to file
+        await RNFS.writeFile(CLIENTS_FILE, JSON.stringify(clients, null, 2), "utf8");
+        console.log("✅ Client saved:", client.clientName);
       }
-    } catch (error) {
-      console.error("❌ Error saving client data:", error);
+    } catch (err) {
+      console.error("❌ Error saving client:", err);
     }
 
   };
@@ -187,7 +212,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
           const client: Client = {
             clientName,
             location,
-            truckNumber,
+            "truckNumbers": [truckNumber],
             vendorId,
             totalWeight,
             remarks,
@@ -291,12 +316,79 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
     };
   }, [route.params?.peripheralData]);
 
+  useEffect(() => {
+    const loadClients = async () => {
+      try {
+        if (RNFS) {
+          const CLIENTS_FILE = `${RNFS.DownloadDirectoryPath}/Innovative_instrument/userdata/clients.json`;
+          if (RNFS && await RNFS.exists(CLIENTS_FILE)) {
+            const content = await RNFS.readFile(CLIENTS_FILE, "utf8");
+            setAllClients(JSON.parse(content));
+          }
+        }
+      } catch (err) {
+        console.error("Error loading clients:", err);
+      }
+    };
+    loadClients();
+  }, []);  // ✅ only once
   const handleChange = (text: string) => {
     const plain = text.replace(/\n/g, '');
     const withNewlines = plain.match(/.{1,10}/g)?.join('\n') || '';
     setUserNote(withNewlines);
   };
 
+  // On typing client name
+  const handleClientNameChange = (text: string) => {
+    setClientName(text);
+
+    if (text.length >= 2) {
+      const filtered = allClients.filter(c =>
+        c.clientName.toLowerCase().includes(text.toLowerCase())
+      );
+      setSuggestions(filtered);
+      setShowSuggestions(true);
+    } else {
+      setShowSuggestions(false);
+    }
+  };
+
+  // When suggestion selected
+  const handleSelectClient = (client: Client) => {
+    setClientName(client.clientName);
+    setLocation(client.location || "");
+    setVendorId(client.vendorId || "");
+    setTotalWeight(client.totalWeight || "");
+    setRemarks(client.remarks || "");
+
+    // default truck handling
+    if (client.truckNumbers?.length > 0) {
+      setTruckNumber(client.truckNumbers[0]); // pick first one
+    }
+
+    setSuggestions([]);
+    setShowSuggestions(false);
+  };
+
+  const handleTruckInputChange = (text: string) => {
+    setTruckNumber(text);
+
+    // Find the selected client by name
+    const client = allClients.find(
+      (c) => c.clientName.toLowerCase() === clientName.toLowerCase()
+    );
+
+    if (client && Array.isArray(client.truckNumbers)) {
+      const matches = client.truckNumbers.filter((t) =>
+        t.toLowerCase().includes(text.toLowerCase())
+      );
+      setTruckSuggestions(matches);
+      setShowTruckDropdown(matches.length > 0);
+    } else {
+      setTruckSuggestions([]);
+      setShowTruckDropdown(false);
+    }
+  };
 
   return (
     <View style={{ flex: 1, padding: 16, justifyContent: 'center' }}>
@@ -343,10 +435,24 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
                 label="Client Name"
                 mode="outlined"
                 value={clientName}
-                onChangeText={setClientName}
+                onChangeText={handleClientNameChange}
                 style={styles.input}
                 maxLength={50}
               />
+              {showSuggestions && suggestions.length > 0 && (
+                <View style={styles.suggestionBox}>
+                  {suggestions.map((c, i) => (
+                    <Text
+                      key={i}
+                      style={styles.suggestionItem}
+                      onPress={() => handleSelectClient(c)}
+                    >
+                      {c.clientName}
+                    </Text>
+                  ))}
+                </View>
+              )}
+
 
               <TextInput
                 label="Location"
@@ -360,10 +466,26 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
                 label="Truck Number"
                 mode="outlined"
                 value={truckNumber}
-                onChangeText={setTruckNumber}
+                onChangeText={handleTruckInputChange}
                 style={styles.input}
                 maxLength={50}
               />
+              {showTruckDropdown && (
+                <View style={styles.dropdown}>
+                  {truckSuggestions.map((item, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      onPress={() => {
+                        setTruckNumber(item);
+                        setShowTruckDropdown(false);
+                      }}
+                    >
+                      <Text style={styles.dropdownItem}>{item}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+
               <TextInput
                 label="Vendor ID"
                 mode="outlined"
@@ -432,6 +554,41 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
   },
+  suggestionBox: {
+    backgroundColor: "#fff",
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 6,
+    marginTop: 2,
+    elevation: 4,
+  },
+  suggestionItem: {
+    padding: 10,
+    fontSize: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  truckOption: {
+    padding: 6,
+    backgroundColor: "#e3f2fd",
+    marginTop: 4,
+    borderRadius: 6,
+  },
+  dropdown: {
+    maxHeight: 150,
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 6,
+    marginTop: 2,
+  },
+  dropdownItem: {
+    padding: 10,
+    fontSize: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+
 });
 
 export default PeripheralDeviceScreen;

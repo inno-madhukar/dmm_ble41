@@ -45,11 +45,14 @@ const ShowClientsScreen: React.FC = () => {
         {item.vendorId ? <Text style={styles.field}>🏷️ Vendor ID: {item.vendorId}</Text> : null}
 
         {/* Truck Numbers (as chips if array) */}
-        {item.truckNumbers && Array.isArray(item.truckNumbers) && (
-          <View style={styles.chipContainer}>
-            {item.truckNumbers.map((truck: string, idx: number) => (
-              <Chip key={idx} style={styles.chip}>{truck}</Chip>
-            ))}
+        {item.truckNumbers && Array.isArray(item.truckNumbers) && item.truckNumbers.length > 0 && (
+          <View style={{ marginTop: 6 }}>
+            <Text style={[styles.field, { marginBottom: 4 }]}>🚛 Truck Numbers:</Text>
+            <View style={styles.chipContainer}>
+              {item.truckNumbers.map((truck: string, idx: number) => (
+                <Chip key={idx} style={styles.chip}>{truck}</Chip>
+              ))}
+            </View>
           </View>
         )}
 
