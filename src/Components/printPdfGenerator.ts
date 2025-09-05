@@ -44,7 +44,7 @@ export default async function generateSimplePrintAndPDF(records: BLERecordArray,
   };
   if (!RNFS) throw new Error('File system not available.');
   const profileFilePath1 = `${RNFS.DocumentDirectoryPath}/profile.json`;
-
+  const fileexists = await RNFS.exists(profileFilePath1);
   if (await RNFS.exists(profileFilePath1)) {
     const data = await RNFS.readFile(profileFilePath1, 'utf8');
     profile1 = JSON.parse(data);
@@ -79,7 +79,7 @@ export default async function generateSimplePrintAndPDF(records: BLERecordArray,
 
 
   function createHeader(y: number) {
-
+    
     page.drawImage(embeddedImage, {
       x: 40,
       y: height - 75,
@@ -189,7 +189,7 @@ export default async function generateSimplePrintAndPDF(records: BLERecordArray,
         y = Dy
         page = pdfDoc.addPage([595, 842]); // A4 size
         createLay(Lx, Ly)
-        if (RNFS && await RNFS.exists(profileFilePath1)) {
+        if (fileexists) {
           console.log("conditionddd")
           createHeader(height - 20)
         }
