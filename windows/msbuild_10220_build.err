@@ -1,3 +1,0 @@
-D:\Innovative instruments APP\dmm_ble4\dmm_ble4\windows\DmmBle4\dmm_ble4.cpp(35,44): error C3861: 'GetActiveWindow': identifier not found [D:\Innovative instruments APP\dmm_ble4\dmm_ble4\windows\DmmBle4\DmmBle4.vcxproj]
-D:\Innovative instruments APP\dmm_ble4\dmm_ble4\windows\DmmBle4\dmm_ble4.cpp(36,17): error C2065: 'IInitializeWithWindow': undeclared identifier [D:\Innovative instruments APP\dmm_ble4\dmm_ble4\windows\DmmBle4\DmmBle4.vcxproj]
-D:\Innovative instruments APP\dmm_ble4\dmm_ble4\windows\DmmBle4\dmm_ble4.cpp(36,14): error C2672: 'winrt::Windows::Foundation::IUnknown::as': no matching overloaded function found [D:\Innovative instruments APP\dmm_ble4\dmm_ble4\windows\DmmBle4\DmmBle4.vcxproj]

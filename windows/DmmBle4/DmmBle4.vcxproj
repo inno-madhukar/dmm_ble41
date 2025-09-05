@@ -6,9 +6,9 @@
     <CppWinRTOptimized>true</CppWinRTOptimized>
     <CppWinRTRootNamespaceAutoMerge>true</CppWinRTRootNamespaceAutoMerge>
     <MinimalCoreWin>true</MinimalCoreWin>
-    <ProjectGuid>{40d9fc42-b028-496e-b29b-c6ef6aebf7b7}</ProjectGuid>
-    <ProjectName>DmmBle4</ProjectName>
-    <RootNamespace>DmmBle4</RootNamespace>
+    <ProjectGuid>{6d490d23-c686-41a8-9892-cc9a7650df29}</ProjectGuid>
+    <ProjectName>dmmble4</ProjectName>
+    <RootNamespace>dmmble4</RootNamespace>
     <DefaultLanguage>en-US</DefaultLanguage>
     <MinimumVisualStudioVersion>17.0</MinimumVisualStudioVersion>
     <AppContainerApplication>true</AppContainerApplication>
@@ -92,7 +92,6 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="dmm_ble4.h" />
     <ClInclude Include="MainPage.h">
       <DependentUpon>MainPage.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -124,7 +123,6 @@
     <Image Include="Assets\Wide310x150Logo.scale-200.png" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="dmm_ble4.cpp" />
     <ClCompile Include="MainPage.cpp">
       <DependentUpon>MainPage.xaml</DependentUpon>
       <SubType>Code</SubType>

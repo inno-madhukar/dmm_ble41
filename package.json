@@ -33,7 +33,9 @@
     "react-native-safe-area-context": "^5.5.2",
     "react-native-screens": "^4.11.1",
     "react-native-share": "^12.1.0",
-    "react-native-vector-icons": "^10.2.0",
+    "react-native-svg": "^15.12.1",
+    "react-native-svg-transformer": "^1.5.1",
+    "react-native-vector-icons": "^10.3.0",
     "react-native-windows": "^0.79.3"
   },
   "codegenConfig": {
@@ -80,8 +82,8 @@
   },
   "react-native-windows": {
     "init-windows": {
-      "name": "DmmBle4",
-      "namespace": "DmmBle4",
+      "name": "dmmble4",
+      "namespace": "dmmble4",
       "template": "old/uwp-cpp-app"
     }
   }

@@ -295,13 +295,23 @@ const RecordsScreen: React.FC = () => {
         "CommodityName": string;
         "Note": string;
       };
+
       if (RNFS) {
+
         const rowsToPrint =
           selectedRows.length > 0
             ? selectedRows.map((i) => filteredData[i])
             : filteredData;
+
+        const now = new Date();
+        const timestamp = now
+          .toISOString()
+          .replace(/[:.]/g, "-")
+          .replace("T", "_")
+          .split("Z")[0];
+        const fileName = `records_${timestamp}.pdf`;
         const path = await generateSimplePrintAndPDF(rowsToPrint as BLERecord[], selectedFileName);
-        const externalPath = `${RNFS.CachesDirectoryPath}/${selectedFileName.replace(".csv", "")}.pdf`;
+        const externalPath = `${RNFS.CachesDirectoryPath}/${fileName}`;
         await RNFS.copyFile(path, externalPath);
         console.log(path)
         // const path = `${RNFS.DownloadDirectoryPath}/demo.pdf`;
@@ -319,53 +329,59 @@ const RecordsScreen: React.FC = () => {
 
 
   const shareCSV = async (): Promise<void> => {
-    if (!selectedFilePath) {
-      Alert.alert('No file', 'Please select a CSV file first.');
-      return;
-    }
     try {
-      let pathToShare = selectedFilePath;
+      // Determine which rows to export
+      const rowsToExport =
+        selectedRows.length > 0
+          ? selectedRows.map((i) => filteredData[i]) // only selected rows
+          : filteredData; // otherwise, everything in table
 
-      // If the path is a content URI, copy it to cache first
-      if (selectedFilePath.startsWith('content://')) {
-        console.log("tejas")
-        const fileName = selectedFileName || 'temp.csv';
-        if (!RNFS) {
-          Alert.alert('Error', 'File system not available on this platform.');
-          return;
-        }
-        const destPath = `${RNFS.CachesDirectoryPath}/${fileName}`;
-
-        // Copy file to accessible location
-        await RNFS.copyFile(selectedFilePath, destPath);
-        pathToShare = destPath;
+      if (!rowsToExport || rowsToExport.length === 0) {
+        Alert.alert("No Data", "There is no data to share.");
+        return;
       }
+
+      // Build CSV string
+      const csvHeadersLine = csvHeaders.join(","); // keep original headers
+      const csvRows = rowsToExport.map((row) =>
+        csvHeaders.map((h) => `"${row[h] ?? ""}"`).join(",")
+      );
+      const csvContent = [csvHeadersLine, ...csvRows].join("\n");
 
       if (!RNFS) {
-        Alert.alert('Error', 'File system not available on this platform.');
+        Alert.alert("Error", "File system not available on this platform.");
         return;
       }
-      const fileExists = await RNFS.exists(pathToShare);
-      console.log(pathToShare)
-      if (!fileExists) {
-        Alert.alert('Error', 'File does not exist at:\n' + pathToShare);
+      const now = new Date();
+      const timestamp = now
+        .toISOString()
+        .replace(/[:.]/g, "-") // replace : and . to make filename safe
+        .replace("T", "_")     // replace T with _
+        .split("Z")[0];        // drop trailing Z
+      const fileName = `records_${timestamp}`;
+      // Save to a temporary CSV file
+      // const fileName =
+      //   selectedFileName.replace(/\.csv$/, "") || "exported_table";
+      const exportPath = `${RNFS.CachesDirectoryPath}/${fileName}.csv`;
+      await RNFS.writeFile(exportPath, csvContent, "utf8");
+
+      if (!Share) {
+        Alert.alert("Error", "Sharing not available on this platform.");
         return;
       }
 
-      if (!Share) {
-        Alert.alert('Error', 'Sharing not available on this platform.');
-        return;
-      }
+      // Share the generated CSV
       await (Share as any).open({
-        url: `file://${pathToShare}`,
-        type: 'text/csv',
+        url: `file://${exportPath}`,
+        type: "text/csv",
         failOnCancel: false,
       });
-    } catch (error: any) {
-      console.error('CSV Share Error:', error);
-      Alert.alert('Share Error', 'Failed to share CSV file.');
+    } catch (error) {
+      console.error("CSV Share Error:", error);
+      Alert.alert("Share Error", "Failed to share CSV.");
     }
   };
+
 
   const filteredData = csvData.filter((row) => {
     if (!filterText) return true; // no filter, show all

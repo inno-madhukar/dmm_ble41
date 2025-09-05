@@ -14,7 +14,7 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import HomeStack from '../screens/HomeStack';
 const Tab = createBottomTabNavigator();
 import ContactModal, { ContactUsModalRef } from '../screens/ContectUsModal';
-
+import ShowClientsModal from '../Components/showClients';
 export type MyTabParamList = {
   HomeScreen: undefined;
   RecordsScreen: undefined;
@@ -130,7 +130,17 @@ const AppDrawer = () => {
                <IconButton icon="account" size={size} iconColor={color} />
             ),
           }}
-        />
+        />  
+        <Drawer.Screen
+                  name="Clients"
+                  component={ShowClientsModal}
+                  options={{
+                    drawerLabel: 'Clients',
+                    drawerIcon: ({ color, size }) => (
+                      <IconButton icon="account-box" size={size} iconColor={color} />
+                    ),
+                  }}
+                />
       </Drawer.Navigator>
       
       <ContactModal ref={contactModalRef} />

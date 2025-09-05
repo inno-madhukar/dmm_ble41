@@ -1,6 +1,6 @@
 #include "NamespaceRedirect.h"
 
-namespace DmmBle4
+namespace dmmble4
 {
     [default_interface]
     runtimeclass MainPage : XAML_NAMESPACE.Controls.Page

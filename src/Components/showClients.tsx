@@ -1,21 +1,36 @@
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, FlatList } from "react-native";
+import { View, StyleSheet, FlatList,Platform } from "react-native";
 import { Text, Card, Chip } from "react-native-paper";
-import RNFS from "react-native-fs";
 
+let RNFS: typeof import('react-native-fs') | undefined;
+if (Platform.OS === 'ios' || Platform.OS === 'android') {
+  RNFS = require('react-native-fs');
+  
+}
 interface Client {
   [key: string]: any;  // allow multiple values
 }
+let CLIENTS_FILE: string =""
+if(RNFS){
+  CLIENTS_FILE = `${RNFS.DownloadDirectoryPath}/Innovative_instrument/userdata/clients.json`;
+}
 
-const CLIENTS_FILE = `${RNFS.DownloadDirectoryPath}/Innovative_instrument/userdata/clients.json`;
+const ShowClientsScreen = () => {
+  if(Platform.OS !== 'ios' && Platform.OS !== 'android'){
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>This feature is only available on iOS and Android devices.</Text>
+      </View>
+    );
+  }
 
-const ShowClientsScreen: React.FC = () => {
   const [clients, setClients] = useState<Client[]>([]);
 
   // Load clients.json automatically when screen opens
   useEffect(() => {
     const loadClients = async () => {
       try {
+        if(RNFS){
         if (await RNFS.exists(CLIENTS_FILE)) {
           const content = await RNFS.readFile(CLIENTS_FILE, "utf8");
           const parsed: Client[] = JSON.parse(content);
@@ -23,13 +38,14 @@ const ShowClientsScreen: React.FC = () => {
         } else {
           setClients([]);
         }
+      }
       } catch (err) {
         console.error("Error reading clients.json:", err);
         setClients([]);
       }
     };
-
-    loadClients();
+    if(Platform.OS === 'ios' || Platform.OS === 'android'){
+    loadClients();}
   }, []);
 
   // Render Client Card

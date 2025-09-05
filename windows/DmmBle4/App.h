@@ -6,7 +6,7 @@
 
 namespace activation = winrt::Windows::ApplicationModel::Activation;
 
-namespace winrt::DmmBle4::implementation
+namespace winrt::dmmble4::implementation
 {
     struct App : AppT<App>
     {
@@ -18,4 +18,4 @@ namespace winrt::DmmBle4::implementation
       private:
         using super = AppT<App>;
     };
-} // namespace winrt::DmmBle4::implementation
+} // namespace winrt::dmmble4::implementation

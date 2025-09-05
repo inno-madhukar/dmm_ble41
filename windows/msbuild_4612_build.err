@@ -1,1 +1,0 @@
-D:\Innovative instruments APP\dmm_ble4\dmm_ble4\windows\DmmBle4\dmm_ble4.cpp(75,16): error C2665: 'winrt::Microsoft::ReactNative::ReactPromiseBase::Reject': no overloaded function could convert all the argument types [D:\Innovative instruments APP\dmm_ble4\dmm_ble4\windows\DmmBle4\DmmBle4.vcxproj]

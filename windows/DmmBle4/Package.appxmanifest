@@ -1,21 +1,20 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 
-<Package 
+<Package
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
   xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
-  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
-  IgnorableNamespaces="uap mp rescap">
+  IgnorableNamespaces="uap mp">
 
   <Identity
-    Name="4ccc0daa-47d5-4f77-8826-d42031385c4f"
+    Name="f0b27628-7786-4deb-827b-9123ced828ca"
     Publisher="CN=admin"
     Version="1.0.0.0" />
 
-  <mp:PhoneIdentity PhoneProductId="4ccc0daa-47d5-4f77-8826-d42031385c4f" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+  <mp:PhoneIdentity PhoneProductId="f0b27628-7786-4deb-827b-9123ced828ca" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>DmmBle4</DisplayName>
+    <DisplayName>dmmble4</DisplayName>
     <PublisherDisplayName>admin</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
@@ -32,12 +31,12 @@
     <Application
       Id="App"
       Executable="$targetnametoken$.exe"
-      EntryPoint="DmmBle4.App">
+      EntryPoint="dmmble4.App">
       <uap:VisualElements
-        DisplayName="DmmBle4"
+        DisplayName="dmmble4"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png"
-        Description="DmmBle4"
+        Description="dmmble4"
         BackgroundColor="transparent">
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"/>
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
@@ -47,8 +46,5 @@
 
   <Capabilities>
     <Capability Name="internetClient" />
-    <uap:Capability Name="documentsLibrary" />
-    <!-- <uap:Capability Name="downloadsFolder" /> -->
-    <rescap:Capability Name="broadFileSystemAccess" />
   </Capabilities>
 </Package>

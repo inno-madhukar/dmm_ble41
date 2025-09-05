@@ -2,11 +2,9 @@
 #include "ReactPackageProvider.h"
 #include "NativeModules.h"
 
-
-#include "dmm_ble4.h"
 using namespace winrt::Microsoft::ReactNative;
 
-namespace winrt::DmmBle4::implementation
+namespace winrt::dmmble4::implementation
 {
 
 void ReactPackageProvider::CreatePackage(IReactPackageBuilder const &packageBuilder) noexcept
@@ -14,4 +12,4 @@ void ReactPackageProvider::CreatePackage(IReactPackageBuilder const &packageBuil
     AddAttributedModules(packageBuilder, true);
 }
 
-} // namespace winrt::DmmBle4::implementation
+} // namespace winrt::dmmble4::implementation

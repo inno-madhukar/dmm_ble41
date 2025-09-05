@@ -9,7 +9,7 @@
 using namespace winrt;
 using namespace xaml;
 
-namespace winrt::DmmBle4::implementation
+namespace winrt::dmmble4::implementation
 {
     MainPage::MainPage()
     {
