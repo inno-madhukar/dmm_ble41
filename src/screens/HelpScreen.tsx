@@ -1,19 +1,35 @@
 import React, { useState } from "react";
-import { View, Linking, ScrollView } from "react-native";
+import { View, Alert, Platform, ScrollView } from "react-native";
 import { Text, Button, List, Divider } from "react-native-paper";
+import RNFS from "react-native-fs";
+import FileViewer from "react-native-file-viewer";
 import DMMTitle from "../Components/Title";
 
 const HelpScreen = () => {
-  const handleOpenGuide = () => {
-    Linking.openURL(
-      "https://drive.google.com/file/d/1IU-xunbkml4njShWmi_IZ2jh7tInhcRL/view?usp=sharing"
-    );
-  };
-
   const [expanded, setExpanded] = useState<string | null>(null);
 
   const handlePress = (question: string) => {
     setExpanded(expanded === question ? null : question);
+  };
+
+  const handleOpenGuide = async () => {
+    try {
+      let destPath = `${RNFS.DocumentDirectoryPath}/DMM_B18_App_User_Guide.pdf`;
+
+      if (Platform.OS === "android") {
+        // Copy PDF from assets to documents folder
+        await RNFS.copyFileAssets("DMM_B18_App_User_Guide.pdf", destPath);
+      } else {
+        // Copy PDF from bundle to documents folder on iOS
+        const sourcePath = `${RNFS.MainBundlePath}/DMM_B18_App_User_Guide.pdf`;
+        await RNFS.copyFile(sourcePath, destPath);
+      }
+
+      await FileViewer.open(destPath);
+    } catch (error) {
+      console.error("Error opening PDF:", error);
+      Alert.alert("Error", "Could not open the PDF file.");
+    }
   };
 
   const faqData = [

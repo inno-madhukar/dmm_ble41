@@ -1,22 +1,23 @@
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, FlatList,Platform } from "react-native";
-import { Text, Card, Chip } from "react-native-paper";
+import { View, StyleSheet, FlatList, Platform, Alert } from "react-native";
+import { Text, Card, Chip, IconButton } from "react-native-paper";
 
 let RNFS: typeof import('react-native-fs') | undefined;
 if (Platform.OS === 'ios' || Platform.OS === 'android') {
   RNFS = require('react-native-fs');
-  
 }
+
 interface Client {
-  [key: string]: any;  // allow multiple values
+  [key: string]: any; // allow multiple fields
 }
-let CLIENTS_FILE: string =""
-if(RNFS){
+
+let CLIENTS_FILE: string = "";
+if (RNFS) {
   CLIENTS_FILE = `${RNFS.DownloadDirectoryPath}/Innovative_instrument/userdata/clients.json`;
 }
 
 const ShowClientsScreen = () => {
-  if(Platform.OS !== 'ios' && Platform.OS !== 'android'){
+  if (Platform.OS !== 'ios' && Platform.OS !== 'android') {
     return (
       <View style={styles.container}>
         <Text style={styles.title}>This feature is only available on iOS and Android devices.</Text>
@@ -26,33 +27,72 @@ const ShowClientsScreen = () => {
 
   const [clients, setClients] = useState<Client[]>([]);
 
-  // Load clients.json automatically when screen opens
   useEffect(() => {
     const loadClients = async () => {
       try {
-        if(RNFS){
-        if (await RNFS.exists(CLIENTS_FILE)) {
-          const content = await RNFS.readFile(CLIENTS_FILE, "utf8");
-          const parsed: Client[] = JSON.parse(content);
-          setClients(parsed);
-        } else {
-          setClients([]);
+        if (RNFS) {
+          if (await RNFS.exists(CLIENTS_FILE)) {
+            const content = await RNFS.readFile(CLIENTS_FILE, "utf8");
+            const parsed: Client[] = JSON.parse(content);
+            setClients(parsed);
+          } else {
+            setClients([]);
+          }
         }
-      }
       } catch (err) {
         console.error("Error reading clients.json:", err);
+        Alert.alert("Info", "Clients data not found.");
         setClients([]);
       }
     };
-    if(Platform.OS === 'ios' || Platform.OS === 'android'){
-    loadClients();}
+    if (Platform.OS === 'ios' || Platform.OS === 'android') {
+      loadClients();
+    }
   }, []);
 
-  // Render Client Card
-  const renderClient = ({ item }: { item: Client }) => (
+  const saveClients = async (updatedClients: Client[]) => {
+    try {
+      if (RNFS) {
+        await RNFS.writeFile(CLIENTS_FILE, JSON.stringify(updatedClients), "utf8");
+      }
+    } catch (err) {
+      console.error("Error saving clients.json:", err);
+      Alert.alert("Error", "Could not update client data.");
+    }
+  };
+
+  const deleteClient = (index: number) => {
+    Alert.alert(
+      "Confirm Delete",
+      "Are you sure you want to delete this client?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            const updatedClients = [...clients];
+            updatedClients.splice(index, 1);
+            setClients(updatedClients);
+            saveClients(updatedClients);
+          }
+        }
+      ]
+    );
+  };
+
+  const renderClient = ({ item, index }: { item: Client; index: number }) => (
     <Card style={styles.card}>
       <Card.Content>
-        <Text style={styles.name}>{item.clientName || "Unnamed Client"}</Text>
+        <View style={styles.cardHeader}>
+          <Text style={styles.name}>{item.clientName || "Unnamed Client"}</Text>
+          <IconButton
+            icon="delete"
+            size={20}
+            // color="#e53935"
+            onPress={() => deleteClient(index)}
+          />
+        </View>
 
         {/* Location */}
         {item.location ? <Text style={styles.field}>📍Location: {item.location}</Text> : null}
@@ -60,7 +100,7 @@ const ShowClientsScreen = () => {
         {/* Vendor ID */}
         {item.vendorId ? <Text style={styles.field}>🏷️ Vendor ID: {item.vendorId}</Text> : null}
 
-        {/* Truck Numbers (as chips if array) */}
+        {/* Truck Numbers */}
         {item.truckNumbers && Array.isArray(item.truckNumbers) && item.truckNumbers.length > 0 && (
           <View style={{ marginTop: 6 }}>
             <Text style={[styles.field, { marginBottom: 4 }]}>🚛 Truck Numbers:</Text>
@@ -104,10 +144,15 @@ const styles = StyleSheet.create({
     elevation: 3,
     backgroundColor: "#fff",
   },
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
   name: {
     fontWeight: "bold",
     fontSize: 18,
-    marginBottom: 6,
     color: "#222",
   },
   field: {

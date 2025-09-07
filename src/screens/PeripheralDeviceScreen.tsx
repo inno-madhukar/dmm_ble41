@@ -95,7 +95,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
     ManageExternalStorage.requestPermission();
   };
   const navigation = useNavigation();
-  // const route = useRoute<>();
+  // const route = useRoute<>();\
 
   const printData = async (data: string[], note: string) => {
     const [timestamp, deviceId, moisture, temp, weight, commodity] = data;
@@ -126,8 +126,8 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
       }
     } catch (error) {
       console.error('Print error:', error);
-      setSnackbarMessage('Error while printing');
-      setSnackbarVisible(true);
+      // setSnackbarMessage('printing failed.');
+      // setSnackbarVisible(true);
     }
   };
 
@@ -217,8 +217,10 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
             totalWeight,
             remarks,
           };
+          if(client.clientName.trim().length > 0){
+                await saveClientData(client);
+          }
 
-          await saveClientData(client);
 
           setSnackbarMessage('Data saved to CSV!');
           Alert.alert('Success', `CSV file saved successfully at:\n\n${path}`);

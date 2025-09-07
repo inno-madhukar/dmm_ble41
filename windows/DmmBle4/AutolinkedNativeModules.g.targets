@@ -6,9 +6,21 @@
     <ProjectReference Include="$(ProjectDir)..\..\node_modules\@react-native-async-storage\async-storage\windows\ReactNativeAsyncStorage\ReactNativeAsyncStorage.vcxproj">
       <Project>{4855D892-E16C-404D-8286-0089E0F7F9C4}</Project>
     </ProjectReference>
+    <!-- Projects from react-native-file-viewer -->
+    <ProjectReference Include="$(ProjectDir)..\..\node_modules\react-native-file-viewer\windows\RNFileViewer\RNFileViewer.csproj">
+      <Project>{BE578CFA-16B7-4B29-978E-EF14C9E88020}</Project>
+    </ProjectReference>
+    <!-- Projects from react-native-pdf -->
+    <ProjectReference Include="$(ProjectDir)..\..\node_modules\react-native-pdf\windows\RCTPdf\RCTPdf.vcxproj">
+      <Project>{03b8503f-f40d-4013-829c-71b304537d90}</Project>
+    </ProjectReference>
     <!-- Projects from react-native-screens -->
     <ProjectReference Include="$(ProjectDir)..\..\node_modules\react-native-screens\windows\RNScreens\RNScreens.vcxproj">
       <Project>{d638f49e-29d2-4699-ac52-facd82fa7138}</Project>
+    </ProjectReference>
+    <!-- Projects from react-native-svg -->
+    <ProjectReference Include="$(ProjectDir)..\..\node_modules\react-native-svg\windows\RNSVG\RNSVG.vcxproj">
+      <Project>{7acf84ec-efba-4043-8e14-40b159508902}</Project>
     </ProjectReference>
   </ItemGroup>
 </Project>

@@ -6,8 +6,17 @@
 // Includes from @react-native-async-storage/async-storage
 #include <winrt/ReactNativeAsyncStorage.h>
 
+// Includes from react-native-file-viewer
+#include <winrt/RNFileViewer.h>
+
+// Includes from react-native-pdf
+#include <winrt/RCTPdf.h>
+
 // Includes from react-native-screens
 #include <winrt/RNScreens.h>
+
+// Includes from react-native-svg
+#include <winrt/RNSVG.h>
 
 namespace winrt::Microsoft::ReactNative
 {
@@ -16,8 +25,14 @@ void RegisterAutolinkedNativeModulePackages(winrt::Windows::Foundation::Collecti
 { 
     // IReactPackageProviders from @react-native-async-storage/async-storage
     packageProviders.Append(winrt::ReactNativeAsyncStorage::ReactPackageProvider());
+    // IReactPackageProviders from react-native-file-viewer
+    packageProviders.Append(winrt::RNFileViewer::ReactPackageProvider());
+    // IReactPackageProviders from react-native-pdf
+    packageProviders.Append(winrt::RCTPdf::ReactPackageProvider());
     // IReactPackageProviders from react-native-screens
     packageProviders.Append(winrt::RNScreens::ReactPackageProvider());
+    // IReactPackageProviders from react-native-svg
+    packageProviders.Append(winrt::RNSVG::ReactPackageProvider());
 }
 
 }

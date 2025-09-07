@@ -83,7 +83,7 @@ const RecordsScreen: React.FC = () => {
       if ((Platform.OS === 'ios' || Platform.OS === 'android') && RNFS) {
         const folderPath = `${RNFS.DownloadDirectoryPath}/Innovative_instrument/Data`; // your folder
         const files = await RNFS.readDir(folderPath);
-
+        console.log(folderPath)
         // filter only .csv files
         const csvFiles = files.filter((f) => f.isFile() && f.name.endsWith(".csv"));
 
