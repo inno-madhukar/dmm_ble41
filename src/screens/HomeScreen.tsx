@@ -308,21 +308,24 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
     };
 
     // Register listeners ONCE — handlers use refs to see latest state
-    const listeners = [
-      bleManager.onDiscoverPeripheral(handleDiscoverPeripheral),
-      bleManager.onStopScan(handleStopScan),
-      bleManager.onDisconnectPeripheral(handleDisconnectedPeripheral),
-    ];
+    if (Platform.OS !== "windows") {
 
-    initObservers();
-    // mark as initialized
 
-    return () => {
-      console.log("Cleaning up listeners...");
-      listeners.forEach((l) => l.remove());
-      clearInterval(scanInterval);
-      bleManager.stopScan();
-    };
+      const listeners = [
+        bleManager.onDiscoverPeripheral(handleDiscoverPeripheral),
+        bleManager.onStopScan(handleStopScan),
+        bleManager.onDisconnectPeripheral(handleDisconnectedPeripheral),
+      ];
+      
+      initObservers();
+      // mark as initialized
+      return () => {
+        console.log("Cleaning up listeners...");
+        listeners.forEach((l) => l.remove());
+        clearInterval(scanInterval);
+        bleManager.stopScan();
+      };
+    }
   }, []);
 
   // Optional: observe updates to storedDevices

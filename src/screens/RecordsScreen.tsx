@@ -161,21 +161,21 @@ const RecordsScreen: React.FC = () => {
 
     return { headers, data };
   };
-  const scsv = async (): Promise<void> => {
-    try {
-      const { default: Dmmble4 } = await import('../NativeDmmble4');
-      const data = await Dmmble4.readCsv();
+  // const scsv = async (): Promise<void> => {
+  //   try {
+  //     const { default: Dmmble4 } = await import('../NativeDmmble4');
+  //     const data = await Dmmble4.readCsv();
 
-      if (data.length === 0) {
-        Alert.alert("CSV Reader", "No data found in CSV.");
-        return;
-      }
+  //     if (data.length === 0) {
+  //       Alert.alert("CSV Reader", "No data found in CSV.");
+  //       return;
+  //     }
 
-      Alert.alert("CSV Reader", `First cell: ${data[0][0]}`);
-    } catch (err: any) {
-      Alert.alert("Error", JSON.stringify(err));
-    }
-  };
+  //     Alert.alert("CSV Reader", `First cell: ${data[0][0]}`);
+  //   } catch (err: any) {
+  //     Alert.alert("Error", JSON.stringify(err));
+  //   }
+  // };
 
   const selectCSVFile = async (): Promise<void> => {
     if (Platform.OS !== 'ios' && Platform.OS !== 'android') {

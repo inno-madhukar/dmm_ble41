@@ -1,5 +1,5 @@
 {
-  "name": "dmmble4",
+  "name": "dmm_ble4",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -38,25 +38,7 @@
     "react-native-svg": "^15.12.1",
     "react-native-svg-transformer": "^1.5.1",
     "react-native-vector-icons": "^10.3.0",
-    "react-native-windows": "^0.79.3"
-  },
-  "codegenConfig": {
-    "name": "RNDmmble4Spec",
-    "type": "modules",
-    "jsSrcsDir": "src",
-    "outputDir": {
-      "ios": "ios/generated",
-      "android": "android/generated"
-    },
-    "android": {
-      "javaPackageName": "com.dmm_ble4"
-    },
-    "includesGeneratedCode": true,
-    "windows": {
-      "namespace": "dmm_ble4Codegen",
-      "outputDirectory": "windows/DmmBle4/codegen",
-      "separateDataTypes": true
-    }
+    "react-native-windows": "^0.79.4"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
@@ -84,8 +66,8 @@
   },
   "react-native-windows": {
     "init-windows": {
-      "name": "dmmble4",
-      "namespace": "dmmble4",
+      "name": "DmmBle4",
+      "namespace": "DmmBle4",
       "template": "old/uwp-cpp-app"
     }
   }

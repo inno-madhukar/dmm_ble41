@@ -404,7 +404,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
 
           );
           // setReceivedValues([]);
-          console.log(asciiArrays)
+          console.log(receivedValues)
           const { deviceIdArray, readingsArray, commodityArray } = classifyArray(asciiArrays);
 
           const formattedTime = getFormattedDateTime();

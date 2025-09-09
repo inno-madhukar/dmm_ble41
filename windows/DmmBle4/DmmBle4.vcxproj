@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- This project was created with react-native-windows 0.79.3 -->
+<!-- This project was created with react-native-windows 0.79.4 -->
 <Project ToolsVersion="Current" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(SolutionDir)\ExperimentalFeatures.props" Condition="Exists('$(SolutionDir)\ExperimentalFeatures.props')" />
   <PropertyGroup Label="Globals">
     <CppWinRTOptimized>true</CppWinRTOptimized>
     <CppWinRTRootNamespaceAutoMerge>true</CppWinRTRootNamespaceAutoMerge>
     <MinimalCoreWin>true</MinimalCoreWin>
-    <ProjectGuid>{6d490d23-c686-41a8-9892-cc9a7650df29}</ProjectGuid>
-    <ProjectName>dmmble4</ProjectName>
-    <RootNamespace>dmmble4</RootNamespace>
+    <ProjectGuid>{05dcd7e8-03e0-46f1-8267-29d32d7c21d6}</ProjectGuid>
+    <ProjectName>DmmBle4</ProjectName>
+    <RootNamespace>DmmBle4</RootNamespace>
     <DefaultLanguage>en-US</DefaultLanguage>
     <MinimumVisualStudioVersion>17.0</MinimumVisualStudioVersion>
     <AppContainerApplication>true</AppContainerApplication>
