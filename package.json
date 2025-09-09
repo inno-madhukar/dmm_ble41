@@ -10,6 +10,24 @@
     "test": "jest",
     "windows": "npx @react-native-community/cli run-windows"
   },
+  "codegenConfig": {
+    "name": "RNDmm_ble4Spec",
+    "type": "modules",
+    "jsSrcsDir": "src",
+    "outputDir": {
+      "ios": "ios/generated",
+      "android": "android/generated"
+    },
+    "android": {
+      "javaPackageName": "com.dmm_ble4"
+    },
+    "includesGeneratedCode": true,
+    "windows": {
+      "namespace": "dmm_ble4Codegen",
+      "outputDirectory": "windows/DmmBle4/codegen",
+      "separateDataTypes": true
+    }
+  },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-documents/picker": "^10.1.5",
@@ -28,7 +46,6 @@
     "react-native-gesture-handler": "^2.28.0",
     "react-native-image-picker": "^8.2.1",
     "react-native-paper": "^5.14.5",
-    "react-native-pdf": "^6.7.7",
     "react-native-permissions": "^5.4.2",
     "react-native-print": "^0.11.0",
     "react-native-reanimated": "^3.19.1",

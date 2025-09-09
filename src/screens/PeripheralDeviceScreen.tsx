@@ -3,22 +3,22 @@ import { View, StyleSheet, ScrollView, PermissionsAndroid, FlatList, TouchableOp
 import { Text, TextInput, IconButton, Snackbar } from 'react-native-paper';
 import classifyArray from '../Components/arrClasiffy';
 let RNFS: typeof import('react-native-fs') | undefined;
+// console.log(RNFS);
 if (Platform.OS === 'ios' || Platform.OS === 'android') {
   RNFS = require('react-native-fs');
 }
 import { NativeModules } from 'react-native';
 import { generateStyledPDF } from '../Components/singlePdfGenerator';
 import DMMTitle from '../Components/Title';
+
 const { ManageExternalStorage } = NativeModules;
 let Share: typeof import('react-native-share') | undefined;
 if (Platform.OS === 'ios' || Platform.OS === 'android') {
-  // RNFS = require('react-native-fs');
   Share = require('react-native-share').default;
 }
 // ✅ Use `require` instead of `import`
 const BleManager = require('react-native-ble-manager').default;
 
-// ✅ Import only types (for TypeScript support)
 import type {
   PeripheralInfo,
   BleManagerDidUpdateValueForCharacteristicEvent,
@@ -178,6 +178,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
 
         // Save back to file
         await RNFS.writeFile(CLIENTS_FILE, JSON.stringify(clients, null, 2), "utf8");
+
         console.log("✅ Client saved:", client.clientName);
       }
     } catch (err) {
@@ -334,11 +335,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
     };
     loadClients();
   }, []);  // ✅ only once
-  const handleChange = (text: string) => {
-    const plain = text.replace(/\n/g, '');
-    const withNewlines = plain.match(/.{1,10}/g)?.join('\n') || '';
-    setUserNote(withNewlines);
-  };
+  
 
   // On typing client name
   const handleClientNameChange = (text: string) => {

@@ -8,10 +8,10 @@ import {
 
 } from 'react-native';
 import { Text, DataTable, IconButton, Portal, Button, Dialog, Menu, TextInput } from 'react-native-paper';
-// import { , Button, DataTable, Text,  } from "react-native-paper";
 
 import DMMTitle from '../Components/Title';
 import { Platform } from 'react-native';
+import Dmm_ble4 from '../NativeDmm_ble4';
 let RNFS: typeof import('react-native-fs') | undefined;
 if (Platform.OS === 'ios' || Platform.OS === 'android') {
   RNFS = require('react-native-fs');
@@ -55,7 +55,6 @@ interface DocumentPickerResponse {
 }
 const hederobj = ["Date", 'Device ID', 'Moisture %', 'Temp °C', 'Weight (gm)', 'Commodity Name', 'Client Name', 'Location', 'Truck Number', 'Vendor ID', 'Total Weight', 'Remarks'
 ]
-const tabheaderobj = ['date', 'device_id', 'moisture_', 'temp_c', 'weight_gm', 'commodity_name', 'client_name', 'location', 'truck_number', 'vendor_id'];
 const RecordsScreen: React.FC = () => {
   const [csvData, setCsvData] = useState<CSVRow[]>([]);
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
@@ -161,25 +160,11 @@ const RecordsScreen: React.FC = () => {
 
     return { headers, data };
   };
-  // const scsv = async (): Promise<void> => {
-  //   try {
-  //     const { default: Dmmble4 } = await import('../NativeDmmble4');
-  //     const data = await Dmmble4.readCsv();
-
-  //     if (data.length === 0) {
-  //       Alert.alert("CSV Reader", "No data found in CSV.");
-  //       return;
-  //     }
-
-  //     Alert.alert("CSV Reader", `First cell: ${data[0][0]}`);
-  //   } catch (err: any) {
-  //     Alert.alert("Error", JSON.stringify(err));
-  //   }
-  // };
 
   const selectCSVFile = async (): Promise<void> => {
     if (Platform.OS !== 'ios' && Platform.OS !== 'android') {
-      Alert.alert('Unsupported Platform', 'File selection is only supported on Android/iOS.');
+      let num=Dmm_ble4.multiply1(4,6);
+      Alert.alert('Unsupported Platform', 'File selection is only'+num);
       return;
     }
 

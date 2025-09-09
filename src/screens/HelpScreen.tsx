@@ -1,8 +1,16 @@
 import React, { useState } from "react";
 import { View, Alert, Platform, ScrollView } from "react-native";
 import { Text, Button, List, Divider } from "react-native-paper";
-import RNFS from "react-native-fs";
-import FileViewer from "react-native-file-viewer";
+let RNFS: typeof import('react-native-fs') | undefined;
+// console.log(RNFS);
+if (Platform.OS === 'ios' || Platform.OS === 'android') {
+  RNFS = require('react-native-fs');
+}
+let FileViewer: any;
+if (Platform.OS === "android") {
+  FileViewer = require('react-native-file-viewer');
+}
+
 import DMMTitle from "../Components/Title";
 
 const HelpScreen = () => {
@@ -14,18 +22,25 @@ const HelpScreen = () => {
 
   const handleOpenGuide = async () => {
     try {
-      let destPath = `${RNFS.DocumentDirectoryPath}/DMM_B18_App_User_Guide.pdf`;
-
-      if (Platform.OS === "android") {
+      if(Platform.OS === "android" ) {
+      let destPath = '';
+      if ( RNFS) {
+        destPath = `${RNFS.DocumentDirectoryPath}/DMM_B18_App_User_Guide.pdf`;
+      }
+      if (Platform.OS === "android" && RNFS) {
         // Copy PDF from assets to documents folder
         await RNFS.copyFileAssets("DMM_B18_App_User_Guide.pdf", destPath);
       } else {
-        // Copy PDF from bundle to documents folder on iOS
-        const sourcePath = `${RNFS.MainBundlePath}/DMM_B18_App_User_Guide.pdf`;
-        await RNFS.copyFile(sourcePath, destPath);
+        if (Platform.OS === "android" && RNFS) {
+          // Copy PDF from bundle to documents folder on iOS
+          const sourcePath = `${RNFS.MainBundlePath}/DMM_B18_App_User_Guide.pdf`;
+          await RNFS.copyFile(sourcePath, destPath);
+        }
       }
 
+
       await FileViewer.open(destPath);
+    }
     } catch (error) {
       console.error("Error opening PDF:", error);
       Alert.alert("Error", "Could not open the PDF file.");

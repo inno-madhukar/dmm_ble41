@@ -18,6 +18,7 @@ import { lightTheme } from '../../theme';
 import { getStoredDevices, removeAllDevices, saveDevice } from '../Utils/storage';
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback } from "react";
+
 let bleManager: any;
 type BleDisconnectPeripheralEvent = any;
 type Peripheral = any;
@@ -27,10 +28,6 @@ if (Platform.OS === 'android' || Platform.OS === 'ios') {
   bleManager = require('react-native-ble-manager').default;
 }
 
-const SECONDS_TO_SCAN_FOR = 6;
-const SERVICE_UUIDS: string[] = [];
-const ALLOW_DUPLICATES = true;
-
 declare module 'react-native-ble-manager' {
   interface Peripheral {
     connected?: boolean;
@@ -39,13 +36,13 @@ declare module 'react-native-ble-manager' {
 }
 
 const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList> }) => {
-  if (!bleManager) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>Bluetooth not supported on this platform.</Text>
-      </View>
-    );
-  }
+  // if (!bleManager) {
+  //   return (
+  //     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+  //       <Text>Bluetooth not supported on this platform.</Text>
+  //     </View>
+  //   );
+  // }
 
   const [isScanning, setIsScanning] = useState(false);
   const [peripherals, setPeripherals] = useState(new Map<Peripheral['id'], Peripheral>());
@@ -65,20 +62,13 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
 
   useFocusEffect(
     useCallback(() => {
-      // re_connect_Prev = false;
       if (flagRef.current) {
-        console.log("📴 Screen focused → start scanning");
+        console.log(" Screen focused → start scanning");
         flagRef.current = false;
-
-        // scanForDevices();
       }
       return () => {
         flagRef.current = true;
-        console.log("📴 Screen unfocused → stop scanning");
-
-        // bleManager.stopScan()
-        //   .then(() => console.log("Scan stopped"))
-        //   .catch((err: any) => console.error("Stop scan failed", err));
+        console.log(" Screen unfocused → stop scanning");
       };
     }, [])
   );
@@ -316,7 +306,7 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
         bleManager.onStopScan(handleStopScan),
         bleManager.onDisconnectPeripheral(handleDisconnectedPeripheral),
       ];
-      
+
       initObservers();
       // mark as initialized
       return () => {

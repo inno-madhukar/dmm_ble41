@@ -7,11 +7,11 @@
   IgnorableNamespaces="uap mp">
 
   <Identity
-    Name="59887d62-fed7-4420-92e5-31daba5c7160"
+    Name="d05ca569-c049-4bb7-985e-c760228f4b20"
     Publisher="CN=admin"
     Version="1.0.0.0" />
 
-  <mp:PhoneIdentity PhoneProductId="59887d62-fed7-4420-92e5-31daba5c7160" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+  <mp:PhoneIdentity PhoneProductId="d05ca569-c049-4bb7-985e-c760228f4b20" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
     <DisplayName>DmmBle4</DisplayName>
@@ -46,5 +46,6 @@
 
   <Capabilities>
     <Capability Name="internetClient" />
+     <uap:Capability Name="documentsLibrary" />
   </Capabilities>
 </Package>
