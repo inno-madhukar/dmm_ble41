@@ -179,7 +179,13 @@ export default async function generateSimplePrintAndPDF(records: BLERecordArray,
     y = 40;
     page.drawLine({ start: { x: x, y }, end: { x: width - 40, y }, thickness: 0.5 });   //last
   }
-
+function insertNewline(str:string, interval = 25) {
+  let result = '';
+  for (let i = 0; i < str.length; i += interval) {
+    result += str.slice(i, i + interval) + '|';
+  }
+  return result;
+}
 
   async function showData(x: number, y: number) {
     records.forEach(async (record, index) => {
@@ -207,6 +213,9 @@ export default async function generateSimplePrintAndPDF(records: BLERecordArray,
         if (key == "Date") {
           value = value.replace("\n", " ")
         }
+        if(key=="Remarks"){
+          value=insertNewline(value)
+        }
         else if (key == "Note") {
           value = value.replaceAll("\n", " ")
 
@@ -220,12 +229,13 @@ export default async function generateSimplePrintAndPDF(records: BLERecordArray,
         });
 
         const keyWidth = boldFont.widthOfTextAtSize(`${key}:`, fontSize);
-        if (key == "Note") {
-          const varr = value.split(" ");
+        if (key == "Remarks") {
+          const varr = value.split("|");
           console.log(varr)
 
           if (varr.length > 1) {
             varr.forEach((val) => {
+             
               page.drawText(`${val}`, {
                 x: x + keyWidth + 5, // slight gap after key
                 y,
@@ -233,7 +243,9 @@ export default async function generateSimplePrintAndPDF(records: BLERecordArray,
                 font: font,
                 color: rgb(0, 0, 0),
               });
+               if(val!=""){
               y -= 10
+               }
             })
           }
           else {
