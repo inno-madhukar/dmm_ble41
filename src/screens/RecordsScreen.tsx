@@ -163,8 +163,8 @@ const RecordsScreen: React.FC = () => {
 
   const selectCSVFile = async (): Promise<void> => {
     if (Platform.OS !== 'ios' && Platform.OS !== 'android') {
-      let num=Dmm_ble4.multiply1(4,6);
-      Alert.alert('Unsupported Platform', 'File selection is only'+num);
+      let num=Dmm_ble4.createFolder();
+      Alert.alert('Unsupported Platform', 'File selection is only'+num.then((val)=>{return val}));
       return;
     }
 

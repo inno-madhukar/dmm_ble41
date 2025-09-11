@@ -1,35 +1,52 @@
 #include "pch.h"
-
 #include "dmm_ble4.h"
 #include <winrt/Windows.Storage.h>
 #include <winrt/Windows.Storage.Streams.h>
+#include <iostream>
 
 using namespace winrt;
 using namespace Windows::Storage;
 using namespace Windows::Storage::Streams;
+using namespace Windows::Foundation;
+using namespace Microsoft::ReactNative;
 
-namespace winrt::dmm_ble4
-{
+namespace winrt::dmm_ble4 {
 
-// See https://mi
+// Synchronous multiply1 method
 double Dmm_ble4::multiply1(double a, double b) noexcept {
-  return a * b;
+  try {
+    return a * b;
+  } catch (...) {
+    // Optionally log the error
+    return 0.0;
+  }
 }
-// std::string Dmm_ble4::getcsvdata(std::string a) noexcept {
-//     try {
-//         std::ifstream file(a);
-//         if (!file.is_open()) {
-//             return "no"; // or you can throw an exception if not noexcept
-//         }
 
-//         std::ostringstream contents;
-//         contents << file.rdbuf();  // Read entire file into stream
+// Asynchronous createFolder method
+void Dmm_ble4::createFolder(ReactPromise<void> result) noexcept {
+  try {
+    StorageFolder localFolder = ApplicationData::Current().LocalFolder();
+    auto operation = localFolder.CreateFolderAsync(L"MyNewFolder", CreationCollisionOption::OpenIfExists);
 
-//         return contents.str();    // Return as string
-//     } catch (...) {
-//         // Handle unexpected errors safely, return empty string
-//         return "no";
-//     }
-// }
+    operation.Completed([result](IAsyncOperation<StorageFolder> const& asyncInfo, AsyncStatus const status) {
+      try {
+        if (status == AsyncStatus::Completed) {
+          result.Resolve();
+        } else {
+          result.Reject("k");
+        }
+      } catch (const std::exception& e) {
+        result.Reject("no");
+      } catch (...) {
+        result.Reject("no1");
+      }
+    });
+  } catch (const std::exception& e) {
+    result.Reject("cc");
+  } catch (...) {
+    result.Reject("cccc");
+  }
+}
 
-} // namespace winrt::testlib
+
+} // namespace winrt::dmm_ble4

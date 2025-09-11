@@ -4,31 +4,28 @@
 // #include "resource.h"
 
 #if __has_include("codegen/NativeDmm_ble4DataTypes.g.h")
-  #include "codegen/NativeDmm_ble4DataTypes.g.h"
+#include "codegen/NativeDmm_ble4DataTypes.g.h"
 #endif
 #include "codegen/NativeDmm_ble4Spec.g.h"
-
 #include "NativeModules.h"
 
-namespace winrt::dmm_ble4
-{
+namespace winrt::dmm_ble4 {
 
-REACT_MODULE(Dmm_ble4)
-struct Dmm_ble4
-{
-  using ModuleSpec = dmm_ble4Codegen::Dmm_ble4Spec;
+  REACT_MODULE(Dmm_ble4)
+  struct Dmm_ble4 : dmm_ble4Codegen::Dmm_ble4Spec {
+    // Specify that this struct implements the ModuleSpec
+    using ModuleSpec = dmm_ble4Codegen::Dmm_ble4Spec;
 
-  REACT_SYNC_METHOD(multiply1) 
-  double multiply1(double a, double b) noexcept;
+    // Synchronous multiply1 method
+    REACT_SYNC_METHOD(multiply1)
+    double multiply1(double a, double b) noexcept ;
 
- REACT_METHOD(getcsvdata)
-winrt::fire_and_forget getcsvdata(
-    winrt::hstring a,
-    React::ReactPromise<winrt::hstring> const &promise) noexcept;
+    // Asynchronous createFolder method
+    REACT_METHOD(createFolder)
+    void createFolder(winrt::Microsoft::ReactNative::ReactPromise<void> result) noexcept ;
 
+  private:
+    React::ReactContext m_context;
+  };
 
-private:
-  React::ReactContext m_context;
-};
-
-} // namespace winrt::testlib
+} // namespace winrt::dmm_ble4

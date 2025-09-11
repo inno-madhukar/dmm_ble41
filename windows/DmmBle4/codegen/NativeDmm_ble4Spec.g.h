@@ -18,7 +18,7 @@ namespace dmm_ble4Codegen {
 struct Dmm_ble4Spec : winrt::Microsoft::ReactNative::TurboModuleSpec {
   static constexpr auto methods = std::tuple{
       SyncMethod<double(double, double) noexcept>{0, L"multiply1"},
-      Method<void(std::string, Promise<std::string>) noexcept>{1, L"getcsvdata1"},
+      Method<void(Promise<void>) noexcept>{1, L"createFolder"},
   };
 
   template <class TModule>
@@ -32,9 +32,9 @@ struct Dmm_ble4Spec : winrt::Microsoft::ReactNative::TurboModuleSpec {
           "    REACT_SYNC_METHOD(multiply1) static double multiply1(double a, double b) noexcept { /* implementation */ }\n");
     REACT_SHOW_METHOD_SPEC_ERRORS(
           1,
-          "getcsvdata1",
-          "    REACT_METHOD(getcsvdata1) void getcsvdata1(std::string a, ::React::ReactPromise<std::string> &&result) noexcept { /* implementation */ }\n"
-          "    REACT_METHOD(getcsvdata1) static void getcsvdata1(std::string a, ::React::ReactPromise<std::string> &&result) noexcept { /* implementation */ }\n");
+          "createFolder",
+          "    REACT_METHOD(createFolder) void createFolder(::React::ReactPromise<void> &&result) noexcept { /* implementation */ }\n"
+          "    REACT_METHOD(createFolder) static void createFolder(::React::ReactPromise<void> &&result) noexcept { /* implementation */ }\n");
   }
 };
 
