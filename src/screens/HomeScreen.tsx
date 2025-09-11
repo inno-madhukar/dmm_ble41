@@ -364,7 +364,7 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
                 {item.name || 'Unknown Device'}
               </Text>
               <Text variant="titleSmall" style={styles.macId}>
-                {`ID : ${item.id || 'Unknown ID'}`}
+                {`Mac ID : ${item.id || 'Unknown ID'}`}
               </Text>
 
               {/* Saved badge in bottom-right corner */}

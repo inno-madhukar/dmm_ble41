@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,useCallback  } from "react";
 import { View, StyleSheet, FlatList, Platform, Alert } from "react-native";
 import { Text, Card, Chip, IconButton } from "react-native-paper";
+import { useFocusEffect } from '@react-navigation/native';
 
 let RNFS: typeof import('react-native-fs') | undefined;
 if (Platform.OS === 'ios' || Platform.OS === 'android') {
@@ -25,8 +26,38 @@ const ShowClientsScreen = () => {
     );
   }
 
+
   const [clients, setClients] = useState<Client[]>([]);
 
+   const loadClients = async () => {
+      try {
+        if (RNFS) {
+          if (await RNFS.exists(CLIENTS_FILE)) {
+            const content = await RNFS.readFile(CLIENTS_FILE, "utf8");
+            const parsed: Client[] = JSON.parse(content);
+            setClients(parsed);
+          } else {
+            setClients([]);
+          }
+        }
+      } catch (err) {
+        console.error("Error reading clients.json:", err);
+        Alert.alert("Info", "Clients data not found.");
+        setClients([]);
+      }
+    };
+ useFocusEffect(
+    useCallback(() => {
+      // Perform actions when focused
+    if (Platform.OS === 'ios' || Platform.OS === 'android') {
+      loadClients();
+    }
+
+      return () => {
+        console.log('Clients screen unfocused');
+      };
+    }, [])
+  );
   useEffect(() => {
     const loadClients = async () => {
       try {

@@ -11,7 +11,7 @@ import { Text, DataTable, IconButton, Portal, Button, Dialog, Menu, TextInput } 
 
 import DMMTitle from '../Components/Title';
 import { Platform } from 'react-native';
-import Dmm_ble4 from '../NativeDmm_ble4';
+// import Dmm_ble4 from '../NativeDmm_ble4';
 let RNFS: typeof import('react-native-fs') | undefined;
 if (Platform.OS === 'ios' || Platform.OS === 'android') {
   RNFS = require('react-native-fs');
@@ -73,6 +73,7 @@ const RecordsScreen: React.FC = () => {
   useEffect(() => {
     if (selectedFileName == "AllFILE") {
       loadAllCSVs(); // loads all stored CSVs
+      // setSelectedFileName("notall")
     }
   }, [selectedFileName]);
 
@@ -104,6 +105,9 @@ const RecordsScreen: React.FC = () => {
         setCsvHeaders(mergedHeaders);
         setCsvData(mergedData);
         // setFilteredData(mergedData);
+      }
+      else{
+        console.log("no files")
       }
     } catch (err) {
       console.error("Error loading CSVs:", err);
@@ -163,8 +167,8 @@ const RecordsScreen: React.FC = () => {
 
   const selectCSVFile = async (): Promise<void> => {
     if (Platform.OS !== 'ios' && Platform.OS !== 'android') {
-      let num=Dmm_ble4.createFolder();
-      Alert.alert('Unsupported Platform', 'File selection is only'+num.then((val)=>{return val}));
+      // let num=Dmm_ble4.createFolder();
+      // Alert.alert('Unsupported Platform', 'File selection is only'+num.then((val)=>{return val}));
       return;
     }
 
@@ -415,7 +419,7 @@ const RecordsScreen: React.FC = () => {
         <Button
           mode="contained"
           style={[styles.sbutton, { marginLeft: 10 }]}
-          onPress={() => setSelectedFileName("AllFILE")}
+          onPress={() =>{ setSelectedFileName("AllFILE"); loadAllCSVs()}}
         >
           Select All Files
         </Button>

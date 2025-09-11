@@ -127,6 +127,7 @@ const BottomTabs = () => {
           name="Clients"
           component={ShowClientsModal}
           options={{
+          
             tabBarLabel: 'Clients',
             tabBarIcon: ({ color, size }) => (
               <IconButton icon="account-box" size={size} iconColor={color} />
