@@ -3,6 +3,9 @@
 #include <winrt/Windows.Storage.h>
 #include <winrt/Windows.Storage.Streams.h>
 #include <iostream>
+#include <filesystem>
+#include <string>
+#include <winrt/Microsoft.ReactNative.h>
 
 using namespace winrt;
 using namespace Windows::Storage;
@@ -23,30 +26,19 @@ double Dmm_ble4::multiply1(double a, double b) noexcept {
 }
 
 // Asynchronous createFolder method
-void Dmm_ble4::createFolder(ReactPromise<void> result) noexcept {
-  try {
-    StorageFolder localFolder = ApplicationData::Current().LocalFolder();
-    auto operation = localFolder.CreateFolderAsync(L"MyNewFolder", CreationCollisionOption::OpenIfExists);
-
-    operation.Completed([result](IAsyncOperation<StorageFolder> const& asyncInfo, AsyncStatus const status) {
-      try {
-        if (status == AsyncStatus::Completed) {
-          result.Resolve();
-        } else {
-          result.Reject("k");
+ void Dmm_ble4::createFolder(std::string const& path, ReactPromise<std::string>&& result) noexcept
+    {
+        try {
+            std::filesystem::path folderPath(path);
+            if (std::filesystem::create_directory(folderPath)) {
+                result.Resolve("Folder created successfully");
+            } else {
+                result.Resolve("Folder already exists or could not be created");
+            }
+        } catch (const std::exception& ex) {
+            result.Reject(ex.what());
         }
-      } catch (const std::exception& e) {
-        result.Reject("no");
-      } catch (...) {
-        result.Reject("no1");
-      }
-    });
-  } catch (const std::exception& e) {
-    result.Reject("cc");
-  } catch (...) {
-    result.Reject("cccc");
-  }
-}
+    }
 
 
 } // namespace winrt::dmm_ble4

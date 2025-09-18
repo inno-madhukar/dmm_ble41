@@ -74,7 +74,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
   const [contactPerson, setContactPerson] = useState('');
   const [remarks, setRemarks] = useState('');
   const [vendorId, setVendorId] = useState('');
-  const [totalWeight, setTotalWeight] = useState('');
+  const [totalWeight, setTotalWeight] = useState('0');
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [allClients, setAllClients] = useState<Client[]>([]);
   const [suggestions, setSuggestions] = useState<Client[]>([]);
@@ -218,18 +218,24 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
             totalWeight,
             remarks,
           };
-          if(client.clientName.trim().length > 0){
-                await saveClientData(client);
+          if (client.clientName.trim().length > 0) {
+            await saveClientData(client);
           }
 
 
           setSnackbarMessage('Data saved to CSV!');
+          setClientName('')
+          setLocation('')
+          setTruckNumber('')
+          setVendorId('')
+          setTotalWeight('0')
+          setRemarks('')
           Alert.alert('Success', `CSV file saved successfully at:\n\n${path}`);
           setSnackbarVisible(true);
         } catch (error) {
           console.error('Failed to save CSV:', error);
-          setSnackbarMessage('Error saving CSV.');
-          setSnackbarVisible(true);
+          // setSnackbarMessage('Error saving CSV.');
+          // setSnackbarVisible(true);
         }
       } else {
         requestPermission();
@@ -265,6 +271,12 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
     }
 
     setReceivedValues([])
+     setClientName('')
+          setLocation('')
+          setTruckNumber('')
+          setVendorId('')
+          setTotalWeight('0')
+          setRemarks('')
     notNotify.current = 0;
     const handleUpdateValueForCharacteristic = (
 
@@ -335,7 +347,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
     };
     loadClients();
   }, []);  // ✅ only once
-  
+
 
   // On typing client name
   const handleClientNameChange = (text: string) => {
@@ -394,14 +406,12 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
       <DMMTitle />
 
       <ScrollView contentContainerStyle={styles.container}>
-        {receivedValues.length === 3 ? (() => {
+        {receivedValues.length === 3  ? (() => {
           // {true ? (() => {
           const asciiArrays = receivedValues.slice(0, 3).map(val =>
             val.ascii.split(',').map(s => s.trim())
 
           );
-          // setReceivedValues([]);
-          console.log(receivedValues)
           const { deviceIdArray, readingsArray, commodityArray } = classifyArray(asciiArrays);
 
           const formattedTime = getFormattedDateTime();
@@ -422,7 +432,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
                 />
                 <IconButton icon="share-variant" size={24} onPress={() => { printData(finalArray, "share") }} />
               </View>
-
+              
               <Text style={styles.label}><Text style={styles.bold}>Device ID:</Text> {finalArray[1]}</Text>
               <Text style={styles.label}><Text style={styles.bold}>Item:</Text> {finalArray[5]}</Text>
               <Text style={styles.label}><Text style={styles.bold}>Moisture:</Text> {finalArray[2]} %</Text>
@@ -513,6 +523,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
           );
 
         })() : (
+          // if(){}
           <Text style={{ textAlign: 'center', marginTop: 20 }}>
             Waiting for data...
           </Text>

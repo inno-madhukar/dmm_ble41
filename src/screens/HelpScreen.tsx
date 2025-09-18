@@ -13,13 +13,15 @@ if (Platform.OS === "android") {
 
 import DMMTitle from "../Components/Title";
 
+// The Helpscreen Contains User Guide and FAQs
 const HelpScreen = () => {
+  //state variable to set expand
   const [expanded, setExpanded] = useState<string | null>(null);
-
+// this button handles on press expand and shrink of answer element
   const handlePress = (question: string) => {
     setExpanded(expanded === question ? null : question);
   };
-
+  // this function use to open user guide in pdf view
   const handleOpenGuide = async () => {
     try {
       if(Platform.OS === "android" ) {
@@ -46,7 +48,7 @@ const HelpScreen = () => {
       Alert.alert("Error", "Could not open the PDF file.");
     }
   };
-
+  //the FAQ array of objects with question and answer keys and values.
   const faqData = [
     {
       question: "How do I connect a new device?",
@@ -133,7 +135,7 @@ const HelpScreen = () => {
         >
           Frequently Asked Questions
         </Text>
-
+       {/* map over fadData and show FAQ. */}
         {faqData.map((faq, index) => (
           <List.Accordion
             key={index}

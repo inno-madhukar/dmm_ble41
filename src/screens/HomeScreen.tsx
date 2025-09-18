@@ -59,7 +59,6 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
     storedDevicesRef.current = storedDevices;
   }, [storedDevices]);
 
-
   useFocusEffect(
     useCallback(() => {
       if (flagRef.current) {

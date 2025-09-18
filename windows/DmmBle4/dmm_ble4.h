@@ -22,7 +22,8 @@ namespace winrt::dmm_ble4 {
 
     // Asynchronous createFolder method
     REACT_METHOD(createFolder)
-    void createFolder(winrt::Microsoft::ReactNative::ReactPromise<void> result) noexcept ;
+     void createFolder(std::string const& path, winrt::Microsoft::ReactNative::ReactPromise<std::string> &&result) noexcept;
+
 
   private:
     React::ReactContext m_context;

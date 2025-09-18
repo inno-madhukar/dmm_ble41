@@ -1,0 +1,2 @@
+D:\Innovative instruments APP\React native 1\dmm_ble41\windows\DmmBle4\pch.cpp(1,10): error C1085: Cannot write precompiled header file: 'x64\Debug\pch.pch': There is not enough space on the disk. [D:\Innovative instruments APP\React native 1\dmm_ble41\windows\DmmBle4\DmmBle4.vcxproj]
+D:\Innovative instruments APP\React native 1\dmm_ble41\windows\DmmBle4\pch.cpp(1,10): error C1085:  [D:\Innovative instruments APP\React native 1\dmm_ble41\windows\DmmBle4\DmmBle4.vcxproj]

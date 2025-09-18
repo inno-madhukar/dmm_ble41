@@ -1,6 +1,6 @@
-import React, { useEffect, useState,useCallback  } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { View, StyleSheet, FlatList, Platform, Alert } from "react-native";
-import { Text, Card, Chip, IconButton } from "react-native-paper";
+import { Text, Button,Card,Portal,Modal, Chip, IconButton } from "react-native-paper";
 import { useFocusEffect } from '@react-navigation/native';
 
 let RNFS: typeof import('react-native-fs') | undefined;
@@ -28,30 +28,38 @@ const ShowClientsScreen = () => {
 
 
   const [clients, setClients] = useState<Client[]>([]);
+  const [visible, setVisible] = useState(false);
+  const [selectedclient,setSelectedClient]=useState<any>({})
+ const showModal = (item:any) =>{ 
 
-   const loadClients = async () => {
-      try {
-        if (RNFS) {
-          if (await RNFS.exists(CLIENTS_FILE)) {
-            const content = await RNFS.readFile(CLIENTS_FILE, "utf8");
-            const parsed: Client[] = JSON.parse(content);
-            setClients(parsed);
-          } else {
-            setClients([]);
-          }
+  setSelectedClient(item)
+  setVisible(true)
+};
+  const hideModal = () => setVisible(false);
+  const clientname=useRef('');
+  const loadClients = async () => {
+    try {
+      if (RNFS) {
+        if (await RNFS.exists(CLIENTS_FILE)) {
+          const content = await RNFS.readFile(CLIENTS_FILE, "utf8");
+          const parsed: Client[] = JSON.parse(content);
+          setClients(parsed);
+        } else {
+          setClients([]);
         }
-      } catch (err) {
-        console.error("Error reading clients.json:", err);
-        Alert.alert("Info", "Clients data not found.");
-        setClients([]);
       }
-    };
- useFocusEffect(
+    } catch (err) {
+      console.error("Error reading clients.json:", err);
+      Alert.alert("Info", "Clients data not found.");
+      setClients([]);
+    }
+  };
+  useFocusEffect(
     useCallback(() => {
       // Perform actions when focused
-    if (Platform.OS === 'ios' || Platform.OS === 'android') {
-      loadClients();
-    }
+      if (Platform.OS === 'ios' || Platform.OS === 'android') {
+        loadClients();
+      }
 
       return () => {
         console.log('Clients screen unfocused');
@@ -113,7 +121,8 @@ const ShowClientsScreen = () => {
   };
 
   const renderClient = ({ item, index }: { item: Client; index: number }) => (
-    <Card style={styles.card}>
+
+    <Card style={styles.card} onPress={(e)=>{showModal(item)}}>
       <Card.Content>
         <View style={styles.cardHeader}>
           <Text style={styles.name}>{item.clientName || "Unnamed Client"}</Text>
@@ -124,15 +133,14 @@ const ShowClientsScreen = () => {
             onPress={() => deleteClient(index)}
           />
         </View>
-
-        {/* Location */}
-        {item.location ? <Text style={styles.field}>📍Location: {item.location}</Text> : null}
+   {/* Location */}
+        {/* {item.location ? <Text style={styles.field}>📍Location: {item.location}</Text> : null} */}
 
         {/* Vendor ID */}
-        {item.vendorId ? <Text style={styles.field}>🏷️ Vendor ID: {item.vendorId}</Text> : null}
+        {/* {item.vendorId ? <Text style={styles.field}>🏷️ Vendor ID: {item.vendorId}</Text> : null} */}
 
         {/* Truck Numbers */}
-        {item.truckNumbers && Array.isArray(item.truckNumbers) && item.truckNumbers.length > 0 && (
+        {/* {item.truckNumbers && Array.isArray(item.truckNumbers) && item.truckNumbers.length > 0 && (
           <View style={{ marginTop: 6 }}>
             <Text style={[styles.field, { marginBottom: 4 }]}>🚛 Truck Numbers:</Text>
             <View style={styles.chipContainer}>
@@ -141,13 +149,14 @@ const ShowClientsScreen = () => {
               ))}
             </View>
           </View>
-        )}
+        )} */}
+     
 
         {/* Total Weight */}
-        {item.totalWeight ? <Text style={styles.field}>⚖️ Total weight: {item.totalWeight} kg</Text> : null}
+        {/* {item.totalWeight ? <Text style={styles.field}>⚖️ Total weight: {item.totalWeight} kg</Text> : null} */}
 
         {/* Remarks */}
-        {item.remarks ? <Text style={styles.field}>📝 Remarks: {item.remarks}</Text> : null}
+        {/* {item.remarks ? <Text style={styles.field}>📝 Remarks: {item.remarks}</Text> : null} */}
       </Card.Content>
     </Card>
   );
@@ -161,8 +170,45 @@ const ShowClientsScreen = () => {
         keyExtractor={(_, index) => index.toString()}
         renderItem={renderClient}
         contentContainerStyle={{ paddingBottom: 20 }}
+        
       />
+      <Portal>
+        <Modal
+          visible={visible}
+          onDismiss={hideModal}
+          contentContainerStyle={{
+            backgroundColor: "white",
+            padding: 20,
+            margin: 20,
+            borderRadius: 12,
+          }}
+        >
+          <View style={styles.modalHeader}>
+          <IconButton
+            icon="account"
+            size={23}
+          />
+          <Text style={styles.name}>{selectedclient.clientName}</Text>
+          </View>
+         <Text style={styles.field}>📍Location: {selectedclient.location}</Text>
+         <Text style={styles.field}>🏷️ Vendor ID: {selectedclient.vendorId}</Text> 
+         {selectedclient.truckNumbers && selectedclient.truckNumbers.length > 0 && (
+          <View style={{ marginTop: 3 }}>
+            <Text style={[styles.field, { marginBottom: 4 }]}>🚛 Truck Numbers:</Text>
+            <View style={styles.chipContainer}>
+              {selectedclient.truckNumbers.map((truck: string, idx: number) => (
+                <Chip key={idx} style={styles.chip}>{truck}</Chip>
+              ))}
+            </View>
+          </View>
+        )} 
+          <Button mode="contained" onPress={hideModal}>
+            Close
+          </Button>
+        </Modal>
+      </Portal>
     </View>
+    
   );
 };
 
@@ -175,26 +221,38 @@ const styles = StyleSheet.create({
     elevation: 3,
     backgroundColor: "#fff",
   },
+  modalHeader: {
+    flexDirection: "row",       // place items in a row
+    alignItems: "center",       // vertically center icon + text
+    paddingVertical: 5,        // some vertical padding
+    paddingHorizontal: 0,      // left/right padding
+    // backgroundColor:"#ecececff"
+    
+  },
+  name: {
+    fontSize: 18,
+    fontWeight: "500",
+    marginLeft: 7,              // space between icon and text
+    color: "#333",              // dark gray text
+  },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 0,
   },
-  name: {
-    fontWeight: "bold",
-    fontSize: 18,
-    color: "#222",
-  },
+ 
   field: {
     fontSize: 14,
     marginBottom: 4,
     color: "#444",
+    marginLeft:7
   },
   chipContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
     marginVertical: 6,
+    marginLeft:15
   },
   chip: {
     margin: 2,

@@ -72,6 +72,7 @@ const BottomTabs = () => {
       <Tab.Navigator
         screenOptions={{
           headerShown: true,
+          // passing props
           header: () => <CustomHeader onContactPress={() => contactModalRef.current?.open()} />,
           tabBarActiveTintColor: theme.colors.primary,
           tabBarInactiveTintColor: theme.colors.onSurface,

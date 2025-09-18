@@ -106,7 +106,7 @@ const RecordsScreen: React.FC = () => {
         setCsvData(mergedData);
         // setFilteredData(mergedData);
       }
-      else{
+      else {
         console.log("no files")
       }
     } catch (err) {
@@ -151,7 +151,6 @@ const RecordsScreen: React.FC = () => {
       const values = lines[i]
         .split(",")
         .map((value) => value.trim().replace(/"/g, ""));
-
       const row: CSVRow = {};
       headers.forEach((header, index) => {
         // safe fallback if column missing
@@ -167,7 +166,7 @@ const RecordsScreen: React.FC = () => {
 
   const selectCSVFile = async (): Promise<void> => {
     if (Platform.OS !== 'ios' && Platform.OS !== 'android') {
-      // let num=Dmm_ble4.createFolder();
+      // let num=Dmm_ble4.createFolder("C://Users");
       // Alert.alert('Unsupported Platform', 'File selection is only'+num.then((val)=>{return val}));
       return;
     }
@@ -419,7 +418,7 @@ const RecordsScreen: React.FC = () => {
         <Button
           mode="contained"
           style={[styles.sbutton, { marginLeft: 10 }]}
-          onPress={() =>{ setSelectedFileName("AllFILE"); loadAllCSVs()}}
+          onPress={() => { setSelectedFileName("AllFILE"); loadAllCSVs() }}
         >
           Select All Files
         </Button>
@@ -515,15 +514,14 @@ const RecordsScreen: React.FC = () => {
                   ))}
                 </DataTable.Header>
 
-                {/* Table Rows */}
+                {/* Table Rows */} 
                 <FlatList
                   data={filteredData}
                   keyExtractor={(_, index) => index.toString()}
                   nestedScrollEnabled
                   style={{ maxHeight: 400 }}
                   renderItem={({ item: row, index: rowIndex }) => {
-                    const isSelected = selectedRows.includes(rowIndex);
-
+                  const isSelected = selectedRows.includes(rowIndex); 
                     return (
                       <DataTable.Row
                         onPress={() => toggleRowSelection(rowIndex)}

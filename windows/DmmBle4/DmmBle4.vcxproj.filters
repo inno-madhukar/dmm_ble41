@@ -7,9 +7,6 @@
     <Midl Include="App.idl" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="dmm_ble4.cpp">
-       <Filter>Source Files</Filter>
-+   </ClCompile>
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="App.cpp" />
     <ClCompile Include="$(GeneratedFilesDir)module.g.cpp" />
@@ -17,9 +14,6 @@
     <ClCompile Include="AutolinkedNativeModules.g.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="dmm_ble4.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="pch.h" />
     <ClInclude Include="App.h" />
     <ClInclude Include="ReactPackageProvider.h" />

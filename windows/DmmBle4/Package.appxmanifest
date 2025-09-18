@@ -7,11 +7,11 @@
   IgnorableNamespaces="uap mp">
 
   <Identity
-    Name="d05ca569-c049-4bb7-985e-c760228f4b20"
+    Name="14cb86bb-c5b2-48ab-9af6-48d61c1ad24c"
     Publisher="CN=admin"
     Version="1.0.0.0" />
 
-  <mp:PhoneIdentity PhoneProductId="d05ca569-c049-4bb7-985e-c760228f4b20" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+  <mp:PhoneIdentity PhoneProductId="14cb86bb-c5b2-48ab-9af6-48d61c1ad24c" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
     <DisplayName>DmmBle4</DisplayName>
@@ -46,8 +46,5 @@
 
   <Capabilities>
     <Capability Name="internetClient" />
-    <uap:Capability Name="documentsLibrary" />
-    <DeviceCapability Name="bluetooth" />
-    <DeviceCapability Name="proximity" />
   </Capabilities>
 </Package>
