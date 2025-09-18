@@ -1,11 +1,5 @@
 // react-native.config.js
-const os = require("os");
-const isWindows = os.platform() === "win32";
-
 module.exports = {
-    assets: isWindows
-    ? ["./node_modules/react-native-vector-icons/Fonts"]
-    : [],
   dependencies: {
     'react-native-print': {
       platforms: {
