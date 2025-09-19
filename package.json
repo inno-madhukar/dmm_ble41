@@ -23,7 +23,7 @@
     },
     "includesGeneratedCode": true,
     "windows": {
-      "namespace": "dmm_ble4Codegen",
+      "namespace": "dmm_ble4Codegen", 
       "outputDirectory": "windows/DmmBle4/codegen",
       "separateDataTypes": true
     }
