@@ -18,8 +18,8 @@ import { lightTheme } from '../../theme';
 import { getStoredDevices, removeAllDevices, saveDevice } from '../Utils/storage';
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback } from "react";
-
-let bleManager: any;
+ 
+let bleManager: any ;
 type BleDisconnectPeripheralEvent = any;
 type Peripheral = any;
 let scanInterval: NodeJS.Timeout;
