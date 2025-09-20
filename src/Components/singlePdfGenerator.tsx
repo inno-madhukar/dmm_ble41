@@ -15,6 +15,13 @@ export async function generateStyledPDF({
   time,
   sampleQty,
   note,
+  ClientName,
+  Location,
+  TruckNumber,
+  VendorId,
+  TotalWeight,
+  Remarks,
+
 }: {
 
   DeviceID: string;
@@ -23,7 +30,13 @@ export async function generateStyledPDF({
   temperature: string;
   time: string;
   sampleQty: string;
-  note: string
+  note: string;
+  ClientName: string;
+  Location: string;
+  TruckNumber: string;
+  VendorId: string;
+  TotalWeight: string;
+  Remarks: string;
 
 }) {
 
@@ -155,23 +168,182 @@ export async function generateStyledPDF({
 
   y -= 30;
   page.drawText('Other Information:', {
-    x: 60,
+    x: 50,
     y,
     font: boldFont,
-    size: 12,
+    size: 14,
     color: rgb(0, 0, 0),
   });
-  const noteLines = note.split("\n")
-  noteLines.forEach(line => {
-    page.drawText(line, {
+  y -= 25;
+   page.drawText("Client Name :", {
+      x: 60,
+      y,
+       font: boldFont,
+      size: 11,
+      color: rgb(0, 0, 0),
+    });
+    if(ClientName.trim().length>0){
+   page.drawText(ClientName, {
       x: 220,
       y,
       font,
       size: 11,
       color: rgb(0, 0, 0),
     });
-    y -= 15 //we can also utilize this way
-  });
+    y -= 25 //we can also utilize this way
+    }
+    else{
+         page.drawText(" - ", {
+      x: 220,
+      y,
+      font,
+      size: 11,
+      color: rgb(0, 0, 0),
+    });
+    y -= 25 //we can also utilize this way
+
+    }
+ 
+     page.drawText("Location :", {
+      x: 60,
+      y,
+       font: boldFont,
+      size: 11,
+      color: rgb(0, 0, 0),
+    });
+     if(Location.trim().length>0){
+   page.drawText(Location, {
+      x: 220,
+      y,
+      font,
+      size: 11,
+      color: rgb(0, 0, 0),
+    });
+    y -= 25 //we can also utilize this way
+    }
+    else{
+         page.drawText(" - ", {
+      x: 220,
+      y,
+      font,
+      size: 11,
+      color: rgb(0, 0, 0),
+    });
+    y -= 25 //we can also utilize this way
+
+    }
+     page.drawText("Truck Number :", {
+      x: 60,
+      y,
+       font: boldFont,
+      size: 11,
+      color: rgb(0, 0, 0),
+    });
+    if(TruckNumber.trim().length>0){
+   page.drawText(TruckNumber, {
+      x: 220,
+      y,
+      font,
+      size: 11,
+      color: rgb(0, 0, 0),
+    });
+    y -= 25 //we can also utilize this way
+    }
+    else{
+         page.drawText(" - ", {
+      x: 220,
+      y,
+      font,
+      size: 11,
+      color: rgb(0, 0, 0),
+    });
+    y -= 25 //we can also utilize this way
+
+    }
+     page.drawText("Vendor ID :", {
+      x: 60,
+      y,
+       font: boldFont,
+      size: 11,
+      color: rgb(0, 0, 0),
+    });
+    if(VendorId.trim().length>0){
+   page.drawText(VendorId, {
+      x: 220,
+      y,
+      font,
+      size: 11,
+      color: rgb(0, 0, 0),
+    });
+    y -= 25 //we can also utilize this way
+    }
+    else{
+         page.drawText(" - ", {
+      x: 220,
+      y,
+      font,
+      size: 11,
+      color: rgb(0, 0, 0),
+    });
+    y -= 25 //we can also utilize this way
+
+    }
+     page.drawText("Total Weight :", {
+      x: 60,
+      y,
+      font: boldFont,
+      size: 11,
+      color: rgb(0, 0, 0),
+    });
+   if(TotalWeight.trim().length>0){
+   page.drawText(TotalWeight, {
+      x: 220,
+      y,
+      font,
+      size: 11,
+      color: rgb(0, 0, 0),
+    });
+    y -= 25 //we can also utilize this way
+    }
+    else{
+         page.drawText(" - ", {
+      x: 220,
+      y,
+      font,
+      size: 11,
+      color: rgb(0, 0, 0),
+    });
+    y -= 25 //we can also utilize this way
+
+    }
+     page.drawText("Remarks :", {
+      x: 60,
+      y,
+      font: boldFont,
+      size: 11,
+      color: rgb(0, 0, 0),
+    });
+     if(Remarks.trim().length>0){
+   page.drawText(Remarks, {
+      x: 220,
+      y,
+      font,
+      size: 11,
+      color: rgb(0, 0, 0),
+    });
+    y -= 25 //we can also utilize this way
+    }
+    else{
+         page.drawText(" - ", {
+      x: 220,
+      y,
+      font,
+      size: 11,
+      color: rgb(0, 0, 0),
+    });
+    y -= 25 //we can also utilize this way
+
+    }
   y -= 50;
   page.drawLine({ start: { x: 40, y }, end: { x: width - 40, y }, thickness: 0.5 });
   // 🦶 Footer
@@ -212,18 +384,18 @@ export async function generateStyledPDF({
   await RNFS.writeFile(path, base64String, 'base64');
 
   if (note != "share") {
-     try {
-    await RNPrint.print({ filePath: path });
-  } catch (err) {
-    console.warn('Printing was cancelled or failed:', err);
-  } finally {
-    // ✅ Delete temp file
-    RNFS.unlink(path)
-      .then(() => console.log('Temporary PDF deleted.'))
-      .catch(err => console.warn('Failed to delete temp PDF:', err));
-  }
+    try {
+      await RNPrint.print({ filePath: path });
+    } catch (err) {
+      console.warn('Printing was cancelled or failed:', err);
+    } finally {
+      // ✅ Delete temp file
+      RNFS.unlink(path)
+        .then(() => console.log('Temporary PDF deleted.'))
+        .catch(err => console.warn('Failed to delete temp PDF:', err));
+    }
   }
 
 
- return path;
+  return path;
 }

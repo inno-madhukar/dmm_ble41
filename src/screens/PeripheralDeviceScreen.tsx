@@ -97,7 +97,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
   const navigation = useNavigation();
   // const route = useRoute<>();\
 
-  const printData = async (data: string[], note: string) => {
+  const printData = async (data: string[], note: string,clientName:string, location:string, truckNumber:string, vendorId:string, totalWeight:string, remarks:string) => {
     const [timestamp, deviceId, moisture, temp, weight, commodity] = data;
     try {
 
@@ -110,6 +110,12 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
           time: timestamp,
           sampleQty: weight,
           note: note,
+          ClientName:clientName,
+          Location:location,
+          TruckNumber:truckNumber,
+          VendorId:vendorId,
+          TotalWeight:totalWeight,
+          Remarks:remarks
         });
         if (note == "share") {
           const externalPath = `${RNFS.CachesDirectoryPath}/${route.params.peripheralData.name}.pdf`;
@@ -428,9 +434,9 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
                 <IconButton
                   icon="printer"
                   size={24}
-                  onPress={() => printData(finalArray, "notshare")}
+                  onPress={() => printData(finalArray, "notshare",clientName, location, truckNumber, vendorId, totalWeight, remarks)}
                 />
-                <IconButton icon="share-variant" size={24} onPress={() => { printData(finalArray, "share") }} />
+                <IconButton icon="share-variant" size={24} onPress={() => { printData(finalArray, "share",clientName, location, truckNumber, vendorId, totalWeight, remarks) }} />
               </View>
               
               <Text style={styles.label}><Text style={styles.bold}>Device ID:</Text> {finalArray[1]}</Text>
