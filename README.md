@@ -86,6 +86,13 @@ You've successfully run and modified your React Native App. :partying_face:
 
 If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
 
+# How to Release APK?
+
+- App is configured to create apk file. the .Apk will store in Android/app/build/Output/apk/release  Folder.
+- 1. In CMD Go to Android folder and run the Command "gradlew clean".
+  2. After running the above Execute the command "gradlew assembleRelease".
+  3. The Apk file will release in " Android/app/build/Output/apk/release ".
+     
 # Learn More
 
 To learn more about React Native, take a look at the following resources:
