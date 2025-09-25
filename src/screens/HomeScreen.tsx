@@ -237,6 +237,7 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
 
       // bleManager.stopScan();
       perfectConnectRef.current = 1;
+      console.log("this is pdata",peripheralData);
       Alert.alert(
         "Device Connected",
         `${peripheral.name} connected successfully.`
@@ -250,6 +251,15 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
 
     }
   };
+
+  const testdata={
+      id:"test"
+  }
+  const sendDatatoPeripheral=()=>{
+      navigation.navigate('PeripheralDeviceScreen', {
+        peripheralData: testdata as any,
+      });
+  }
 
   const startScan = () => {
     bleManager.scan([], 7, true) // [] = all services, 7 = seconds, true = allow duplicates
@@ -308,7 +318,6 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
     // Register listeners ONCE — handlers use refs to see latest state
     if (Platform.OS !== "windows") {
 
-
       const listeners = [
         bleManager.onDiscoverPeripheral(handleDiscoverPeripheral),
         bleManager.onStopScan(handleStopScan),
@@ -316,8 +325,6 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
       ];
 
       initObservers();
-
-
       // mark as initialized
       return () => {
         console.log("Cleaning up listeners...");
@@ -423,7 +430,17 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
         >
           {isScanning ? 'Scanning...' : 'Scan Devices'}
         </Button>
+          <Button
+          mode="contained"
+          onPress={sendDatatoPeripheral}
+          compact
+          style={styles.scanButton}
+          // disabled={isScanning}
+        >
+          Get Test Data
+        </Button>
       </View>
+      
       <SectionList
         sections={sections}
         keyExtractor={(item) => item.id}

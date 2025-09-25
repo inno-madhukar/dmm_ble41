@@ -74,7 +74,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
   const [contactPerson, setContactPerson] = useState('');
   const [remarks, setRemarks] = useState('');
   const [vendorId, setVendorId] = useState('');
-  const [totalWeight, setTotalWeight] = useState('0');
+  const [totalWeight, setTotalWeight] = useState('');
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [allClients, setAllClients] = useState<Client[]>([]);
   const [suggestions, setSuggestions] = useState<Client[]>([]);
@@ -97,7 +97,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
   const navigation = useNavigation();
   // const route = useRoute<>();\
 
-  const printData = async (data: string[], note: string,clientName:string, location:string, truckNumber:string, vendorId:string, totalWeight:string, remarks:string) => {
+  const printData = async (data: string[], note: string, clientName: string, location: string, truckNumber: string, vendorId: string, totalWeight: string, remarks: string) => {
     const [timestamp, deviceId, moisture, temp, weight, commodity] = data;
     try {
 
@@ -110,15 +110,15 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
           time: timestamp,
           sampleQty: weight,
           note: note,
-          ClientName:clientName,
-          Location:location,
-          TruckNumber:truckNumber,
-          VendorId:vendorId,
-          TotalWeight:totalWeight,
-          Remarks:remarks
+          ClientName: clientName,
+          Location: location,
+          TruckNumber: truckNumber,
+          VendorId: vendorId,
+          TotalWeight: totalWeight,
+          Remarks: remarks
         });
         if (note == "share") {
-          const externalPath = `${RNFS.CachesDirectoryPath}/${route.params.peripheralData.name}.pdf`;
+          const externalPath = `${RNFS.CachesDirectoryPath}/${route.params.peripheralData.name || "testpdf"}.pdf`;
           await RNFS.copyFile(path, externalPath);
           console.log(path)
           // const path = `${RNFS.DownloadDirectoryPath}/demo.pdf`;
@@ -233,7 +233,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
           setLocation('')
           setTruckNumber('')
           setVendorId('')
-          setTotalWeight('0')
+          setTotalWeight('')
           setRemarks('')
           Alert.alert('Success', `CSV file saved successfully at:\n\n${path}`);
           setSnackbarVisible(true);
@@ -274,19 +274,29 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
       setSnackbarVisible(true);
       return;
     }
+    if (peripheralData.id == "test") {
+      setReceivedValues([
+        { ascii: "DMMBLE010320" },
+        { ascii: "00.0,30.9,125" },
+        { ascii: "WHEAT" }
+      ]);
+      
+      return;
+    }
 
     setReceivedValues([])
-     setClientName('')
-          setLocation('')
-          setTruckNumber('')
-          setVendorId('')
-          setTotalWeight('0')
-          setRemarks('')
+    setClientName('')
+    setLocation('')
+    setTruckNumber('')
+    setVendorId('')
+    setTotalWeight('')
+    setRemarks('')
     notNotify.current = 0;
     const handleUpdateValueForCharacteristic = (
 
       data: BleManagerDidUpdateValueForCharacteristicEvent
     ) => {
+
       // setReceivedValues([]);
       console.log("started getting notify data");
 
@@ -328,7 +338,9 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
 
       handleUpdateValueForCharacteristic
     );
-
+    if (peripheralData.id = "test") {
+      // setReceivedValues()
+    }
     return () => {
       console.log("unmounting the ....")
       listener.remove();
@@ -411,7 +423,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
       <DMMTitle />
 
       <ScrollView contentContainerStyle={styles.container}>
-        {receivedValues.length === 3  ? (() => {
+        {receivedValues.length === 3 ? (() => {
           // {true ? (() => {
           const asciiArrays = receivedValues.slice(0, 3).map(val =>
             val.ascii.split(',').map(s => s.trim())
@@ -433,11 +445,11 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
                 <IconButton
                   icon="printer"
                   size={24}
-                  onPress={() => printData(finalArray, "notshare",clientName, location, truckNumber, vendorId, totalWeight, remarks)}
+                  onPress={() => printData(finalArray, "notshare", clientName, location, truckNumber, vendorId, totalWeight, remarks)}
                 />
-                <IconButton icon="share-variant" size={24} onPress={() => { printData(finalArray, "share",clientName, location, truckNumber, vendorId, totalWeight, remarks) }} />
+                <IconButton icon="share-variant" size={24} onPress={() => { printData(finalArray, "share", clientName, location, truckNumber, vendorId, totalWeight, remarks) }} />
               </View>
-              
+
               <Text style={styles.label}><Text style={styles.bold}>Device ID:</Text> {finalArray[1]}</Text>
               <Text style={styles.label}><Text style={styles.bold}>Item:</Text> {finalArray[5]}</Text>
               <Text style={styles.label}><Text style={styles.bold}>Moisture:</Text> {finalArray[2]} %</Text>
