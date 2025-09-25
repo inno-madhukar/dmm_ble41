@@ -128,7 +128,6 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
           }
           await (Share as any).open({ url: `file://${externalPath}`, type: 'application/pdf' });
         }
-
       }
     } catch (error) {
       console.error('Print error:', error);

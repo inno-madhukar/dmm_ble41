@@ -18,8 +18,10 @@ import { lightTheme } from '../../theme';
 import { getStoredDevices, removeAllDevices, saveDevice } from '../Utils/storage';
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback } from "react";
- 
-let bleManager: any ;
+import { NativeModules } from 'react-native';
+const { ManageExternalStorage } = NativeModules;
+
+let bleManager: any;
 type BleDisconnectPeripheralEvent = any;
 type Peripheral = any;
 let scanInterval: NodeJS.Timeout;
@@ -279,6 +281,9 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
     }
   };
 
+  const csvrequestPermission = () => {
+    ManageExternalStorage.requestPermission();
+  };
   useEffect(() => {
     console.log("Initializing BLE...");
     flagRef.current = false;
@@ -294,6 +299,10 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
       } catch (error) {
         console.error('BLE Init error:', error);
       }
+      const hasExternalPermission = await ManageExternalStorage.hasPermission();
+      if (!hasExternalPermission) {
+        csvrequestPermission();
+      }
     };
 
     // Register listeners ONCE — handlers use refs to see latest state
@@ -307,6 +316,8 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
       ];
 
       initObservers();
+
+
       // mark as initialized
       return () => {
         console.log("Cleaning up listeners...");
