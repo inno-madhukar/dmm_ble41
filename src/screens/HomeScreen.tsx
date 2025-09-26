@@ -430,15 +430,16 @@ const HomeScreen = ({ navigation }: { navigation: NavigationProp<MyTabParamList>
         >
           {isScanning ? 'Scanning...' : 'Scan Devices'}
         </Button>
-          <Button
+          {/* <Button
           mode="contained"
           onPress={sendDatatoPeripheral}
           compact
-          style={styles.scanButton}
+          style={styles.scanButton }
           // disabled={isScanning}
+          
         >
           Get Test Data
-        </Button>
+        </Button> */}
       </View>
       
       <SectionList
