@@ -291,13 +291,16 @@ const RecordsScreen: React.FC = () => {
             ? selectedRows.map((i) => filteredData[i])
             : filteredData;
 
-        const now = new Date();
-        const timestamp = now
-          .toISOString()
-          .replace(/[:.]/g, "-")
-          .replace("T", "_")
-          .split("Z")[0];
-        const fileName = `records_${timestamp}.pdf`;
+              const now = new Date();
+          const dd = String(now.getDate()).padStart(2, '0');
+          const mm = String(now.getMonth() + 1).padStart(2, '0'); // month is 0-indexed
+          const yy = String(now.getFullYear()).slice(-2);
+          const hh = String(now.getHours()).padStart(2, '0');
+          const min = String(now.getMinutes()).padStart(2, '0');
+          const ss = String(now.getSeconds()).padStart(2, '0');
+
+          const timestamp = `${dd}${mm}${yy}_${hh}${min}${ss}`;
+        const fileName = `${timestamp}_Records.pdf`;
         const path = await generateSimplePrintAndPDF(rowsToPrint as BLERecord[], selectedFileName);
         const externalPath = `${RNFS.CachesDirectoryPath}/${fileName}`;
         await RNFS.copyFile(path, externalPath);
@@ -340,17 +343,20 @@ const RecordsScreen: React.FC = () => {
         Alert.alert("Error", "File system not available on this platform.");
         return;
       }
-      const now = new Date();
-      const timestamp = now
-        .toISOString()
-        .replace(/[:.]/g, "-") // replace : and . to make filename safe
-        .replace("T", "_")     // replace T with _
-        .split("Z")[0];        // drop trailing Z
-      const fileName = `records_${timestamp}`;
+                  const now = new Date();
+          const dd = String(now.getDate()).padStart(2, '0');
+          const mm = String(now.getMonth() + 1).padStart(2, '0'); // month is 0-indexed
+          const yy = String(now.getFullYear()).slice(-2);
+          const hh = String(now.getHours()).padStart(2, '0');
+          const min = String(now.getMinutes()).padStart(2, '0');
+          const ss = String(now.getSeconds()).padStart(2, '0');
+
+          const timestamp = `${dd}${mm}${yy}_${hh}${min}${ss}`;
+        const fileName = `${timestamp}_Records.csv`;
       // Save to a temporary CSV file
       // const fileName =
       //   selectedFileName.replace(/\.csv$/, "") || "exported_table";
-      const exportPath = `${RNFS.CachesDirectoryPath}/${fileName}.csv`;
+      const exportPath = `${RNFS.CachesDirectoryPath}/${fileName}`;
       await RNFS.writeFile(exportPath, csvContent, "utf8");
 
       if (!Share) {

@@ -125,12 +125,13 @@ const ShowClientsScreen = () => {
     <Card style={styles.card} onPress={(e)=>{showModal(item)}}>
       <Card.Content>
         <View style={styles.cardHeader}>
-          <Text style={styles.name}>{item.clientName || "Unnamed Client"}</Text>
+          <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">{item.clientName || "Unnamed Client"}</Text>
           <IconButton
             icon="delete"
             size={20}
             // color="#e53935"
             onPress={() => deleteClient(index)}
+            style={styles.deleteButton}
           />
         </View>
    {/* Location */}
@@ -194,11 +195,15 @@ const ShowClientsScreen = () => {
          <Text style={styles.field}>🏷️ Vendor ID: {selectedclient.vendorId}</Text> 
          {selectedclient.truckNumbers && selectedclient.truckNumbers.length > 0 && (
           <View style={{ marginTop: 3 }}>
-            <Text style={[styles.field, { marginBottom: 4 }]}>🚛 Truck Numbers:</Text>
+            <Text style={[styles.field, { marginBottom: 4 }]}>{`${selectedclient.truckNumbers[0].length > 0 ? '🚛 Truck Numbers:' : ' '}`} </Text>
             <View style={styles.chipContainer}>
-              {selectedclient.truckNumbers.map((truck: string, idx: number) => (
-                <Chip key={idx} style={styles.chip}>{truck}</Chip>
-              ))}
+              {(selectedclient.truckNumbers && selectedclient.truckNumbers.length > 0 && selectedclient.truckNumbers[0].length > 0) ? (
+                selectedclient.truckNumbers.map((truck: string, idx: number) => (
+                  <Chip key={idx} style={styles.chip}>{truck}</Chip>
+                ))
+              ) : (
+                console.log('No truck numbers available')
+              )}
             </View>
           </View>
         )} 
@@ -230,18 +235,23 @@ const styles = StyleSheet.create({
     
   },
   name: {
-    fontSize: 18,
-    fontWeight: "500",
-    marginLeft: 7,              // space between icon and text
-    color: "#333",              // dark gray text
+  fontSize: 18,
+  fontWeight: "500",
+  marginRight: 30,  
+  color: "#333",
+  width: 170,
+  // flex: 1, 
   },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 0,
+    // overflow: 'visible',
   },
- 
+ deleteButton: {
+  margin:0,              // 👌 removes extra spacing from IconButton
+},
   field: {
     fontSize: 14,
     marginBottom: 4,

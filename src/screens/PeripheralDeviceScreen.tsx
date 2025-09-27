@@ -118,7 +118,17 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
           Remarks: remarks
         });
         if (note == "share") {
-          const externalPath = `${RNFS.CachesDirectoryPath}/${route.params.peripheralData.name || "testpdf"}.pdf`;
+          const peripheralName = route.params.peripheralData.name || "testpdf";
+          // Get current date and time
+          const now = new Date();
+          const dd = String(now.getDate()).padStart(2, '0');
+          const mm = String(now.getMonth() + 1).padStart(2, '0'); // month is 0-indexed
+          const yy = String(now.getFullYear()).slice(-2);
+          const hh = String(now.getHours()).padStart(2, '0');
+          const min = String(now.getMinutes()).padStart(2, '0');
+          const ss = String(now.getSeconds()).padStart(2, '0');
+
+          const externalPath = `${RNFS.CachesDirectoryPath}/${peripheralName}_${dd}${mm}${yy}_${hh}${min}${ss}${clientName.length==0?"":"_"+clientName}.pdf`;
           await RNFS.copyFile(path, externalPath);
           console.log(path)
           // const path = `${RNFS.DownloadDirectoryPath}/demo.pdf`;
@@ -280,7 +290,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
         { ascii: "00.0,30.9,125" },
         { ascii: "WHEAT" }
       ]);
-      
+
       return;
     }
 
@@ -463,7 +473,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
                 value={clientName}
                 onChangeText={handleClientNameChange}
                 style={styles.input}
-                maxLength={50}
+                maxLength={150}
               />
               {showSuggestions && suggestions.length > 0 && (
                 <View style={styles.suggestionBox}>
@@ -486,7 +496,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
                 value={location}
                 onChangeText={setLocation}
                 style={styles.input}
-                maxLength={50}
+                maxLength={150}
               />
               <TextInput
                 label="Truck Number"
@@ -534,7 +544,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
                 value={remarks}
                 onChangeText={setRemarks}
                 style={styles.input}
-                maxLength={50}
+                maxLength={150}
               />
             </>
           );

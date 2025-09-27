@@ -7,7 +7,7 @@ import {
   Image,
   TouchableOpacity,
   Alert,
-  Permission,
+  Permission, ScrollView
 } from 'react-native';
 import { Text, TextInput, Button } from 'react-native-paper';
 let ImagePicker: typeof import('react-native-image-picker') | undefined;
@@ -64,7 +64,7 @@ const ProfileScreen = () => {
         console.log("✅ Camera granted");
         return ok;
       }
-      else{
+      else {
         return false;
       }
     }
@@ -179,70 +179,80 @@ const ProfileScreen = () => {
   return (
     <View style={styles.container}>
       <DMMTitle />
+      <ScrollView style={styles.scrollc}>
+        <TouchableOpacity onPress={editing ? handlePickImage : undefined}>
+          {profile.image ? (
+            <Image source={{ uri: profile.image }} style={styles.image} />
+          ) : (
+            <View style={styles.placeholder}>
+              <Text style={{ color: '#888' }}>Pick Image</Text>
+            </View>
+          )}
+        </TouchableOpacity>
 
-      <TouchableOpacity onPress={editing ? handlePickImage : undefined}>
-        {profile.image ? (
-          <Image source={{ uri: profile.image }} style={styles.image} />
-        ) : (
-          <View style={styles.placeholder}>
-            <Text style={{ color: '#888' }}>Pick Image</Text>
-          </View>
-        )}
-      </TouchableOpacity>
+        <TextInput
+          label="Company"
+          value={profile.company}
+          onChangeText={(text) => setProfile({ ...profile, company: text })}
+          style={styles.input}
+          mode="outlined"
+          editable={editing}
+           maxLength={150}
+        />
+        <TextInput
+          label="Email ID"
+          value={profile.email}
+          onChangeText={(text) => setProfile({ ...profile, email: text })}
+          style={styles.input}
+          mode="outlined"
+          editable={editing}
+          keyboardType="email-address"
+           maxLength={150}
+        />
+        <TextInput
+          label="Phone Number"
+          value={profile.phone}
+          onChangeText={(text) => setProfile({ ...profile, phone: text })}
+          style={styles.input}
+          mode="outlined"
+          editable={editing}
+          keyboardType="phone-pad"
+          //  maxLength={150}
+        />
+        <TextInput
+          label="Address"
+          value={profile.address}
+          onChangeText={(text) => setProfile({ ...profile, address: text })}
+          style={styles.input}
+          mode="outlined"
+          editable={editing}
+          multiline
+           maxLength={150}
+        />
 
-      <TextInput
-        label="Company"
-        value={profile.company}
-        onChangeText={(text) => setProfile({ ...profile, company: text })}
-        style={styles.input}
-        mode="outlined"
-        editable={editing}
-      />
-      <TextInput
-        label="Email ID"
-        value={profile.email}
-        onChangeText={(text) => setProfile({ ...profile, email: text })}
-        style={styles.input}
-        mode="outlined"
-        editable={editing}
-        keyboardType="email-address"
-      />
-      <TextInput
-        label="Phone Number"
-        value={profile.phone}
-        onChangeText={(text) => setProfile({ ...profile, phone: text })}
-        style={styles.input}
-        mode="outlined"
-        editable={editing}
-        keyboardType="phone-pad"
-      />
-      <TextInput
-        label="Address"
-        value={profile.address}
-        onChangeText={(text) => setProfile({ ...profile, address: text })}
-        style={styles.input}
-        mode="outlined"
-        editable={editing}
-        multiline
-      />
-
-      <Button
-        mode="contained"
-        onPress={editing ? handleSave : () => setEditing(true)}
-        textColor={editing ? colors.primary : 'white'}
-        buttonColor={editing ? 'white' : colors.primary}
-        style={[
-          styles.button,
-          editing && { borderWidth: 1.5, borderColor: colors.primary }
-        ]}
-      >
-        {editing ? 'Save' : 'Edit'}
-      </Button>
+        <Button
+          mode="contained"
+          onPress={editing ? handleSave : () => setEditing(true)}
+          textColor={editing ? colors.primary : 'white'}
+          buttonColor={editing ? 'white' : colors.primary}
+          style={[
+            styles.button,
+            editing && { borderWidth: 1.5, borderColor: colors.primary }
+          ]}
+        >
+          {editing ? 'Save' : 'Edit'}
+        </Button>
+      </ScrollView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+   scrollc: {
+    flex: 1,
+    // padding: 20,
+    // marginBottom: 20,
+  },
   container: {
     padding: 16,
     // backgroundColor: '#fff',
@@ -272,6 +282,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
     width: '30%',
     alignSelf: 'center',
+    marginBottom: 20,
   },
 });
 

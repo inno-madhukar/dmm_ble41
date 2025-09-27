@@ -5,7 +5,8 @@ let RNFS: typeof import('react-native-fs') | undefined;
 let RNPrint: typeof import('react-native-print') | undefined;
 import { Buffer } from 'buffer';
 import { useState } from 'react';
-
+import { Image } from 'react-native';
+import string1 from "../assets/logob64"
 global.Buffer = Buffer;
 
 type BLERecord = {
@@ -16,6 +17,7 @@ type BLERecord = {
   Weight: string;
   CommodityName: string;
   Note: string;
+
 };
 type BLERecordArray = BLERecord[];
 
@@ -28,13 +30,14 @@ const Recobj = {
   Commodity_Name: "Commodity Name",
   Note: "Note"
 };
-export default async function generateSimplePrintAndPDF(records: BLERecordArray, Dtype: string) {
+export default async function generateSimplePrintAndPDF(records: any[], Dtype: string) {
   if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
     throw new Error('PDF generation is only supported on Android/iOS.');
   }
   RNFS = require('react-native-fs');
   RNPrint = require('react-native-print');
-
+  const chunkSize = 30;
+  const companyChunkSize = 50;
   let profile1 = {
     image: '',
     company: '',
@@ -56,6 +59,9 @@ export default async function generateSimplePrintAndPDF(records: BLERecordArray,
     const path = uri.replace('file://', '');
     return await RNFS.readFile(path, 'base64');
   };
+  const getImageBase64footer = async (): Promise<string> => {
+  return string1;
+};
 
 
 
@@ -65,9 +71,17 @@ export default async function generateSimplePrintAndPDF(records: BLERecordArray,
   const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
   const { width, height } = page.getSize();
   let embeddedImage: any;
-
+  const fontSize = 7;
+  let Ly = height;
+  let Lx = 40;
+  let Dx = Lx + 50
+  let Dy = Ly
+  const bttomY = 40
+  let ammbedlogo: any;
+  console.log(Ly)
   if (RNFS && await RNFS.exists(profileFilePath1)) {
     const base64 = await getImageBase64(profile1.image);
+    const logo= await getImageBase64footer();
     if (base64.startsWith('/9j/')) {
       embeddedImage = await pdfDoc.embedJpg(base64);
     } else if (base64.startsWith('iVBORw0KGgo')) {
@@ -75,83 +89,135 @@ export default async function generateSimplePrintAndPDF(records: BLERecordArray,
     } else {
       throw new Error('Unsupported image format (not JPG or PNG)');
     }
+
+        if (logo.startsWith('/9j/')) {
+      ammbedlogo = await pdfDoc.embedJpg(logo);
+    } else if (logo.startsWith('iVBORw0KGgo')) {
+      ammbedlogo = await pdfDoc.embedPng(logo);
+    } else {
+      throw new Error('Unsupported image format (not JPG or PNG)');
+    }
   }
 
 
   function createHeader(y: number) {
-    
+
     page.drawImage(embeddedImage, {
       x: 40,
-      y: height - 75,
-      width: 80,
+      y: height - 85,
+      width: 100,
       height: 60,
     });
 
 
     // 🏢 Company Info
-    page.drawText(profile1.company, {
-      x: 150,
+    page.drawText("Company : ", {
+      x: width - 300,
       y: y - 10,
-      size: 16,
+      size: 8,
       font: boldFont,
       color: rgb(0, 0, 0),
     });
+    // profile1.company=profile1.company.length
+    const chunks = [];
+    for (let i = 0; i < profile1.company.length; i += companyChunkSize) {
+      chunks.push(profile1.company.slice(i, i + companyChunkSize));
+    }
+
+    chunks.forEach((chunk, index) => {
+      y -= 10;
+      page.drawText(chunk, {
+        x: width - 250,
+        y: y,
+        size: 8,
+        color: rgb(0, 0, 0),
+      });
+
+    });
+    // 📧 Contact Info
+    page.drawText(`Email :`, {
+      x: width - 300,
+      y: y -= 15,
+      size: 8,
+      font: boldFont,
+    });
+    page.drawText(`${profile1.email}`, {
+      x: width - 265,
+      y: y,
+      size: 8,
+      font,
+    });
+    page.drawText(`Ph No :`, {
+      x: width - 300,
+      y: y -= 15,
+      size: 8,
+      font: boldFont,
+    });
+    page.drawText(`${profile1.phone}`, {
+      x: width - 265,
+      y: y,
+      size: 8,
+      font,
+    });
+
     page.drawText(
-      profile1.address,
+      "Address :",
       {
-        x: 150,
-        y: y - 30,
-        size: 10,
-        font,
+        x: width - 300,
+        y: y -= 15,
+        size: 8,
+        font: boldFont,
         color: rgb(0.1, 0.1, 0.1),
         lineHeight: 12,
       }
     );
 
-    // 📧 Contact Info
-    page.drawText(`Email: ${profile1.email}`, {
-      x: width - 230,
-      y: y - 10,
-      size: 8,
-      font,
-    });
-    page.drawText(`Ph No: ${profile1.phone}`, {
-      x: width - 230,
-      y: y - 25,
-      size: 8,
-      font,
-    });
+    console.log(profile1.address)
+    profile1.address = profile1.address.replace(/\n/g, ' ');
+    const chunks1 = [];
+    for (let i = 0; i < profile1.address.length; i += companyChunkSize) {
+      chunks1.push(profile1.address.slice(i, i + companyChunkSize));
+    }
+    // let formattedAddress = profile1.address.replace(/(.{50})/g, '$1\n');
 
-    y -= 60;
-    page.drawLine({ start: { x: 40, y }, end: { x: width - 40, y }, thickness: 1 });
+    chunks1.forEach((chunk, index) => {
 
+      page.drawText(chunk, {
+        x: width - 250,
+        y: y,
+        size: 8,
+        color: rgb(0, 0, 0),
+      });
+      y -= 10;
+    });
+    Ly = y;
+    Dy = y - 35;
+    // page.drawLine({ start: { x: 40, y }, end: { x: width - 40, y }, thickness: 1 });
+    page.drawImage(ammbedlogo, {
+      x: 40,
+      y: 15,
+      width: 100,
+      height: 20,
+    });
 
     page.drawText(
       'Measured in Digital Moisture Meter by Innovative Instruments, Vadodara, Gujarat, India.',
       {
-        x: 50,
-        y: 30,
+        x: 160,
+        y: 25,
         font,
         size: 8,
         color: rgb(0.3, 0.3, 0.3),
       }
     );
     page.drawText('Visit Us: www.innovative-instruments.in', {
-      x: 50,
-      y: 17,
+      x: 160,
+      y: 12,
       font,
       size: 8,
       color: rgb(0.3, 0.3, 0.3),
     });
   }
-
-  const fontSize = 9;
-  let Ly = height - 90;
-  let Lx = 40;
-  let Dx = Lx + 50
-  let Dy = Ly - 40
-  const bttomY = 40
-  console.log(Ly)
 
 
   async function createLay(x: number, y: number) {
@@ -179,14 +245,21 @@ export default async function generateSimplePrintAndPDF(records: BLERecordArray,
     y = 40;
     page.drawLine({ start: { x: x, y }, end: { x: width - 40, y }, thickness: 0.5 });   //last
   }
-function insertNewline(str:string, interval = 25) {
-  let result = '';
-  for (let i = 0; i < str.length; i += interval) {
-    result += str.slice(i, i + interval) + '|';
+  function insertNewline(str: string, interval = 100) {
+    let result = '';
+    for (let i = 0; i < str.length; i += interval) {
+      result += str.slice(i, i + interval) + '|';
+    }
+    return result;
   }
-  return result;
-}
 
+  function insertNewline1(str: string, interval = 35) {
+    let result = '';
+    for (let i = 0; i < str.length; i += interval) {
+      result += str.slice(i, i + interval) + '|';
+    }
+    return result;
+  }
   async function showData(x: number, y: number) {
     records.forEach(async (record, index) => {
 
@@ -202,20 +275,42 @@ function insertNewline(str:string, interval = 25) {
 
       }
       let f = 0
-      Object.entries(record).forEach(([key, value]) => {
+      const reorderedRecord = {
+        "Date": record["Date"],
+        "Device ID": record["Device ID"],
+        "Moisture %": record["Moisture %"],
+        "Temp °C": record["Temp °C"],
+        "Weight (gm)": record["Weight (gm)"],
+        "Commodity Name": record["Commodity Name"],
+        "Truck Number": record["Truck Number"],
+        "Total Weight": record["Total Weight"],
+        "Vendor ID": record["Vendor ID"],
+        "Client Name": record["Client Name"],
+        "Location": record["Location"],
+        "Remarks": record["Remarks"],
+      };
+      // console.log("record", record["Device ID"])
+      Object.entries(reorderedRecord).forEach(([key, value]) => {
 
         if (f == 3) {
           console.log("conditionddd", f)
           f = 0
           x = 90
-          y -= 15
+          y -= 10
+        }
+        if (key == "Vendor ID") {
+          value = insertNewline1(value);
+        }
+        if (key == "Client Name" || key == "Location" || key == "Remarks") {
+          value = insertNewline(value);
+          x = 90;
         }
         if (key == "Date") {
           value = value.replace("\n", " ")
         }
-        if(key=="Remarks"){
-          value=insertNewline(value)
-        }
+        // if (key == "Remarks") {
+        //   value = insertNewline(value)
+        // }
         else if (key == "Note") {
           value = value.replaceAll("\n", " ")
 
@@ -229,13 +324,13 @@ function insertNewline(str:string, interval = 25) {
         });
 
         const keyWidth = boldFont.widthOfTextAtSize(`${key}:`, fontSize);
-        if (key == "Remarks") {
+
+        if (key == "Remarks" || key == "Client Name" || key == "Location") {
           const varr = value.split("|");
           console.log(varr)
 
           if (varr.length > 1) {
-            varr.forEach((val) => {
-             
+            varr.forEach((val: any) => {
               page.drawText(`${val}`, {
                 x: x + keyWidth + 5, // slight gap after key
                 y,
@@ -243,9 +338,9 @@ function insertNewline(str:string, interval = 25) {
                 font: font,
                 color: rgb(0, 0, 0),
               });
-               if(val!=""){
-              y -= 10
-               }
+              if (val != "") {
+                y -= 10
+              }
             })
           }
           else {
@@ -256,6 +351,35 @@ function insertNewline(str:string, interval = 25) {
               font: font,
               color: rgb(0, 0, 0),
             });
+            y -= 10;
+          }
+        }
+        else if (key == "Vendor ID") {
+          const varr = value.split("|");
+          if (varr.length > 1) {
+            varr.forEach((val: any) => {
+              page.drawText(`${val}`, {
+                x: x + keyWidth + 5, // slight gap after key
+                y,
+                size: fontSize,
+                font: font,
+                color: rgb(0, 0, 0),
+              });
+              if (val != "") {
+                y -= 10
+              }
+            })
+             y += 10;
+          }
+          else {
+            page.drawText(`${value}`, {
+              x: x + keyWidth + 5, // slight gap after key
+              y,
+              size: fontSize,
+              font: font,
+              color: rgb(0, 0, 0),
+            });
+            
           }
         }
         else {
@@ -268,7 +392,7 @@ function insertNewline(str:string, interval = 25) {
           });
         }
 
-        x += 150
+        x += 130
         f += 1
 
       });
@@ -288,11 +412,12 @@ function insertNewline(str:string, interval = 25) {
 
   }
 
-  createLay(Lx, Ly)
+
   if (RNFS && await RNFS.exists(profileFilePath1)) {
-              console.log("conditionddd00000000000000000")
-    createHeader(height - 50)
+    console.log("conditionddd00000000000000000")
+    createHeader(height - 20)
   }
+  createLay(Lx, Ly)
   showData(Dx, Dy)
   // Records (loop
   const pdfBytes = await pdfDoc.save();
