@@ -135,7 +135,7 @@ const ProfileScreen = () => {
 
     if (!email.trim()) {
       Alert.alert('Validation Error', 'Email ID is required.');
-      return false;
+      return true;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -177,7 +177,7 @@ const ProfileScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <DMMTitle />
       <ScrollView style={styles.scrollc}>
         <TouchableOpacity onPress={editing ? handlePickImage : undefined}>
@@ -243,7 +243,7 @@ const ProfileScreen = () => {
           {editing ? 'Save' : 'Edit'}
         </Button>
       </ScrollView>
-    </View>
+    </ScrollView>
   );
 };
 

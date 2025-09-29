@@ -104,7 +104,7 @@ export default async function generateSimplePrintAndPDF(records: any[], Dtype: s
 
     page.drawImage(embeddedImage, {
       x: 40,
-      y: height - 85,
+      y: height - 75,
       width: 100,
       height: 60,
     });
@@ -141,12 +141,22 @@ export default async function generateSimplePrintAndPDF(records: any[], Dtype: s
       size: 8,
       font: boldFont,
     });
-    page.drawText(`${profile1.email}`, {
+     if(profile1.email.trim()) {
+ page.drawText(`${profile1.email}`, {
       x: width - 265,
       y: y,
       size: 8,
       font,
     });
+     }
+   else{
+     page.drawText(`${" - "}`, {
+      x: width - 265,
+      y: y,
+      size: 8,
+      font,
+    });
+   }
     page.drawText(`Ph No :`, {
       x: width - 300,
       y: y -= 15,
@@ -193,17 +203,17 @@ export default async function generateSimplePrintAndPDF(records: any[], Dtype: s
     Ly = y;
     Dy = y - 35;
     // page.drawLine({ start: { x: 40, y }, end: { x: width - 40, y }, thickness: 1 });
-    page.drawImage(ammbedlogo, {
-      x: 40,
-      y: 15,
-      width: 100,
-      height: 20,
-    });
+    // page.drawImage(ammbedlogo, {
+    //   x: 40,
+    //   y: 15,
+    //   width: 100,
+    //   height: 20,
+    // });
 
     page.drawText(
       'Measured in Digital Moisture Meter by Innovative Instruments, Vadodara, Gujarat, India.',
       {
-        x: 160,
+        x: 70,
         y: 25,
         font,
         size: 8,
@@ -211,7 +221,7 @@ export default async function generateSimplePrintAndPDF(records: any[], Dtype: s
       }
     );
     page.drawText('Visit Us: www.innovative-instruments.in', {
-      x: 160,
+      x: 90,
       y: 12,
       font,
       size: 8,
@@ -279,14 +289,14 @@ export default async function generateSimplePrintAndPDF(records: any[], Dtype: s
         "Date": record["Date"],
         "Device ID": record["Device ID"],
         "Moisture %": record["Moisture %"],
-        "Temp °C": record["Temp °C"],
+        "Temperature °C": record["Temperature °C"],
         "Weight (gm)": record["Weight (gm)"],
         "Commodity Name": record["Commodity Name"],
         "Truck Number": record["Truck Number"],
         "Total Weight": record["Total Weight"],
         "Vendor ID": record["Vendor ID"],
         "Client Name": record["Client Name"],
-        "Location": record["Location"],
+        "Client Address": record["Client Address"],
         "Remarks": record["Remarks"],
       };
       // console.log("record", record["Device ID"])
@@ -301,7 +311,7 @@ export default async function generateSimplePrintAndPDF(records: any[], Dtype: s
         if (key == "Vendor ID") {
           value = insertNewline1(value);
         }
-        if (key == "Client Name" || key == "Location" || key == "Remarks") {
+        if (key == "Client Name" || key == "Client Address" || key == "Remarks") {
           value = insertNewline(value);
           x = 90;
         }
@@ -325,7 +335,7 @@ export default async function generateSimplePrintAndPDF(records: any[], Dtype: s
 
         const keyWidth = boldFont.widthOfTextAtSize(`${key}:`, fontSize);
 
-        if (key == "Remarks" || key == "Client Name" || key == "Location") {
+        if (key == "Remarks" || key == "Client Name" || key == "Client Address") {
           const varr = value.split("|");
           console.log(varr)
 

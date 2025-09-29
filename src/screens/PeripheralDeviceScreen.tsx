@@ -219,7 +219,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
           const fileExists = await RNFS.exists(path);
           if (!fileExists) {
             const BOM = '\uFEFF';
-            const header = `"Date","Device ID","Moisture %","Temp °C","Weight (gm)","Commodity Name","Client Name","Location","Truck Number","Vendor ID","Total Weight","Remarks"\n`;
+            const header = `"Date","Device ID","Moisture %","Temperature °C","Weight (gm)","Commodity Name","Client Name","Client Address","Truck Number","Vendor ID","Total Weight","Remarks"\n`;
             await RNFS.writeFile(path, header + csvRow, 'utf8');
           } else {
             await RNFS.appendFile(path, csvRow, 'utf8');
@@ -433,6 +433,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
       <DMMTitle />
 
       <ScrollView contentContainerStyle={styles.container}>
+<Text style={{ color: 'red', textAlign: 'center' }}>Note : Save data if it's Required</Text>
         {receivedValues.length === 3 ? (() => {
           // {true ? (() => {
           const asciiArrays = receivedValues.slice(0, 3).map(val =>
@@ -460,12 +461,38 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
                 <IconButton icon="share-variant" size={24} onPress={() => { printData(finalArray, "share", clientName, location, truckNumber, vendorId, totalWeight, remarks) }} />
               </View>
 
-              <Text style={styles.label}><Text style={styles.bold}>Device ID:</Text> {finalArray[1]}</Text>
-              <Text style={styles.label}><Text style={styles.bold}>Item:</Text> {finalArray[5]}</Text>
-              <Text style={styles.label}><Text style={styles.bold}>Moisture:</Text> {finalArray[2]} %</Text>
-              <Text style={styles.label}><Text style={styles.bold}>Weight:</Text> {finalArray[4]} {finalArray[4]?.toUpperCase() !== 'FULL' ? 'grams' : ''}</Text>
-              <Text style={styles.label}><Text style={styles.bold}>Temperature:</Text> {finalArray[3]} °C</Text>
-              <Text style={styles.label}><Text style={styles.bold}>Timestamp:</Text> {finalArray[0]}</Text>
+             <View style={styles.row}>
+  <Text style={styles.label}>Device ID :</Text>
+  <Text style={styles.value}>{finalArray[1]}</Text>
+</View>
+
+<View style={styles.row}>
+  <Text style={styles.label}>Commodity Name :</Text>
+  <Text style={styles.value}>{finalArray[5]}</Text>
+</View>
+
+<View style={styles.row}>
+  <Text style={styles.label}>Moisture :</Text>
+  <Text style={styles.value}>{finalArray[2]} %</Text>
+</View>
+
+<View style={styles.row}>
+  <Text style={styles.label}>Weight :</Text>
+  <Text style={styles.value}>
+    {finalArray[4]} {finalArray[4]?.toUpperCase() !== "FULL" ? "grams" : ""}
+  </Text>
+</View>
+
+<View style={styles.row}>
+  <Text style={styles.label}>Temperature :</Text>
+  <Text style={styles.value}>{finalArray[3]} °C</Text>
+</View>
+
+<View style={styles.row}>
+  <Text style={styles.label}>Date :</Text>
+  <Text style={styles.value}>{finalArray[0]}</Text>
+</View>
+
 
               <TextInput
                 label="Client Name"
@@ -491,7 +518,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
 
 
               <TextInput
-                label="Location"
+                label="Client Address"
                 mode="outlined"
                 value={location}
                 onChangeText={setLocation}
@@ -577,9 +604,23 @@ const styles = StyleSheet.create({
     padding: 16,
     // backgroundColor: '#ffffffff',
   },
+   row: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 4,
+  },
   label: {
-    marginBottom: 6,
+    width: 140, // 👈 same width for all labels so values align
+    fontWeight: "bold",
     fontSize: 16,
+    color: "#333",
+  },
+  value: {
+    flex: 1,
+    fontSize: 16,
+    // marginRight:
+    //  textAlign: "left",
+    color: "#000",
   },
   bold: {
     fontWeight: 'bold',

@@ -126,12 +126,22 @@ export async function generateStyledPDF({
       size: 8,
       font:boldFont,
     });
-     page.drawText(`${profile1.email}`, {
+    if(profile1.email.trim()) {
+page.drawText(`${profile1.email}`, {
       x: width - 225,
       y: y,
       size: 8,
       font,
     });
+    }
+     else{
+      page.drawText(`${"-"}`, {
+      x: width - 225,
+      y: y,
+      size: 8,
+      font,
+    });
+     }
     page.drawText(`Ph No :`, {
       x: width - 260,
       y: y -=15,
@@ -189,9 +199,9 @@ export async function generateStyledPDF({
     ['Device ID', DeviceID],
     ['Commodity Name', commodityName],
     ['Moisture', `${moisture} %`],
-    ['Sample Temperature', `${temperature} °C`],
-    ['Time', time],
-    ['Sample Quantity Required ', sampleQty],
+    ['Temperature', `${temperature} °C`],
+    ['Date', time],
+    ['Weight (gm) ', sampleQty+" grams"],
   ];
 
   info.forEach(([label, value]) => {
@@ -267,7 +277,7 @@ export async function generateStyledPDF({
 
   }
 
-  page.drawText("Location :", {
+  page.drawText("Client Address :", {
     x: 60,
     y,
     font: boldFont,

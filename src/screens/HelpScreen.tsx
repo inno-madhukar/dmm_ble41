@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Alert, Platform, ScrollView } from "react-native";
-import { Text, Button, List, Divider } from "react-native-paper";
+import { Text, Button, List, Divider, IconButton } from "react-native-paper";
 let RNFS: typeof import('react-native-fs') | undefined;
 // console.log(RNFS);
 if (Platform.OS === 'ios' || Platform.OS === 'android') {
@@ -17,6 +17,8 @@ import DMMTitle from "../Components/Title";
 const HelpScreen = () => {
   //state variable to set expand
   const [expanded, setExpanded] = useState<string | null>(null);
+    const [language, setLanguage] = useState<"en" | "hi">("en"); // 👈 language state
+
 // this button handles on press expand and shrink of answer element
   const handlePress = (question: string) => {
     setExpanded(expanded === question ? null : question);
@@ -76,6 +78,35 @@ const HelpScreen = () => {
         "Yes. After applying a filter, click the Print/Share icon to export only the filtered rows.",
     },
   ];
+   const faqDataHi = [
+    {
+      question: "मैं नया डिवाइस कैसे कनेक्ट करूं?",
+      answer:
+        "होम टैब पर जाएं, 'स्कैन डिवाइस' बटन दबाएं और सूची से अपना डिवाइस चुनें।",
+    },
+    {
+      question: "क्या ऑटो-कनेक्शन संभव है?",
+      answer:
+        "हाँ, जब आप DMM मशीन से माप भेजते हैं तो सहेजा गया डिवाइस स्वतः कनेक्ट हो जाता है।",
+    },
+    {
+      question: "मेरी CSV फाइलें कहाँ सहेजी जाती हैं?",
+      answer:
+        "CSV फाइलें System Storage -> Download -> Innovative_instruments -> Data फ़ोल्डर में सहेजी जाती हैं।",
+    },
+    {
+      question: "मैं डेटा को कैसे फ़िल्टर कर सकता हूँ?",
+      answer:
+        "किसी विशेष क्लाइंट या कॉलम के लिए रिकॉर्ड देखने के लिए तालिका के ऊपर दिए गए ड्रॉपडाउन फ़िल्टर का उपयोग करें।",
+    },
+    {
+      question: "क्या मैं केवल फ़िल्टर किया गया डेटा निर्यात कर सकता हूँ?",
+      answer:
+        "हाँ। फ़िल्टर लगाने के बाद, केवल फ़िल्टर की गई पंक्तियों को निर्यात करने के लिए प्रिंट/शेयर आइकन पर क्लिक करें।",
+    },
+  ];
+
+  const currentFaq = language === "en" ? faqData : faqDataHi; // 👈 pick based on language
 
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -125,18 +156,30 @@ const HelpScreen = () => {
         <Divider style={{ marginVertical: 10 }} />
 
         {/* FAQ Section */}
-        <Text
+        <View
           style={{
-            fontSize: 20,
-            fontWeight: "bold",
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
             marginBottom: 12,
             marginTop: 8,
           }}
         >
-          Frequently Asked Questions
-        </Text>
-       {/* map over fadData and show FAQ. */}
-        {faqData.map((faq, index) => (
+          <Text style={{ fontSize: 17, fontWeight: "bold" }}>
+            Frequently Asked Questions
+          </Text>
+
+          {/* 👇 Language Toggle Button */}
+          <Button
+            mode="outlined"
+            onPress={() => setLanguage(language === "en" ? "hi" : "en")}
+          >
+            {language === "en" ? "हिंदी" : "English"}
+          </Button>
+        </View>
+
+       {/* map over currentFaq and show FAQ. */}
+        {currentFaq.map((faq, index) => (
           <List.Accordion
             key={index}
             title={faq.question}

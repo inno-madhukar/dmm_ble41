@@ -191,7 +191,7 @@ const ShowClientsScreen = () => {
           />
           <Text style={styles.name}>{selectedclient.clientName}</Text>
           </View>
-         <Text style={styles.field}>📍Location: {selectedclient.location}</Text>
+         <Text style={styles.field}>📍Client Address: {selectedclient.location}</Text>
          <Text style={styles.field}>🏷️ Vendor ID: {selectedclient.vendorId}</Text> 
          {selectedclient.truckNumbers && selectedclient.truckNumbers.length > 0 && (
           <View style={{ marginTop: 3 }}>
