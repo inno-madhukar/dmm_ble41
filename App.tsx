@@ -11,6 +11,7 @@ if (Platform.OS === 'android') {
   RNFS = require('react-native-fs');
 }
 import HelpScreen from './src/screens/HelpScreen';
+import { SafeAreaView } from 'react-native-safe-area-context';
 const App = () => {
   useEffect(() => {
     const createDownloadFolder = async () => {
@@ -36,6 +37,7 @@ const App = () => {
     createDownloadFolder();
   }, []);
 
+  
   return (
     <PaperProvider theme={lightTheme}>
       <NavigationContainer>
@@ -47,6 +49,7 @@ const App = () => {
           }
       </NavigationContainer> 
     </PaperProvider>
+    
   );
 };
 

@@ -1,17 +1,16 @@
 import React, { useState, useRef } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { View } from 'react-native';
+import { View, Image, Modal, TouchableOpacity, StyleSheet} from 'react-native';
 import { IconButton, Menu, useTheme, Appbar } from 'react-native-paper';
 // import HomeScreen from '../screens/HomeScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import HelpScreen from '../screens/HelpScreen';
 import RecordsScreen from '../screens/RecordsScreen';
-import { useNavigation } from '@react-navigation/native';
-import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import HomeStack from '../screens/HomeStack';
 const Tab = createBottomTabNavigator();
 import ContactModal, { ContactUsModalRef } from '../screens/ContectUsModal';
-
+import { lightTheme } from '../../theme';
+import ShowClientsModal from '../Components/showClients';
 export type MyTabParamList = {
   HomeScreen: undefined;
   RecordsScreen: undefined;
@@ -21,27 +20,17 @@ export type MyTabParamList = {
 };
 
 const CustomHeader = ({ onContactPress }: { onContactPress: () => void }) => {
-
   const [menuVisible, setMenuVisible] = useState(false);
-  const navigation = useNavigation<BottomTabNavigationProp<MyTabParamList>>();
 
   return (
-    <Appbar.Header style={{ backgroundColor: '#eca921ff' }}>
-      {/* Left spacer to balance center title */}
-      <View style={{ width: 48 }} />
-
-      {/* Centered title */}
-      <Appbar.Content
-        title="INNOVATIVE INSTRUMENTS"
-        titleStyle={{
-          textAlign: 'center',
-          fontWeight: 'bold',
-          color: 'white',
-          fontSize: 16,
-        }}
+    <View style={styles.header}>
+      {/* Left logo */}
+      <Image
+        source={require("../assets/Asset1.png")}
+        style={styles.logo}
       />
 
-      {/* Right-aligned menu using IconButton */}
+      {/* Right menu */}
       <Menu
         visible={menuVisible}
         onDismiss={() => setMenuVisible(false)}
@@ -49,19 +38,28 @@ const CustomHeader = ({ onContactPress }: { onContactPress: () => void }) => {
           <IconButton
             icon="dots-vertical"
             iconColor="white"
-            size={24}
+            size={22}
             onPress={() => setMenuVisible(true)}
           />
         }
       >
-        <Menu.Item title="Contact Us" onPress={() => {
-          setMenuVisible(false);
-          onContactPress(); // trigger modal
-        }} />
+        <Menu.Item
+          title="Contact Us"
+          leadingIcon="phone"
+          style={styles.menuItem}
+          titleStyle={styles.menuTitle}
+          onPress={() => {
+            setMenuVisible(false);
+            onContactPress();
+          }}
+        />
+        
+        
       </Menu>
-    </Appbar.Header>
+    </View>
   );
 };
+
 
 
 
@@ -74,6 +72,7 @@ const BottomTabs = () => {
       <Tab.Navigator
         screenOptions={{
           headerShown: true,
+          // passing props
           header: () => <CustomHeader onContactPress={() => contactModalRef.current?.open()} />,
           tabBarActiveTintColor: theme.colors.primary,
           tabBarInactiveTintColor: theme.colors.onSurface,
@@ -125,11 +124,59 @@ const BottomTabs = () => {
             ),
           }}
         />
-
+   <Tab.Screen
+          name="Clients"
+          component={ShowClientsModal}
+          options={{
+          
+            tabBarLabel: 'Clients',
+            tabBarIcon: ({ color, size }) => (
+              <IconButton icon="account-box" size={size} iconColor={color} />
+            ),
+          }}
+        />
       </Tab.Navigator>
       <ContactModal ref={contactModalRef} />
     </>
   );
 };
+
+const styles = StyleSheet.create({
+  modalBackground: {
+    flex: 1,
+    backgroundColor: "rgba(255, 255, 255, 0.42)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  fullImage: {
+    // width: "10%",
+    height: "33%",
+    resizeMode: "contain",
+  },
+    header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: lightTheme.colors.primary,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    elevation: 4,
+  },
+  logo: {
+    width: "90%",
+    height: "90%",
+    resizeMode: "stretch",
+    borderRadius: 6,
+  },
+  menuItem: {
+    backgroundColor: "#f0f0f0",
+    borderRadius: 6,
+  },
+  menuTitle: {
+    fontWeight: "600",
+    fontSize: 15,
+    color: "#333",
+  },
+});
 
 export default BottomTabs;

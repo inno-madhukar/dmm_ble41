@@ -1,5 +1,5 @@
 {
-  "name": "dmmble4",
+  "name": "dmm_ble4",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -10,33 +10,8 @@
     "test": "jest",
     "windows": "npx @react-native-community/cli run-windows"
   },
-  "dependencies": {
-    "@react-native-documents/picker": "^10.1.5",
-    "@react-native-documents/viewer": "^1.0.1",
-    "@react-navigation/bottom-tabs": "^7.4.2",
-    "@react-navigation/drawer": "^7.5.7",
-    "@react-navigation/native": "^7.1.14",
-    "@react-navigation/native-stack": "^7.3.21",
-    "buffer": "^6.0.3",
-    "pdf-lib": "^1.17.1",
-    "react": "19.0.0",
-    "react-native": "0.79.0",
-    "react-native-ble-manager": "^12.1.5",
-    "react-native-fs": "^2.20.0",
-    "react-native-gesture-handler": "^2.28.0",
-    "react-native-image-picker": "^8.2.1",
-    "react-native-paper": "^5.14.5",
-    "react-native-permissions": "^5.4.2",
-    "react-native-print": "^0.11.0",
-    "react-native-reanimated": "^3.19.1",
-    "react-native-safe-area-context": "^5.5.2",
-    "react-native-screens": "^4.11.1",
-    "react-native-share": "^12.1.0",
-    "react-native-vector-icons": "^10.2.0",
-    "react-native-windows": "^0.79.3"
-  },
   "codegenConfig": {
-    "name": "RNDmmble4Spec",
+    "name": "RNDmm_ble4Spec",
     "type": "modules",
     "jsSrcsDir": "src",
     "outputDir": {
@@ -48,12 +23,40 @@
     },
     "includesGeneratedCode": true,
     "windows": {
-      "namespace": "dmm_ble4Codegen",
+      "namespace": "dmm_ble4Codegen", 
       "outputDirectory": "windows/DmmBle4/codegen",
       "separateDataTypes": true
     }
   },
-
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "^2.2.0",
+    "@react-native-documents/picker": "^10.1.5",
+    "@react-native-documents/viewer": "^1.0.1",
+    "@react-navigation/bottom-tabs": "^7.4.2",
+    "@react-navigation/drawer": "^7.5.7",
+    "@react-navigation/native": "^7.1.14",
+    "@react-navigation/native-stack": "^7.3.21",
+    "buffer": "^6.0.3",
+    "pdf-lib": "^1.17.1",
+    "react": "19.0.0",
+    "react-native": "0.79.0",
+    "react-native-ble-manager": "^12.1.5",
+    "react-native-file-viewer": "^2.1.5",
+    "react-native-fs": "^2.20.0",
+    "react-native-gesture-handler": "^2.28.0",
+    "react-native-image-picker": "^8.2.1",
+    "react-native-paper": "^5.14.5",
+    "react-native-permissions": "^5.4.2",
+    "react-native-print": "^0.11.0",
+    "react-native-reanimated": "^3.19.1",
+    "react-native-safe-area-context": "^5.5.2",
+    "react-native-screens": "^4.11.1",
+    "react-native-share": "^12.1.0",
+    "react-native-svg": "^15.12.1",
+    "react-native-svg-transformer": "^1.5.1",
+    "react-native-vector-icons": "^10.3.0",
+    "react-native-windows": "^0.79.4"
+  },
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@babel/preset-env": "^7.25.3",

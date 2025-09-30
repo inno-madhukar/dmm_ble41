@@ -17,14 +17,14 @@ export type RootStackParamList = {
 const Stack = createNativeStackNavigator<MyTabParamList>();
 
 const HomeStack = () => {
-  console.log('App.tsx: App component rendered');
+  console.log('HomeStack component rendered');
   return (
  
       <Stack.Navigator>
         <Stack.Screen
           name="HomeScreen"
-          component={HomeScreen}
-          options={{ headerShown: true, title: ' ' }}
+          component={HomeScreen}    //unmountOnBlur: true -> use for unmount screen, due to tab the screens are not unmount, so we should do manualy. 
+          options={{ headerShown: false, title: ' ' }}
         />
         <Stack.Screen
           name="PeripheralDeviceScreen"

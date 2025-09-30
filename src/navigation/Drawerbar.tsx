@@ -14,7 +14,7 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import HomeStack from '../screens/HomeStack';
 const Tab = createBottomTabNavigator();
 import ContactModal, { ContactUsModalRef } from '../screens/ContectUsModal';
-
+import ShowClientsModal from '../Components/showClients';
 export type MyTabParamList = {
   HomeScreen: undefined;
   RecordsScreen: undefined;
@@ -26,7 +26,6 @@ export type MyTabParamList = {
 const CustomHeader = ({ onContactPress }: { onContactPress: () => void }) => {
 
   const [menuVisible, setMenuVisible] = useState(false);
-  const navigation = useNavigation<BottomTabNavigationProp<MyTabParamList>>();
 
   return (
     <Appbar.Header style={{ backgroundColor: '#eca921ff' }}>
@@ -131,7 +130,17 @@ const AppDrawer = () => {
                <IconButton icon="account" size={size} iconColor={color} />
             ),
           }}
-        />
+        />  
+        <Drawer.Screen
+                  name="Clients"
+                  component={ShowClientsModal}
+                  options={{
+                    drawerLabel: 'Clients',
+                    drawerIcon: ({ color, size }) => (
+                      <IconButton icon="account-box" size={size} iconColor={color} />
+                    ),
+                  }}
+                />
       </Drawer.Navigator>
       
       <ContactModal ref={contactModalRef} />

@@ -26,5 +26,10 @@ module.exports = {
         windows: null, // ❌ disables Windows linking for this package
       },
     },
+    'react-native-file-viewer':{
+      platforms: {
+        windows: null, // ❌ disables Windows linking for this package
+      },
+    },
   },
 };
