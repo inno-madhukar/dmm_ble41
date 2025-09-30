@@ -63,6 +63,52 @@ export async function generateStyledPDF({
     return await RNFS.readFile(path, 'base64');
   };
 
+  function chunkWithLockedPhrases(text: string, chunkSize: number): string[] {
+    // 1. Define important phrases you don't want to split
+    const lockedPhrases: [string, string][] = [
+      ["Pvt Ltd", "Pvt_Ltd"],
+      ["Co. Ltd", "Co._Ltd"],
+      ["Private Limited", "Private_Limited"],
+      ["Ltd.", "Ltd."]
+    ];
+
+    // 2. Replace them with placeholders
+    for (const [original, placeholder] of lockedPhrases) {
+      const regex = new RegExp(original, "g");
+      text = text.replace(regex, placeholder);
+    }
+
+    // 3. Normal chunking by words
+    const chunks: string[] = [];
+    const words = text.split(/\s+/);
+    let current = "";
+
+    for (const word of words) {
+      if (word.length > chunkSize) {
+        // Break extra-long word if needed
+        let index = 0;
+        while (index < word.length) {
+          const end = Math.min(index + chunkSize, word.length);
+          chunks.push(word.substring(index, end).replace(/_/g, " "));
+          index = end;
+        }
+        current = "";
+      } else if ((current + word).length + 1 > chunkSize) {
+        chunks.push(current.trim().replace(/_/g, " "));
+        current = word + " ";
+      } else {
+        current += word + " ";
+      }
+    }
+
+    if (current.length > 0) {
+      chunks.push(current.trim().replace(/_/g, " "));
+    }
+
+    return chunks;
+  }
+
+
 
   const pdfDoc = await PDFDocument.create();
   const page = pdfDoc.addPage([595, 842]); // A4 size
@@ -96,9 +142,9 @@ export async function generateStyledPDF({
 
 
     // 🏢 Company Info
-     page.drawText("Company : ", {
+    page.drawText("Company : ", {
       x: width - 260,
-      y: y-10,
+      y: y - 10,
       size: 8,
       font: boldFont,
       color: rgb(0, 0, 0),
@@ -106,75 +152,75 @@ export async function generateStyledPDF({
     // profile1.company=profile1.company.length
     const chunks = [];
     for (let i = 0; i < profile1.company.length; i += companyChunkSize) {
-  chunks.push(profile1.company.slice(i, i + companyChunkSize));
-}
+      chunks.push(profile1.company.slice(i, i + companyChunkSize));
+    }
 
     chunks.forEach((chunk, index) => {
-       y-=10;
+      y -= 10;
       page.drawText(chunk, {
         x: width - 210,
         y: y,
         size: 8,
         color: rgb(0, 0, 0),
       });
-     
-    }); 
+
+    });
     // 📧 Contact Info
     page.drawText(`Email :`, {
       x: width - 260,
       y: y -= 15,
       size: 8,
-      font:boldFont,
+      font: boldFont,
     });
-    if(profile1.email.trim()) {
-page.drawText(`${profile1.email}`, {
-      x: width - 225,
-      y: y,
-      size: 8,
-      font,
-    });
+    if (profile1.email.trim()) {
+      page.drawText(`${profile1.email}`, {
+        x: width - 225,
+        y: y,
+        size: 8,
+        font,
+      });
     }
-     else{
+    else {
       page.drawText(`${"-"}`, {
-      x: width - 225,
-      y: y,
-      size: 8,
-      font,
-    });
-     }
+        x: width - 225,
+        y: y,
+        size: 8,
+        font,
+      });
+    }
     page.drawText(`Ph No :`, {
       x: width - 260,
-      y: y -=15,
+      y: y -= 15,
       size: 8,
       font: boldFont,
     });
-     page.drawText(`${profile1.phone}`, {
+    page.drawText(`${profile1.phone}`, {
       x: width - 225,
       y: y,
       size: 8,
       font,
     });
-    
-     page.drawText(
+
+    page.drawText(
       "Address :",
       {
-        x: width-260,
-        y: y -=15,
+        x: width - 260,
+        y: y -= 15,
         size: 8,
-        font:boldFont,
+        font: boldFont,
         color: rgb(0.1, 0.1, 0.1),
         lineHeight: 12,
       }
     );
 
-      console.log(profile1.address)
-      profile1.address =profile1.address.replace(/\n/g, ' ');
-      let formattedAddress = profile1.address.replace(/(.{50})/g, '$1\n');
+    console.log(profile1.address)
+    profile1.address = profile1.address.replace(/\n/g, ' ');
+    let formattedAddress = profile1.address.replace(/(.{50})/g, '$1\n');
 
-     page.drawText(
+    page.drawText(
       formattedAddress,
       {
-        x: width-220,
+        x: width - 220,
         y: y,
         size: 8,
         font,
@@ -196,29 +242,50 @@ page.drawText(`${profile1.email}`, {
   // 🧾 Info Block
   const info = [
 
-    ['Device ID', DeviceID],
-    ['Commodity Name', commodityName],
-    ['Moisture', `${moisture} %`],
-    ['Temperature', `${temperature} °C`],
-    ['Date', time],
-    ['Weight (gm) ', sampleQty+" grams"],
+    ['Device ID', ":  " + DeviceID],
+    ['Commodity Name', ":  " + commodityName],
+    ['Moisture', ":  " + `${moisture} %`],
+    ['Temperature', ":  " + `${temperature} °C`],
+    ['Date', ":  " + time],
+    ['Weight (gm)', ":  " + sampleQty],
   ];
 
   info.forEach(([label, value]) => {
-    page.drawText(`${label} :`, {
+    page.drawText(`${label}`, {
       x: 60,
       y,
       font: boldFont,
       size: 11,
       color: rgb(0, 0, 0),
     });
-    page.drawText(value, {
-      x: 220,
-      y,
-      font,
-      size: 11,
-      color: rgb(0, 0, 0),
-    });
+    if (value.trim() == "FULL") {
+      page.drawText(value, {
+        x: 220,
+        y,
+        font,
+        size: 11,
+        color: rgb(0, 0, 0),
+      });
+    }
+    if (label == "Weight (gm)" && value.trim() != "FULL") {
+      page.drawText(value + " grams", {
+        x: 220,
+        y,
+        font,
+        size: 11,
+        color: rgb(0, 0, 0),
+      });
+    }
+    else {
+      page.drawText(value, {
+        x: 220,
+        y,
+        font,
+        size: 11,
+        color: rgb(0, 0, 0),
+      });
+    }
+
     y -= 25;
   });
 
@@ -232,7 +299,8 @@ page.drawText(`${profile1.email}`, {
   });
   y -= 25;
 
-  page.drawText("Client Name :", {
+  let fl1 = 0;
+  page.drawText("Client Name ", {
     x: 60,
     y,
     font: boldFont,
@@ -240,21 +308,34 @@ page.drawText(`${profile1.email}`, {
     color: rgb(0, 0, 0),
   });
   if (ClientName.trim().length > 0) {
-    if (ClientName.length > 30) {
-      for (let i = 0; i < ClientName.length; i += chunkSize) {
-        const chunk = ClientName.slice(i, i + chunkSize);
-        page.drawText(chunk, {
-          x: 220,
-          y,
-          font,
-          size: 11,
-          color: rgb(0, 0, 0),
-        });
+    if (ClientName.length > 50) {
+      const chunks = chunkWithLockedPhrases(ClientName, 50);
+      chunks.forEach(chunk => {
+        if (fl1 == 0) {
+          page.drawText(":  " + chunk, {
+            x: 220,
+            y,
+            font,
+            size: 11,
+            color: rgb(0, 0, 0),
+          });
+          fl1 = 1;
+        }
+        else {
+          page.drawText(chunk, {
+            x: 220 + 10,
+            y,
+            font,
+            size: 11,
+            color: rgb(0, 0, 0),
+          });
+        }
         y -= 10;
-      }
+      });
+      y += 10;
     }
     else {
-      page.drawText(ClientName, {
+      page.drawText(":  "+ClientName, {
         x: 220,
         y,
         font,
@@ -276,8 +357,8 @@ page.drawText(`${profile1.email}`, {
     y -= 25 //we can also utilize this way
 
   }
-
-  page.drawText("Client Address :", {
+  let fl2=0;
+  page.drawText("Client Address ", {
     x: 60,
     y,
     font: boldFont,
@@ -285,21 +366,34 @@ page.drawText(`${profile1.email}`, {
     color: rgb(0, 0, 0),
   });
   if (Location.trim().length > 0) {
-    if (Location.length > 30) {
-      for (let i = 0; i < Location.length; i += chunkSize) {
-        const chunk = Location.slice(i, i + chunkSize);
-        page.drawText(chunk, {
-          x: 220,
-          y,
-          font,
-          size: 11,
-          color: rgb(0, 0, 0),
-        });
+    if (Location.length > 50) {
+      const chunks = chunkWithLockedPhrases(Location, 50);
+      chunks.forEach(chunk => {
+        if (fl2 == 0) {
+          page.drawText(":  " + chunk, {
+            x: 220,
+            y,
+            font,
+            size: 11,
+            color: rgb(0, 0, 0),
+          });
+          fl2 = 1;
+        }
+        else {
+          page.drawText(chunk, {
+            x: 220 + 10,
+            y,
+            font,
+            size: 11,
+            color: rgb(0, 0, 0),
+          });
+        }
         y -= 10;
-      }
+      });
+      y += 10;
     }
     else {
-      page.drawText(Location, {
+      page.drawText(":  "+Location, {
         x: 220,
         y,
         font,
@@ -308,7 +402,7 @@ page.drawText(`${profile1.email}`, {
       });
     }
 
-    y -= 20 //we can also utilize this way
+    y -= 20
   }
   else {
     page.drawText(" - ", {
@@ -321,7 +415,7 @@ page.drawText(`${profile1.email}`, {
     y -= 25 //we can also utilize this way
 
   }
-  page.drawText("Truck Number :", {
+  page.drawText("Truck Number ", {
     x: 60,
     y,
     font: boldFont,
@@ -329,7 +423,7 @@ page.drawText(`${profile1.email}`, {
     color: rgb(0, 0, 0),
   });
   if (TruckNumber.trim().length > 0) {
-    page.drawText(TruckNumber, {
+    page.drawText(":  "+TruckNumber, {
       x: 220,
       y,
       font,
@@ -349,7 +443,7 @@ page.drawText(`${profile1.email}`, {
     y -= 25 //we can also utilize this way
 
   }
-  page.drawText("Vendor ID :", {
+  page.drawText("Vendor ID ", {
     x: 60,
     y,
     font: boldFont,
@@ -357,7 +451,7 @@ page.drawText(`${profile1.email}`, {
     color: rgb(0, 0, 0),
   });
   if (VendorId.trim().length > 0) {
-    page.drawText(VendorId, {
+    page.drawText(":  "+VendorId, {
       x: 220,
       y,
       font,
@@ -377,7 +471,7 @@ page.drawText(`${profile1.email}`, {
     y -= 25 //we can also utilize this way
 
   }
-  page.drawText("Total Weight :", {
+  page.drawText("Total Weight ", {
     x: 60,
     y,
     font: boldFont,
@@ -385,7 +479,7 @@ page.drawText(`${profile1.email}`, {
     color: rgb(0, 0, 0),
   });
   if (TotalWeight.trim().length > 0) {
-    page.drawText(TotalWeight, {
+    page.drawText(":  "+TotalWeight + " Kg", {
       x: 220,
       y,
       font,
@@ -405,7 +499,7 @@ page.drawText(`${profile1.email}`, {
     y -= 25 //we can also utilize this way
 
   }
-  page.drawText("Remarks :", {
+  page.drawText("Remarks ", {
     x: 60,
     y,
     font: boldFont,
@@ -413,21 +507,34 @@ page.drawText(`${profile1.email}`, {
     color: rgb(0, 0, 0),
   });
   if (Remarks.trim().length > 0) {
-  if (Remarks.length > 30) {
-      for (let i = 0; i < Remarks.length; i += chunkSize) {
-        const chunk = Remarks.slice(i, i + chunkSize);
-        page.drawText(chunk, {
-          x: 220,
-          y,
-          font,
-          size: 11,
-          color: rgb(0, 0, 0),
-        });
+    if (Remarks.length > 50) {
+      const chunks = chunkWithLockedPhrases(Remarks, 50);
+      chunks.forEach(chunk => {
+        if (fl1 == 0) {
+          page.drawText(":  " + chunk, {
+            x: 220,
+            y,
+            font,
+            size: 11,
+            color: rgb(0, 0, 0),
+          });
+          fl1 = 1;
+        }
+        else {
+          page.drawText(chunk, {
+            x: 220 + 10,
+            y,
+            font,
+            size: 11,
+            color: rgb(0, 0, 0),
+          });
+        }
         y -= 10;
-      }
+      });
+      y += 10;
     }
     else {
-      page.drawText(Remarks, {
+      page.drawText(":  "+Remarks, {
         x: 220,
         y,
         font,
@@ -436,7 +543,7 @@ page.drawText(`${profile1.email}`, {
       });
     }
 
-    y -= 20 //we can also utilize this way
+    y -= 20
   }
   else {
     page.drawText(" - ", {

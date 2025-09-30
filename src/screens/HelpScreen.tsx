@@ -17,34 +17,34 @@ import DMMTitle from "../Components/Title";
 const HelpScreen = () => {
   //state variable to set expand
   const [expanded, setExpanded] = useState<string | null>(null);
-    const [language, setLanguage] = useState<"en" | "hi">("en"); // 👈 language state
+  const [language, setLanguage] = useState<"en" | "hi">("en"); // 👈 language state
 
-// this button handles on press expand and shrink of answer element
+  // this button handles on press expand and shrink of answer element
   const handlePress = (question: string) => {
     setExpanded(expanded === question ? null : question);
   };
   // this function use to open user guide in pdf view
   const handleOpenGuide = async () => {
     try {
-      if(Platform.OS === "android" ) {
-      let destPath = '';
-      if ( RNFS) {
-        destPath = `${RNFS.DocumentDirectoryPath}/DMM_B18_App_User_Guide.pdf`;
-      }
-      if (Platform.OS === "android" && RNFS) {
-        // Copy PDF from assets to documents folder
-        await RNFS.copyFileAssets("DMM_B18_App_User_Guide.pdf", destPath);
-      } else {
-        if (Platform.OS === "android" && RNFS) {
-          // Copy PDF from bundle to documents folder on iOS
-          const sourcePath = `${RNFS.MainBundlePath}/DMM_B18_App_User_Guide.pdf`;
-          await RNFS.copyFile(sourcePath, destPath);
+      if (Platform.OS === "android") {
+        let destPath = '';
+        if (RNFS) {
+          destPath = `${RNFS.DocumentDirectoryPath}/DMM_B18_App_User_Guide.pdf`;
         }
+        if (Platform.OS === "android" && RNFS) {
+          // Copy PDF from assets to documents folder
+          await RNFS.copyFileAssets("DMM_B18_App_User_Guide.pdf", destPath);
+        } else {
+          if (Platform.OS === "android" && RNFS) {
+            // Copy PDF from bundle to documents folder on iOS
+            const sourcePath = `${RNFS.MainBundlePath}/DMM_B18_App_User_Guide.pdf`;
+            await RNFS.copyFile(sourcePath, destPath);
+          }
+        }
+
+
+        await FileViewer.open(destPath);
       }
-
-
-      await FileViewer.open(destPath);
-    }
     } catch (error) {
       console.error("Error opening PDF:", error);
       Alert.alert("Error", "Could not open the PDF file.");
@@ -53,58 +53,77 @@ const HelpScreen = () => {
   //the FAQ array of objects with question and answer keys and values.
   const faqData = [
     {
-      question: "How do I connect a new device?",
+      question: " How do I connect to my DMM-B18 device?",
       answer:
-        "Go to the Home tab, press the Scan Device button, and select your device from the list.",
+        "1. Go to the Home tab.\n" +
+        "2. Tap Scan Device.\n" +
+        "3. Select your device from the list.\n\n" +
+        "💡 Tip: If the device was previously saved, it will connect automatically.",
     },
     {
-      question: "Does Auto-connection possible?",
+      question: "🔍 What should I do if I can't find my DMM-B18?",
       answer:
-        "Yes, the Saved device connected automaticaly when you send measurement from DMM Machine.",
+        "🔁 Restart the app and follow the steps in **\" How do I connect to my DMM-B18 device?\"** again.\n" +
+        "Make sure Bluetooth is turned on and the device is powered.",
     },
     {
-      question: "Where are my CSV files stored?",
+      question: "📂 How do I find my saved data?",
       answer:
-        "CSV files are stored in System Storage -> Download -> Innovative_instruments -> Data Folder.  ",
+        "You can access your saved data in your device storage:\n\n" +
+        "System Storage → Download → Innovative_instruments → Data",
     },
     {
-      question: "How do I filter data?",
+      question: "📤 How do I share my saved data?",
       answer:
-        "Use the dropdown filter above the table to view records for a specific client or column.",
+        "You can share data as PDF or CSV files:\n" +
+        "1. Go to the Records tab.\n" +
+        "2. Tap the 📁 Select File button and choose the file you want to share.\n" +
+        "3. Tap the 📤 Share icon to share the data via email or other apps.",
     },
     {
-      question: "Can I export the filtered data only?",
+      question: "💾 What data can I save?",
       answer:
-        "Yes. After applying a filter, click the Print/Share icon to export only the filtered rows.",
+        "You can save data for each client separately. Each record includes:\n" +
+        "📅 Date | ⏰ Time | ⚖️ Weight | 🌡️ Temperature | 💧 Humidity | 👤 Client details.",
     },
   ];
-   const faqDataHi = [
-    {
-      question: "मैं नया डिवाइस कैसे कनेक्ट करूं?",
-      answer:
-        "होम टैब पर जाएं, 'स्कैन डिवाइस' बटन दबाएं और सूची से अपना डिवाइस चुनें।",
-    },
-    {
-      question: "क्या ऑटो-कनेक्शन संभव है?",
-      answer:
-        "हाँ, जब आप DMM मशीन से माप भेजते हैं तो सहेजा गया डिवाइस स्वतः कनेक्ट हो जाता है।",
-    },
-    {
-      question: "मेरी CSV फाइलें कहाँ सहेजी जाती हैं?",
-      answer:
-        "CSV फाइलें System Storage -> Download -> Innovative_instruments -> Data फ़ोल्डर में सहेजी जाती हैं।",
-    },
-    {
-      question: "मैं डेटा को कैसे फ़िल्टर कर सकता हूँ?",
-      answer:
-        "किसी विशेष क्लाइंट या कॉलम के लिए रिकॉर्ड देखने के लिए तालिका के ऊपर दिए गए ड्रॉपडाउन फ़िल्टर का उपयोग करें।",
-    },
-    {
-      question: "क्या मैं केवल फ़िल्टर किया गया डेटा निर्यात कर सकता हूँ?",
-      answer:
-        "हाँ। फ़िल्टर लगाने के बाद, केवल फ़िल्टर की गई पंक्तियों को निर्यात करने के लिए प्रिंट/शेयर आइकन पर क्लिक करें।",
-    },
-  ];
+
+  const faqDataHi = [
+  {
+    question: "📶 मैं अपने DMM-B18 डिवाइस से कैसे कनेक्ट करूँ?",
+    answer:
+      "1. होम टैब पर जाएं।\n" +
+      "2. स्कैन डिवाइस पर टैप करें।\n" +
+      "3. सूची में से अपना डिवाइस चुनें।\n\n" +
+      "💡 टिप: अगर डिवाइस पहले से सेव है, तो वह अपने-आप कनेक्ट हो जाएगा।",
+  },
+  {
+    question: "🔍 अगर मेरा DMM-B18 नहीं मिल रहा है तो क्या करें?",
+    answer:
+      "🔁 ऐप को दोबारा शुरू करें और फिर से \"मैं अपने DMM-B18 डिवाइस से कैसे कनेक्ट करूँ?\" वाले स्टेप्स फॉलो करें।\n" +
+      "सुनिश्चित करें कि ब्लूटूथ ऑन है और डिवाइस चालू है।",
+  },
+  {
+    question: "📂 मैं अपना सेव किया हुआ डेटा कहाँ पा सकता हूँ?",
+    answer:
+      "आप अपना डेटा यहाँ पा सकते हैं:\n\n" +
+      "System Storage → Download → Innovative_instruments → Data",
+  },
+  {
+    question: "📤 मैं अपना सेव किया हुआ डेटा कैसे शेयर करूँ?",
+    answer:
+      "आप अपना डेटा PDF या CSV फाइल के रूप में शेयर कर सकते हैं:\n" +
+      "1. रिकॉर्ड्स टैब पर जाएं।\n" +
+      "2. 📁 फाइल चुनें बटन पर टैप करें और फाइल चुनें।\n" +
+      "3. 📤 शेयर आइकन पर टैप करें और ईमेल या अन्य ऐप से शेयर करें।",
+  },
+  {
+    question: "💾 मैं कौन-सा डेटा सेव कर सकता हूँ?",
+    answer:
+      "आप हर क्लाइंट के लिए अलग-अलग डेटा सेव कर सकते हैं। हर रिकॉर्ड में शामिल होगा:\n" +
+      "📅 तारीख | ⏰ समय | ⚖️ वजन | 🌡️ तापमान | 💧 नमी | 👤 क्लाइंट की जानकारी।",
+  },
+];
 
   const currentFaq = language === "en" ? faqData : faqDataHi; // 👈 pick based on language
 
@@ -178,7 +197,7 @@ const HelpScreen = () => {
           </Button>
         </View>
 
-       {/* map over currentFaq and show FAQ. */}
+        {/* map over currentFaq and show FAQ. */}
         {currentFaq.map((faq, index) => (
           <List.Accordion
             key={index}

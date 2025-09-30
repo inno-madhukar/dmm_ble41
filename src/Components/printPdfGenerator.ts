@@ -293,7 +293,7 @@ export default async function generateSimplePrintAndPDF(records: any[], Dtype: s
         "Weight (gm)": record["Weight (gm)"],
         "Commodity Name": record["Commodity Name"],
         "Truck Number": record["Truck Number"],
-        "Total Weight": record["Total Weight"],
+        "Total Weight (kg)": record["Total Weight (kg)"],
         "Vendor ID": record["Vendor ID"],
         "Client Name": record["Client Name"],
         "Client Address": record["Client Address"],

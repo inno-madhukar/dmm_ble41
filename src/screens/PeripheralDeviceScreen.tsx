@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, ScrollView, PermissionsAndroid, FlatList, TouchableOpacity, Platform, Alert } from 'react-native';
-import { Text, TextInput, IconButton, Snackbar } from 'react-native-paper';
+import { Text, TextInput, IconButton, Snackbar, Icon } from 'react-native-paper';
 import classifyArray from '../Components/arrClasiffy';
 let RNFS: typeof import('react-native-fs') | undefined;
 // console.log(RNFS);
@@ -128,7 +128,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
           const min = String(now.getMinutes()).padStart(2, '0');
           const ss = String(now.getSeconds()).padStart(2, '0');
 
-          const externalPath = `${RNFS.CachesDirectoryPath}/${peripheralName}_${dd}${mm}${yy}_${hh}${min}${ss}${clientName.length==0?"":"_"+clientName}.pdf`;
+          const externalPath = `${RNFS.CachesDirectoryPath}/${peripheralName}_${dd}${mm}${yy}_${hh}${min}${ss}${clientName.length == 0 ? "" : "_" + clientName}.pdf`;
           await RNFS.copyFile(path, externalPath);
           console.log(path)
           // const path = `${RNFS.DownloadDirectoryPath}/demo.pdf`;
@@ -219,7 +219,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
           const fileExists = await RNFS.exists(path);
           if (!fileExists) {
             const BOM = '\uFEFF';
-            const header = `"Date","Device ID","Moisture %","Temperature °C","Weight (gm)","Commodity Name","Client Name","Client Address","Truck Number","Vendor ID","Total Weight","Remarks"\n`;
+            const header = `"Date","Device ID","Moisture %","Temperature °C","Weight (gm)","Commodity Name","Client Name","Client Address","Truck Number","Vendor ID","Total Weight (kg)","Remarks"\n`;
             await RNFS.writeFile(path, header + csvRow, 'utf8');
           } else {
             await RNFS.appendFile(path, csvRow, 'utf8');
@@ -433,7 +433,16 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
       <DMMTitle />
 
       <ScrollView contentContainerStyle={styles.container}>
-<Text style={{ color: 'red', textAlign: 'center' }}>Note : Save data if it's Required</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginVertical: 10 }}>
+          <Text style={{ color: 'red', textAlign: 'center', marginRight:5}}>
+            Note:Click
+          </Text>
+          <Icon source="content-save" size={20} color="red" />
+          <Text style={{ color: 'red', textAlign: 'center', marginLeft:5}}>
+             to save Record if it's required
+          </Text>
+        </View>
+
         {receivedValues.length === 3 ? (() => {
           // {true ? (() => {
           const asciiArrays = receivedValues.slice(0, 3).map(val =>
@@ -461,37 +470,37 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
                 <IconButton icon="share-variant" size={24} onPress={() => { printData(finalArray, "share", clientName, location, truckNumber, vendorId, totalWeight, remarks) }} />
               </View>
 
-             <View style={styles.row}>
-  <Text style={styles.label}>Device ID :</Text>
-  <Text style={styles.value}>{finalArray[1]}</Text>
-</View>
+              <View style={styles.row}>
+                <Text style={styles.label}>Device ID </Text>
+                <Text style={styles.value}>{":  " + finalArray[1]}</Text>
+              </View>
 
-<View style={styles.row}>
-  <Text style={styles.label}>Commodity Name :</Text>
-  <Text style={styles.value}>{finalArray[5]}</Text>
-</View>
+              <View style={styles.row}>
+                <Text style={styles.label}>Commodity Name </Text>
+                <Text style={styles.value}>{":  " + finalArray[5]}</Text>
+              </View>
 
-<View style={styles.row}>
-  <Text style={styles.label}>Moisture :</Text>
-  <Text style={styles.value}>{finalArray[2]} %</Text>
-</View>
+              <View style={styles.row}>
+                <Text style={styles.label}>Moisture </Text>
+                <Text style={styles.value}>{":  " + finalArray[2]} %</Text>
+              </View>
 
-<View style={styles.row}>
-  <Text style={styles.label}>Weight :</Text>
-  <Text style={styles.value}>
-    {finalArray[4]} {finalArray[4]?.toUpperCase() !== "FULL" ? "grams" : ""}
-  </Text>
-</View>
+              <View style={styles.row}>
+                <Text style={styles.label}>Weight </Text>
+                <Text style={styles.value}>
+                  {":  " + finalArray[4]} {finalArray[4]?.toUpperCase() !== "FULL" ? "grams" : ""}
+                </Text>
+              </View>
 
-<View style={styles.row}>
-  <Text style={styles.label}>Temperature :</Text>
-  <Text style={styles.value}>{finalArray[3]} °C</Text>
-</View>
+              <View style={styles.row}>
+                <Text style={styles.label}>Temperature </Text>
+                <Text style={styles.value}>{":  " + finalArray[3]} °C</Text>
+              </View>
 
-<View style={styles.row}>
-  <Text style={styles.label}>Date :</Text>
-  <Text style={styles.value}>{finalArray[0]}</Text>
-</View>
+              <View style={styles.row}>
+                <Text style={styles.label}>Date </Text>
+                <Text style={styles.value}>{":  " + finalArray[0]}</Text>
+              </View>
 
 
               <TextInput
@@ -604,7 +613,7 @@ const styles = StyleSheet.create({
     padding: 16,
     // backgroundColor: '#ffffffff',
   },
-   row: {
+  row: {
     flexDirection: "row",
     alignItems: "center",
     marginVertical: 4,
@@ -612,12 +621,12 @@ const styles = StyleSheet.create({
   label: {
     width: 140, // 👈 same width for all labels so values align
     fontWeight: "bold",
-    fontSize: 16,
+    fontSize: 15,
     color: "#333",
   },
   value: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 15,
     // marginRight:
     //  textAlign: "left",
     color: "#000",

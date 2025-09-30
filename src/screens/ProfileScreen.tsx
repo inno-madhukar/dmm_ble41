@@ -97,6 +97,7 @@ const ProfileScreen = () => {
           mediaType: 'photo',
           selectionLimit: 1,
           includeExtra: true,
+          
         },
         (response: any) => {
           if (response.didCancel) return;
