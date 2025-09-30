@@ -53,7 +53,7 @@ interface DocumentPickerResponse {
   type?: string;
   size?: number;
 }
-const hederobj = ["Date", 'Device ID', 'Moisture %', 'Temperature °C', 'Weight (gm)', 'Commodity Name', 'Client Name', 'Client Address', 'Truck Number', 'Vendor ID', 'Total Weight (kg)', 'Remarks'
+const hederobj = ["Date", 'Device ID', 'Moisture %', 'Temperature °C', 'Weight (grams)', 'Commodity Name', 'Client Name', 'Client Address', 'Truck Number', 'Vendor ID', 'Total Weight', 'Remarks'
 ]
 const RecordsScreen: React.FC = () => {
   const [csvData, setCsvData] = useState<CSVRow[]>([]);

@@ -26,7 +26,7 @@ const Recobj = {
   Device_ID: "Device ID",
   Temp: "Temp °C",
   Moisture: "Moisture %",
-  Weight: "Weight (gm)",
+  Weight: "Weight (grams)",
   Commodity_Name: "Commodity Name",
   Note: "Note"
 };
@@ -290,10 +290,10 @@ export default async function generateSimplePrintAndPDF(records: any[], Dtype: s
         "Device ID": record["Device ID"],
         "Moisture %": record["Moisture %"],
         "Temperature °C": record["Temperature °C"],
-        "Weight (gm)": record["Weight (gm)"],
+        "Weight (grams)": record["Weight (grams)"],
         "Commodity Name": record["Commodity Name"],
         "Truck Number": record["Truck Number"],
-        "Total Weight (kg)": record["Total Weight (kg)"],
+        "Total Weight": record["Total Weight"],
         "Vendor ID": record["Vendor ID"],
         "Client Name": record["Client Name"],
         "Client Address": record["Client Address"],

@@ -247,7 +247,7 @@ export async function generateStyledPDF({
     ['Moisture', ":  " + `${moisture} %`],
     ['Temperature', ":  " + `${temperature} °C`],
     ['Date', ":  " + time],
-    ['Weight (gm)', ":  " + sampleQty],
+    ['Weight (grams)', ":  " + sampleQty],
   ];
 
   info.forEach(([label, value]) => {
@@ -258,7 +258,17 @@ export async function generateStyledPDF({
       size: 11,
       color: rgb(0, 0, 0),
     });
-    if (value.trim() == "FULL") {
+   
+    // if (value.trim().toUpperCase() === "FULL") {
+    //   page.drawText(value, {
+    //     x: 220,
+    //     y,
+    //     font,
+    //     size: 11,
+    //     color: rgb(0, 0, 0),
+    //   });
+    // }
+    // else {
       page.drawText(value, {
         x: 220,
         y,
@@ -266,25 +276,7 @@ export async function generateStyledPDF({
         size: 11,
         color: rgb(0, 0, 0),
       });
-    }
-    if (label == "Weight (gm)" && value.trim() != "FULL") {
-      page.drawText(value + " grams", {
-        x: 220,
-        y,
-        font,
-        size: 11,
-        color: rgb(0, 0, 0),
-      });
-    }
-    else {
-      page.drawText(value, {
-        x: 220,
-        y,
-        font,
-        size: 11,
-        color: rgb(0, 0, 0),
-      });
-    }
+    // }
 
     y -= 25;
   });
@@ -471,7 +463,7 @@ export async function generateStyledPDF({
     y -= 25 //we can also utilize this way
 
   }
-  page.drawText("Total Weight ", {
+  page.drawText("Total Weight", {
     x: 60,
     y,
     font: boldFont,
@@ -479,7 +471,7 @@ export async function generateStyledPDF({
     color: rgb(0, 0, 0),
   });
   if (TotalWeight.trim().length > 0) {
-    page.drawText(":  "+TotalWeight + " Kg", {
+    page.drawText(":  "+TotalWeight, {
       x: 220,
       y,
       font,

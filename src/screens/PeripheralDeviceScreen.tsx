@@ -219,7 +219,7 @@ const PeripheralDeviceScreen = ({ route }: PeripheralDetailsProps) => {
           const fileExists = await RNFS.exists(path);
           if (!fileExists) {
             const BOM = '\uFEFF';
-            const header = `"Date","Device ID","Moisture %","Temperature °C","Weight (gm)","Commodity Name","Client Name","Client Address","Truck Number","Vendor ID","Total Weight (kg)","Remarks"\n`;
+            const header = `"Date","Device ID","Moisture %","Temperature °C","Weight (grams)","Commodity Name","Client Name","Client Address","Truck Number","Vendor ID","Total Weight","Remarks"\n`;
             await RNFS.writeFile(path, header + csvRow, 'utf8');
           } else {
             await RNFS.appendFile(path, csvRow, 'utf8');
